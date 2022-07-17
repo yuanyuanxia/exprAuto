@@ -6,6 +6,9 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <typeinfo>
+#include <iostream>
+// #define DEBUG
 
 //===----------------------------------------------------------------------===//
 // Lexer
@@ -97,10 +100,16 @@ namespace
     {
     public:
         virtual ~ExprAST() = default;
+
         virtual void printExpr()
         {
             fprintf(stderr, "the base class for expression\n");
-        };
+        }
+
+        virtual std::string type()
+        {
+            return "Base";
+        }
     };
 
     /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -110,10 +119,18 @@ namespace
 
     public:
         NumberExprAST(double Val) : Val(Val) {}
+
         void printExpr()
         {
             fprintf(stderr, "num = %f\n", Val);
         }
+
+        std::string type()
+        {
+            return "Number";
+        }
+
+        double getNumber() { return Val; }
     };
 
     /// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -123,10 +140,18 @@ namespace
 
     public:
         VariableExprAST(const std::string &Name) : Name(Name) {}
+
         void printExpr()
         {
             fprintf(stderr, "variable = %s\n", Name.c_str());
         }
+
+        std::string type()
+        {
+            return "Variable";
+        }
+
+        std::string getVariable() { return Name; }
     };
 
     /// BinaryExprAST - Expression class for a binary operator.
@@ -139,12 +164,22 @@ namespace
         BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
                       std::unique_ptr<ExprAST> RHS)
             : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+
         void printExpr()
         {
             fprintf(stderr, "op = %c\n", Op);
             LHS->printExpr();
             RHS->printExpr();
         }
+
+        std::string type()
+        {
+            return "Binary";
+        }
+
+        char getOp() { return Op; }
+        std::unique_ptr<ExprAST> getLHS() { return std::move(LHS); }
+        std::unique_ptr<ExprAST> getRHS() { return std::move(RHS); }
     };
 
     /// CallExprAST - Expression class for function calls.
@@ -157,14 +192,24 @@ namespace
         CallExprAST(const std::string &Callee,
                     std::vector<std::unique_ptr<ExprAST>> Args)
             : Callee(Callee), Args(std::move(Args)) {}
+
         void printExpr()
         {
             fprintf(stderr, "call function name = %s\n", Callee.c_str());
             fprintf(stderr, "call function args =\n");
-            for(int i = 0; i < Args.size(); ++i) {
+            for (int i = 0; i < Args.size(); ++i)
+            {
                 (Args[i])->printExpr();
             }
-        };
+        }
+
+        std::string type()
+        {
+            return "Call";
+        }
+
+        std::string getCallee() { return Callee; }
+        std::vector<std::unique_ptr<ExprAST>> &getArgs() { return Args; }
     };
 
     /// PrototypeAST - This class represents the "prototype" for a function,
@@ -193,10 +238,10 @@ namespace
         FunctionAST(std::unique_ptr<PrototypeAST> Proto,
                     std::unique_ptr<ExprAST> Body)
             : Proto(std::move(Proto)), Body(std::move(Body)) {}
-        
+
         const std::string &getFuncName() const { return Proto->getName(); }
         const std::vector<std::string> &getFuncArgs() const { return Proto->getArgs(); }
-        std::unique_ptr<ExprAST>& getFuncBody() { return Body; }
+        std::unique_ptr<ExprAST> &getFuncBody() { return Body; }
     };
 
 } // end anonymous namespace
@@ -432,6 +477,141 @@ static std::unique_ptr<PrototypeAST> ParseExtern()
     return ParsePrototype();
 }
 
+
+//===----------------------------------------------------------------------===//
+// print information
+//===----------------------------------------------------------------------===//
+
+std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
+{
+    const std::string exprType = expr->type();
+    #ifdef DEBUG
+    fprintf(stderr, "expr type: %s;\t", exprType.c_str());
+    #endif
+    std::string exprStr = "";
+    if (expr->type() == "Number")
+    {
+        NumberExprAST *tmp = dynamic_cast<NumberExprAST *>(expr.get());
+        std::unique_ptr<NumberExprAST> numberExpr;
+        if (tmp != nullptr)
+        {
+            expr.release();
+            numberExpr.reset(tmp);
+        }
+        double number = (numberExpr->getNumber());
+        #ifdef DEBUG
+        fprintf(stderr, "number: %f\n", number);
+        #endif
+
+        return std::to_string(number);
+    }
+    else if (expr->type() == "Variable")
+    {
+        VariableExprAST *tmp = dynamic_cast<VariableExprAST *>(expr.get());
+        std::unique_ptr<VariableExprAST> variableExpr;
+        if (tmp != nullptr)
+        {
+            expr.release();
+            variableExpr.reset(tmp);
+        }
+        std::string variable = (variableExpr->getVariable());
+        #ifdef DEBUG
+        fprintf(stderr, "variable: %s\n", variable.c_str());
+        #endif
+
+        return variable;
+    }
+    else if (expr->type() == "Call")
+    {
+        CallExprAST *tmp = dynamic_cast<CallExprAST *>(expr.get());
+        std::unique_ptr<CallExprAST> callExpr;
+        if (tmp != nullptr)
+        {
+            expr.release();
+            callExpr.reset(tmp);
+        }
+        std::string callee = (callExpr->getCallee());
+        #ifdef DEBUG
+        fprintf(stderr, "call: %s\n", callee.c_str());
+        #endif
+        std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
+
+        std::vector<std::string> argsStr;
+        for (int i = 0; i < args.size(); ++i)
+        {
+            std::string strTmp = PrintExpression(args.at(i)); // std::unique_ptr<ExprAST>& exprTmp = args.at(i);
+            argsStr.push_back(strTmp);
+        }
+        callee += "(";
+        for (int i = 0; i < argsStr.size() - 1; ++i)
+        {
+            callee += argsStr.at(i) + ", ";
+        }
+        callee += argsStr.back() + ")";
+        return callee;
+    }
+    else if (expr->type() == "Binary")
+    {
+        BinaryExprAST *tmp = dynamic_cast<BinaryExprAST *>(expr.get());
+        std::unique_ptr<BinaryExprAST> binOp;
+        if (tmp != nullptr)
+        {
+            expr.release();
+            binOp.reset(tmp);
+        }
+        // std::unique_ptr<BinaryExprAST> binOp = std::make_unique<BinaryExprAST>(expr);
+        char op = binOp->getOp();
+        std::string opStr(1, op);
+        #ifdef DEBUG
+        fprintf(stderr, "op: %s\n", opStr.c_str());
+        #endif
+
+        std::unique_ptr<ExprAST> lhs = binOp->getLHS();
+        std::string lhsStr = PrintExpression(lhs);
+        std::unique_ptr<ExprAST> rhs = binOp->getRHS();
+        std::string rhsStr = PrintExpression(rhs);
+
+        exprStr += "(" + lhsStr + opStr + rhsStr + ")";
+    }
+    else
+    {
+        exprStr = "unknown expression";
+    }
+    return exprStr;
+}
+
+static void PrintFunction(std::unique_ptr<FunctionAST> &fun)
+{
+    if (fun == nullptr)
+    {
+        fprintf(stderr, "this is a nullptr.\n");
+    }
+    else
+    {
+        std::string funcNameStr = fun->getFuncName();
+        std::vector<std::string> funcArgsStr = fun->getFuncArgs();
+        std::unique_ptr<ExprAST> &expr = fun->getFuncBody();
+
+        fprintf(stderr, "funcName: %s\n", funcNameStr.c_str());
+        fprintf(stderr, "Args list:\n");
+        if (funcArgsStr.size() == 0)
+        {
+            fprintf(stderr, "\tempty args");
+        }
+        else
+        {
+            for (auto it = funcArgsStr.begin(); it != funcArgsStr.end(); ++it)
+            {
+                fprintf(stderr, "%s ", (*it).c_str());
+            }
+        }
+        fprintf(stderr, "\nFunc Body:\n");
+        // expr->printExpr();
+        std::string funcBodyStr = PrintExpression(expr);
+        fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
+    }
+}
+
 //===----------------------------------------------------------------------===//
 // Top-Level parsing
 //===----------------------------------------------------------------------===//
@@ -462,35 +642,6 @@ static void HandleExtern()
     }
 }
 
-// print the expression
-static void PrintExpression(std::unique_ptr<ExprAST>& expr)
-{
-    (*expr).printExpr();
-}
-
-// print the function
-static void PrintFunction(std::unique_ptr<FunctionAST> fun)
-{
-    if (fun == nullptr)
-    {
-        fprintf(stderr, "this is a nullptr.\n");
-    }
-    else
-    {
-        std::string tmp = fun->getFuncName();
-        std::vector<std::string> tmp1 = fun->getFuncArgs();
-        std::unique_ptr<ExprAST>& expr = fun->getFuncBody();
-
-        fprintf(stderr, "funcName = %s\n", tmp.c_str());
-        fprintf(stderr, "Args list:\n");
-        for (auto i = tmp1.begin(); i != tmp1.end(); ++i)
-        {
-            fprintf(stderr, "%s: ", (*i).c_str());
-        }
-        fprintf(stderr, "Func Body:\n");
-        PrintExpression(expr);
-    }
-}
 
 static void HandleTopLevelExpression()
 {
@@ -499,7 +650,8 @@ static void HandleTopLevelExpression()
     if (fun)
     {
         fprintf(stderr, "Parsed a top-level expr\n");
-        PrintFunction(std::move(fun));
+        // PrintFunction(std::move(fun));
+        PrintFunction(fun);
     }
     else
     {
@@ -533,8 +685,6 @@ static void MainLoop()
         }
     }
 }
-
-
 
 //===----------------------------------------------------------------------===//
 // Main driver code.
