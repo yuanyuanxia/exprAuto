@@ -178,8 +178,8 @@ namespace
         }
 
         char getOp() { return Op; }
-        std::unique_ptr<ExprAST> getLHS() { return std::move(LHS); }
-        std::unique_ptr<ExprAST> getRHS() { return std::move(RHS); }
+        std::unique_ptr<ExprAST>& getLHS() { return LHS; }
+        std::unique_ptr<ExprAST>& getRHS() { return RHS; }
     };
 
     /// CallExprAST - Expression class for function calls.
@@ -491,13 +491,13 @@ std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
     std::string exprStr = "";
     if (expr->type() == "Number")
     {
-        NumberExprAST *tmp = dynamic_cast<NumberExprAST *>(expr.get());
-        std::unique_ptr<NumberExprAST> numberExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            numberExpr.reset(tmp);
-        }
+        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
+        // std::unique_ptr<NumberExprAST> numberExpr;
+        // if (tmp != nullptr)
+        // {
+        //     expr.release();
+        //     numberExpr.reset(tmp);
+        // }
         double number = (numberExpr->getNumber());
         #ifdef DEBUG
         fprintf(stderr, "number: %f\n", number);
@@ -507,13 +507,7 @@ std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
     }
     else if (expr->type() == "Variable")
     {
-        VariableExprAST *tmp = dynamic_cast<VariableExprAST *>(expr.get());
-        std::unique_ptr<VariableExprAST> variableExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            variableExpr.reset(tmp);
-        }
+        VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
         std::string variable = (variableExpr->getVariable());
         #ifdef DEBUG
         fprintf(stderr, "variable: %s\n", variable.c_str());
@@ -523,13 +517,7 @@ std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
     }
     else if (expr->type() == "Call")
     {
-        CallExprAST *tmp = dynamic_cast<CallExprAST *>(expr.get());
-        std::unique_ptr<CallExprAST> callExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            callExpr.reset(tmp);
-        }
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
         std::string callee = (callExpr->getCallee());
         #ifdef DEBUG
         fprintf(stderr, "call: %s\n", callee.c_str());
@@ -552,23 +540,17 @@ std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
     }
     else if (expr->type() == "Binary")
     {
-        BinaryExprAST *tmp = dynamic_cast<BinaryExprAST *>(expr.get());
-        std::unique_ptr<BinaryExprAST> binOp;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            binOp.reset(tmp);
-        }
-        // std::unique_ptr<BinaryExprAST> binOp = std::make_unique<BinaryExprAST>(expr);
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        // std::unique_ptr<BinaryExprAST> binOp = std::make_unique<BinaryExprAST>(expr); // a old wrong method
         char op = binOp->getOp();
         std::string opStr(1, op);
         #ifdef DEBUG
         fprintf(stderr, "op: %s\n", opStr.c_str());
         #endif
 
-        std::unique_ptr<ExprAST> lhs = binOp->getLHS();
+        std::unique_ptr<ExprAST>& lhs = binOp->getLHS();
         std::string lhsStr = PrintExpression(lhs);
-        std::unique_ptr<ExprAST> rhs = binOp->getRHS();
+        std::unique_ptr<ExprAST>& rhs = binOp->getRHS();
         std::string rhsStr = PrintExpression(rhs);
 
         exprStr += "(" + lhsStr + opStr + rhsStr + ")";
@@ -627,97 +609,7 @@ std::string changeExpression(std::unique_ptr<ExprAST> &expr)
     #ifdef DEBUG
     fprintf(stderr, "expr type: %s;\t", exprType.c_str());
     #endif
-    std::string exprStr = "";
-    if (expr->type() == "Number")
-    {
-        NumberExprAST *tmp = dynamic_cast<NumberExprAST *>(expr.get());
-        std::unique_ptr<NumberExprAST> numberExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            numberExpr.reset(tmp);
-        }
-        double number = (numberExpr->getNumber());
-        #ifdef DEBUG
-        fprintf(stderr, "number: %f\n", number);
-        #endif
-
-        return std::to_string(number);
-    }
-    else if (expr->type() == "Variable")
-    {
-        VariableExprAST *tmp = dynamic_cast<VariableExprAST *>(expr.get());
-        std::unique_ptr<VariableExprAST> variableExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            variableExpr.reset(tmp);
-        }
-        std::string variable = (variableExpr->getVariable());
-        #ifdef DEBUG
-        fprintf(stderr, "variable: %s\n", variable.c_str());
-        #endif
-
-        return variable;
-    }
-    else if (expr->type() == "Call")
-    {
-        CallExprAST *tmp = dynamic_cast<CallExprAST *>(expr.get());
-        std::unique_ptr<CallExprAST> callExpr;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            callExpr.reset(tmp);
-        }
-        std::string callee = (callExpr->getCallee());
-        #ifdef DEBUG
-        fprintf(stderr, "call: %s\n", callee.c_str());
-        #endif
-        std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
-
-        std::vector<std::string> argsStr;
-        for (int i = 0; i < args.size(); ++i)
-        {
-            std::string strTmp = PrintExpression(args.at(i)); // std::unique_ptr<ExprAST>& exprTmp = args.at(i);
-            argsStr.push_back(strTmp);
-        }
-        callee += "(";
-        for (int i = 0; i < argsStr.size() - 1; ++i)
-        {
-            callee += argsStr.at(i) + ", ";
-        }
-        callee += argsStr.back() + ")";
-        return callee;
-    }
-    else if (expr->type() == "Binary")
-    {
-        BinaryExprAST *tmp = dynamic_cast<BinaryExprAST *>(expr.get());
-        std::unique_ptr<BinaryExprAST> binOp;
-        if (tmp != nullptr)
-        {
-            expr.release();
-            binOp.reset(tmp);
-        }
-        // std::unique_ptr<BinaryExprAST> binOp = std::make_unique<BinaryExprAST>(expr);
-        char op = binOp->getOp();
-        std::string opStr(1, op);
-        #ifdef DEBUG
-        fprintf(stderr, "op: %s\n", opStr.c_str());
-        #endif
-
-        std::unique_ptr<ExprAST> lhs = binOp->getLHS();
-        std::string lhsStr = PrintExpression(lhs);
-        std::unique_ptr<ExprAST> rhs = binOp->getRHS();
-        std::string rhsStr = PrintExpression(rhs);
-
-        exprStr += "(" + lhsStr + opStr + rhsStr + ")";
-    }
-    else
-    {
-        exprStr = "unknown expression";
-    }
-    return exprStr;
-    // return "TODO: change expression";
+    return "not ready";
 }
 
 //===----------------------------------------------------------------------===//
@@ -758,10 +650,10 @@ static void HandleTopLevelExpression()
     if (fun)
     {
         fprintf(stderr, "Parsed a top-level expr\n");
-        PrintFunction(fun); // after running, expr become empty???
-        // std::unique_ptr<ExprAST> &expr = fun->getFuncBody();
-        // std::string funcBodyStr = changeExpression(expr);
-        // fprintf(stderr, "After change\n\t%s\n", funcBodyStr.c_str());
+        PrintFunction(fun);
+        std::unique_ptr<ExprAST> &expr = fun->getFuncBody();
+        std::string funcBodyStr = changeExpression(expr);
+        fprintf(stderr, "After change\n\t%s\n", funcBodyStr.c_str());
     }
     else
     {
