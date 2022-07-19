@@ -110,6 +110,8 @@ namespace
         {
             return "Base";
         }
+
+        virtual std::unique_ptr<ExprAST> Clone() { return std::make_unique<ExprAST>(); }
     };
 
     /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -131,6 +133,8 @@ namespace
         }
 
         double getNumber() { return Val; }
+
+        std::unique_ptr<ExprAST> Clone() { return std::make_unique<NumberExprAST>(Val); }
     };
 
     /// VariableExprAST - Expression class for referencing a variable, like "a".
@@ -152,6 +156,8 @@ namespace
         }
 
         std::string getVariable() { return Name; }
+
+        std::unique_ptr<ExprAST> Clone() { return std::make_unique<VariableExprAST>(Name); }
     };
 
     /// BinaryExprAST - Expression class for a binary operator.
@@ -180,6 +186,13 @@ namespace
         char getOp() { return Op; }
         std::unique_ptr<ExprAST>& getLHS() { return LHS; }
         std::unique_ptr<ExprAST>& getRHS() { return RHS; }
+
+        std::unique_ptr<ExprAST> Clone()
+        {
+            auto LHSNew = LHS->Clone();
+            auto RHSNew = RHS->Clone();
+            return std::make_unique<BinaryExprAST>(Op, std::move(LHSNew), std::move(RHSNew));
+        }
     };
 
     /// CallExprAST - Expression class for function calls.
@@ -210,6 +223,18 @@ namespace
 
         std::string getCallee() { return Callee; }
         std::vector<std::unique_ptr<ExprAST>> &getArgs() { return Args; }
+
+        std::unique_ptr<ExprAST> Clone()
+        {
+            std::vector<std::unique_ptr<ExprAST>> ArgsNew;
+            for (long unsigned int i = 0; i < Args.size(); ++i)
+            {
+                auto arg = (Args.at(i))->Clone();
+                ArgsNew.push_back(std::move(arg));
+            }
+
+            return std::make_unique<CallExprAST>(Callee, std::move(ArgsNew));
+        }
     };
 
     /// PrototypeAST - This class represents the "prototype" for a function,
@@ -677,26 +702,33 @@ std::unique_ptr<ExprAST> changeExpression(std::unique_ptr<ExprAST> &expr)
                 std::string opRStr(1, opR);
                 if ((opL == '+') && (opR == '+'))
                 {
-                    fprintf(stderr, "%c %c\n", opL, opR);
                     // ready for left
                     std::unique_ptr<ExprAST>& lhsL = binOpL->getLHS();
                     std::unique_ptr<ExprAST>& rhsL = binOpL->getRHS();
                     std::unique_ptr<ExprAST> lhsLNew = changeExpression(lhsL);
+                    auto lhsLNewCopy = lhsLNew->Clone();
                     std::unique_ptr<ExprAST> rhsLNew = changeExpression(rhsL);
+                    auto rhsLNewCopy = rhsLNew->Clone();
 
                     // ready for right
                     std::unique_ptr<ExprAST>& lhsR = binOpR->getLHS();
                     std::unique_ptr<ExprAST>& rhsR = binOpR->getRHS();
                     std::unique_ptr<ExprAST> lhsRNew = changeExpression(lhsR);
+                    auto lhsRNewCopy = lhsRNew->Clone();
                     std::unique_ptr<ExprAST> rhsRNew = changeExpression(rhsR);
+                    auto rhsRNewCopy = rhsRNew->Clone();
 
                     // combine left
-                    std::unique_ptr<ExprAST> lhsLFinal = std::make_unique<BinaryExprAST>('*', std::move(lhsLNew), std::move(lhsRNew));
-                    std::unique_ptr<ExprAST> rhsLFinal = std::make_unique<BinaryExprAST>('*', std::move(lhsLNew), std::move(rhsRNew));
+                    std::unique_ptr<ExprAST> lhsLTmp = std::make_unique<BinaryExprAST>('*', std::move(lhsLNew), std::move(lhsRNew));
+                    std::unique_ptr<ExprAST> lhsLFinal = changeExpression(lhsLTmp);
+                    std::unique_ptr<ExprAST> rhsLTmp = std::make_unique<BinaryExprAST>('*', std::move(lhsLNewCopy), std::move(rhsRNew));
+                    std::unique_ptr<ExprAST> rhsLFinal = changeExpression(rhsLTmp);
                     std::unique_ptr<ExprAST> exprLFinal = std::make_unique<BinaryExprAST>('+', std::move(lhsLFinal), std::move(rhsLFinal));
                     // combine right
-                    std::unique_ptr<ExprAST> lhsRFinal = std::make_unique<BinaryExprAST>('*', std::move(rhsLNew), std::move(lhsRNew));
-                    std::unique_ptr<ExprAST> rhsRFinal = std::make_unique<BinaryExprAST>('*', std::move(rhsLNew), std::move(rhsRNew));
+                    std::unique_ptr<ExprAST> lhsRTmp = std::make_unique<BinaryExprAST>('*', std::move(rhsLNew), std::move(lhsRNewCopy));
+                    std::unique_ptr<ExprAST> lhsRFinal = changeExpression(lhsRTmp);
+                    std::unique_ptr<ExprAST> rhsRTmp = std::make_unique<BinaryExprAST>('*', std::move(rhsLNewCopy), std::move(rhsRNewCopy));
+                    std::unique_ptr<ExprAST> rhsRFinal = changeExpression(rhsRTmp);
                     std::unique_ptr<ExprAST> exprRFinal = std::make_unique<BinaryExprAST>('+', std::move(lhsRFinal), std::move(rhsRFinal));
                     // combine together
                     std::unique_ptr<ExprAST> exprFinal = std::make_unique<BinaryExprAST>('+', std::move(exprLFinal), std::move(exprRFinal));
@@ -718,17 +750,13 @@ std::unique_ptr<ExprAST> changeExpression(std::unique_ptr<ExprAST> &expr)
                     std::unique_ptr<ExprAST> lhsLNew = changeExpression(lhsL);
                     std::unique_ptr<ExprAST> rhsLNew = changeExpression(rhsL);
                     std::unique_ptr<ExprAST> rhsNew = changeExpression(rhs);
-                    ExprAST *ptrTmp = rhsNew.get();
-                    ExprAST exprTmp(*ptrTmp);
-                    std::unique_ptr<ExprAST> rhsNewCopy = std::make_unique<ExprAST>(exprTmp); // TODO: deep copy is to be supported.
+                    auto rhsNewCopy = rhsNew->Clone();
 
-                    std::unique_ptr<ExprAST> lhsFinal = std::make_unique<BinaryExprAST>('*', std::move(lhsLNew), std::move(rhsNew));
-                    std::unique_ptr<ExprAST> rhsFinal = std::make_unique<BinaryExprAST>('*', std::move(rhsLNew), std::move(rhsNewCopy));
+                    std::unique_ptr<ExprAST> lhsTmp = std::make_unique<BinaryExprAST>('*', std::move(lhsLNew), std::move(rhsNew));
+                    std::unique_ptr<ExprAST> lhsFinal = changeExpression(lhsTmp);
+                    std::unique_ptr<ExprAST> rhsTmp = std::make_unique<BinaryExprAST>('*', std::move(rhsLNew), std::move(rhsNewCopy));
+                    std::unique_ptr<ExprAST> rhsFinal = changeExpression(rhsTmp);
                     std::unique_ptr<ExprAST> exprFinal = std::make_unique<BinaryExprAST>('+', std::move(lhsFinal), std::move(rhsFinal));
-                    
-                    std::unique_ptr<ExprAST> &tmpP = exprFinal;
-                    std::string funcBodyStr = PrintExpression(tmpP);
-                    fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
                     
                     return exprFinal;
                 }
@@ -745,11 +773,14 @@ std::unique_ptr<ExprAST> changeExpression(std::unique_ptr<ExprAST> &expr)
                     std::unique_ptr<ExprAST>& rhsR = binOpR->getRHS();
                     
                     std::unique_ptr<ExprAST> lhsNew = changeExpression(lhs);
+                    auto lhsNewCopy = lhsNew->Clone();
                     std::unique_ptr<ExprAST> lhsRNew = changeExpression(lhsR);
                     std::unique_ptr<ExprAST> rhsRNew = changeExpression(rhsR);
 
-                    std::unique_ptr<ExprAST> lhsFinal = std::make_unique<BinaryExprAST>('*', std::move(lhsNew), std::move(lhsRNew));
-                    std::unique_ptr<ExprAST> rhsFinal = std::make_unique<BinaryExprAST>('*', std::move(lhsNew), std::move(rhsRNew));
+                    std::unique_ptr<ExprAST> lhsTmp = std::make_unique<BinaryExprAST>('*', std::move(lhsNew), std::move(lhsRNew));
+                    std::unique_ptr<ExprAST> lhsFinal = changeExpression(lhsTmp);
+                    std::unique_ptr<ExprAST> rhsTmp = std::make_unique<BinaryExprAST>('*', std::move(lhsNewCopy), std::move(rhsRNew));
+                    std::unique_ptr<ExprAST> rhsFinal = changeExpression(rhsTmp);
                     std::unique_ptr<ExprAST> exprFinal = std::make_unique<BinaryExprAST>('+', std::move(lhsFinal), std::move(rhsFinal));
                     return exprFinal;
                 }
