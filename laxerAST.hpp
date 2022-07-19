@@ -26,6 +26,7 @@ static double NumVal;             // Filled in if tok_number
 static int gettok()
 {
     static int LastChar = ' ';
+    bool minusFlag = false;
 
     // Skip any whitespace.
     while (isspace(LastChar))
@@ -44,9 +45,26 @@ static int gettok()
         return tok_identifier;
     }
 
+    if (LastChar == '-')
+    { // judge if there is a minus sign
+        LastChar = getchar();
+        if (isspace(LastChar))
+        { // if the character after '-' is a space, just return '-'
+            int ThisChar = LastChar;
+            LastChar = getchar();
+            return '-';
+        }
+        minusFlag = true;
+    }
+
     if (isdigit(LastChar) || LastChar == '.')
     { // Number: [0-9.]+
         std::string NumStr;
+        if(minusFlag)
+        {
+            NumStr += '-';
+            minusFlag = false;
+        }
         do
         {
             NumStr += LastChar;
@@ -95,6 +113,7 @@ void installOperators() {
     BinopPrecedence['+'] = 20;
     BinopPrecedence['-'] = 20;
     BinopPrecedence['*'] = 40; // highest.
+    BinopPrecedence['/'] = 40; // highest.
 }
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
