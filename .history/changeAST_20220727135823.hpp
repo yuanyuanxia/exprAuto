@@ -15,7 +15,7 @@ std::unique_ptr<ExprAST> changeExpression(std::unique_ptr<ExprAST> &expr)
     fprintf(stderr, "expr type: %s;\t", exprType.c_str());
 #endif
 
-    if (expr->type() == "Number")
+    if (expr.ty == "Number")
     {
         NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
         double number = (numberExpr->getNumber());

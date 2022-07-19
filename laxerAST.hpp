@@ -60,7 +60,7 @@ static int gettok()
     if (isdigit(LastChar) || LastChar == '.')
     { // Number: [0-9.]+
         std::string NumStr;
-        if(minusFlag)
+        if (minusFlag)
         {
             NumStr += '-';
             minusFlag = false;
@@ -107,7 +107,8 @@ static int getNextToken() { return CurTok = gettok(); }
 static std::map<char, int> BinopPrecedence;
 
 // Install standard binary operators.
-void installOperators() {
+void installOperators()
+{
     // 1 is lowest precedence.
     BinopPrecedence['<'] = 10;
     BinopPrecedence['+'] = 20;
@@ -140,4 +141,3 @@ std::unique_ptr<PrototypeAST> LogErrorP(const char *Str)
     LogError(Str);
     return nullptr;
 }
-

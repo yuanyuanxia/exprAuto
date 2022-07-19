@@ -42,12 +42,13 @@ static void HandleTopLevelExpression()
     {
         fprintf(stderr, "Parsed a top-level expr\n");
         PrintFunction(fun);
-        
-        fprintf(stderr, "After change\n");
-        
-        std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();
-        std::unique_ptr<ExprAST> exprNew = changeExpression(exprOrigin);
 
+        fprintf(stderr, "After change\n");
+
+        std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();
+        std::unique_ptr<ExprAST> exprNew1 = changeExpression(exprOrigin);
+        std::unique_ptr<ExprAST> exprNew2 = changeExpression(exprNew1);
+        std::unique_ptr<ExprAST> exprNew = changeExpression(exprNew2);
         std::string funcBodyStr = PrintExpression(exprNew);
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
     }
@@ -98,6 +99,7 @@ int main()
     getNextToken();
 
     // Run the main "interpreter loop" now.
+
     MainLoop();
 
     return 0;

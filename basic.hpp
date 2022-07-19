@@ -107,8 +107,8 @@ namespace
         }
 
         char getOp() { return Op; }
-        std::unique_ptr<ExprAST>& getLHS() { return LHS; }
-        std::unique_ptr<ExprAST>& getRHS() { return RHS; }
+        std::unique_ptr<ExprAST> &getLHS() { return LHS; }
+        std::unique_ptr<ExprAST> &getRHS() { return RHS; }
 
         std::unique_ptr<ExprAST> Clone()
         {
@@ -193,7 +193,5 @@ namespace
     };
 
 } // end anonymous namespace
-
-
 
 #endif
