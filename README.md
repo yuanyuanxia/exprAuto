@@ -131,7 +131,7 @@ expr type: Number;      number: 4.000000
 * [x] 打印数学表达式内容
 * [x] 展开（消除括号）数学表达式
 * [x] 支持负数和除法
-* [ ] 判断2个表达式是否相等：isEqual(expr1, expr2) return *true* or *false* ★★
+* [x] 判断2个表达式是否相等：isEqual(expr1, expr2) return *true* or *false* ★★
 * [ ] 计算表达式中的常数子项：$1+3.4/2+x \Rightarrow 2.7 + x$ ★
 * [ ] 合并含单参变量的表达式中的同类项：$x+2 \times x \Rightarrow 3 \times x$ ★★
 * [ ] 按阶数排序含单参变量的表达式：$5 \times x + 4 \times x \times x + 1 \Rightarrow 1 + 5 \times x + 4 \times x \times x$ ★★
