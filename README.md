@@ -127,21 +127,23 @@ expr type: Number;      number: 4.000000
 
 ## 目前进度
 
-已完成事项：
-
-* 优化代码框架
-* 打印数学表达式内容
-* 展开（消除括号）数学表达式
-* 支持负数和除法
-
-待完成事项：
-
-* 计算表达式中的常数子项
-* 合并含单参变量的表达式中的同类项
-* 按阶数排序含单参变量的表达式
-* 排序含双参乃至多参变量的表达式
-* 规范化含除法的表达式
-* 支持各类等价变换规则
-* 生成 mpfr 代码
-* 生成符合 herbie、daisy 等工具格式要求的数学表达式
+* [x] 优化代码框架
+* [x] 打印数学表达式内容
+* [x] 展开（消除括号）数学表达式
+* [x] 支持负数和除法
+* [ ] 判断2个表达式是否相等：isEqual(expr1, expr2) return *true* or *false* ★★
+* [ ] 计算表达式中的常数子项：$1+3.4/2+x \Rightarrow 2.7 + x$ ★
+* [ ] 合并含单参变量的表达式中的同类项：$x+2 \times x \Rightarrow 3 \times x$ ★★
+* [ ] 按阶数排序含单参变量的表达式：$5 \times x + 4 \times x \times x + 1 \Rightarrow 1 + 5 \times x + 4 \times x \times x$ ★★
+* [ ] 规范化含除法的表达式：$\frac{1}{x+1} - \frac{1}{x} \Rightarrow \frac{x-(x+1)}{(x+1) \times x}$ ★★
+* [ ] 支持多项式等价变换 ★★★
+* [ ] 支持数学函数等价变换 ★★★
+  * [ ] $exp(x)-1 \Rightarrow expm1(x)$
+  * [ ] $log(x-1) \Rightarrow log1p(x)$
+  * [ ] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
+  * [ ] $log(exp(x)) \Rightarrow x$
+  * [ ] $exp(log(x)) \Rightarrow x$
+* [ ] 排序含双参乃至多参变量的表达式 ★
+* [ ] 生成 mpfr 代码 ★
+* [ ] 生成符合 herbie、daisy 等工具格式要求的数学表达式 ★
 * ······
