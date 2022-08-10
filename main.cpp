@@ -46,9 +46,19 @@ static void HandleTopLevelExpression()
         fprintf(stderr, "After change\n");
 
         std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();
-        std::unique_ptr<ExprAST> exprNew1 = changeExpression(exprOrigin);
-        std::unique_ptr<ExprAST> exprNew2 = changeExpression(exprNew1);
-        std::unique_ptr<ExprAST> exprNew = changeExpression(exprNew2);
+        std::unique_ptr<ExprAST> exprNew;
+        while (1)
+        {
+            exprNew = changeExpression(exprOrigin);
+            bool a = isEqual(exprNew, exprOrigin);
+            std::cout << a << std::endl;
+            if (!a)
+            {
+                exprOrigin = std::move(exprNew);
+            }
+            else
+                break;
+        }
         std::string funcBodyStr = PrintExpression(exprNew);
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
     }
