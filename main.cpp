@@ -2,6 +2,7 @@
 #include "parserAST.hpp"
 #include "printAST.hpp"
 #include "changeAST.hpp"
+#include "createExpr.hpp"
 // #define DEBUG
 
 //===----------------------------------------------------------------------===//
@@ -49,7 +50,7 @@ static void HandleTopLevelExpression()
         std::unique_ptr<ExprAST> exprNew;
         while (1)
         {
-            exprNew = changeExpression(exprOrigin);
+            exprNew = expandExpr(exprOrigin);
             bool a = isEqual(exprNew, exprOrigin);
             std::cout << a << std::endl;
             if (!a)
@@ -61,6 +62,7 @@ static void HandleTopLevelExpression()
         }
         std::string funcBodyStr = PrintExpression(exprNew);
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
+        auto exprs = createExpr(std::move(exprNew));
     }
     else
     {

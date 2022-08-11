@@ -77,18 +77,25 @@ factor -> number | variable | (expr) | func(expr, ...)
   - ParseTopLevelxpr()
   - ParseExtern()
 - Print
-  - PrintExpression(std::unique_ptr\<ExprAST> &expr)  ★★
-  - PrintFunction(std::unique_ptr\<FunctionAST> &fun) ★
+  - std::string PrintExpression(std::unique_ptr\<ExprAST> &expr)  ★★
+  - void PrintFunction(std::unique_ptr\<FunctionAST> &fun) ★
 - changeExpression
-  - changeExpression(std::unique_ptr\<ExprAST> &expr) ★★★
+  - std::unique_ptr\<ExprAST> expandExpr(std::unique_ptr\<ExprAST> &expr) ★★★
+  - bool isEqual(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
+- createExpr
+  - vector<std::unique_ptr\<ExprAST>> createExpr(std::unique_ptr\<ExprAST> exprInit)
+  - void getReady(std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
+  - std::vector<std::unique_ptr\<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len)
+  - ······
+
 
 ### 安装教程
 
-1.  ``clang++ -g -O3 main.cpp `llvm-config --cxxflags` -o exprAuto.exe``
+-  `g++ main.cpp -o exprAuto.exe` (the simple and suggested way)
 
-or just use `g++`
+OR
 
-2.  `g++ main.cpp -o exprAuto.exe` (the simple and suggested way)
+-  ``clang++ -g -O3 main.cpp `llvm-config --cxxflags` -o exprAuto.exe``
 
 ### 使用说明
 
@@ -136,7 +143,7 @@ expr type: Number;      number: 4.000000
 * [ ] 合并含单参变量的表达式中的同类项：$x+2 \times x \Rightarrow 3 \times x$ ★★
 * [ ] 按阶数排序含单参变量的表达式：$5 \times x + 4 \times x \times x + 1 \Rightarrow 1 + 5 \times x + 4 \times x \times x$ ★★
 * [ ] 规范化含除法的表达式：$\frac{1}{x+1} - \frac{1}{x} \Rightarrow \frac{x-(x+1)}{(x+1) \times x}$ ★★
-* [ ] 支持多项式等价变换 ★★★
+* [x] 支持多项式等价变换 ★★★
 * [ ] 支持数学函数等价变换 ★★★
   * [ ] $exp(x)-1 \Rightarrow expm1(x)$
   * [ ] $log(x-1) \Rightarrow log1p(x)$
