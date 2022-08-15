@@ -1,10 +1,12 @@
-#include <basic.hpp>
+#include "basic.hpp"
+#include "changeAST.hpp"
 #include <vector>
 
 std::unique_ptr<ExprAST> sqrtTohypot(std::unique_ptr<ExprAST> &expr)
 {
     if (expr->type() == "Binary")
     {
+        std::cout << "1" << std::endl;
         BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
         char op = binOp->getOp();
 
@@ -29,12 +31,13 @@ std::unique_ptr<ExprAST> sqrtTohypot(std::unique_ptr<ExprAST> &expr)
                     std::unique_ptr<ExprAST> &rhsL = binOpL->getRHS();
                     std::unique_ptr<ExprAST> &lhsR = binOpR->getLHS();
                     std::unique_ptr<ExprAST> &rhsR = binOpR->getRHS();
-                    vector<ExprAST> args;
+                    std::vector<std::unique_ptr<ExprAST>> args;
                     if (isEqual(lhsL, rhsL) && isEqual(lhsR, rhsR))
                     {
                         args.push_back(lhsL);
                         args.push_back(lhsR);
-                        return CallExprAST("hypot", args)
+                        CallExprAST newExpr("hypot", args);
+                        return std::make_unique<CallExprAST>(newExpr);
                     }
                 }
             }
