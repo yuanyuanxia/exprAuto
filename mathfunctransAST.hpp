@@ -63,7 +63,7 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
                 NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(rhs.get());
                 double number = (numberExpr01->getNumber());
                 //得到这个表达式中的变量
-                if((callee01 == "exp"))
+                if((callee01 == "exp") && (number == 1))
                 {
                     for(long unsigned int i = 0; i < args01.size(); ++i)
                     {

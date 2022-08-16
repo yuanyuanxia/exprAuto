@@ -43,7 +43,7 @@ static void HandleTopLevelExpression()
     if(fun)
     {
         fprintf(stderr, "Parsed a top-level expr\n");
-        // PrintFunction(fun);
+        PrintFunction(fun);
 
         fprintf(stderr, "After change\n");
         std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();

@@ -50,7 +50,6 @@ static int gettok()
         LastChar = getchar();
         if(isspace(LastChar))
         {  // if the character after '-' is a space, just return '-'
-            int ThisChar = LastChar;
             LastChar = getchar();
             return '-';
         }
