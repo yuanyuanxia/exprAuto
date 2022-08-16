@@ -133,7 +133,7 @@ std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr)
     }
 }
 
-std::string getVariableStr(std::unique_ptr<ExprAST> &expr)
+std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
 {
     if(expr == nullptr)
     {
@@ -208,7 +208,7 @@ std::string getVariableStr(std::unique_ptr<ExprAST> &expr)
 }
 
 // 获取多项式的系数和阶数
-void getReady(std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
+void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
 {
     if(expr == nullptr)
         return;
@@ -256,7 +256,8 @@ void getReady(std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *ter
             binOpRPtr = dynamic_cast<BinaryExprAST *>(rhs.get());
             getTermSingle(binOpRPtr, term + plusTime, coefficient + plusTime);
         }
-        else if(rhs->type() == "Number") {
+        else if(rhs->type() == "Number")
+        {
             NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(rhs.get());
             *(coefficient + plusTime) = numberPtr->getNumber();
             *(term + plusTime) = 0;
@@ -489,7 +490,7 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
     return exprsFinal;
 }
 
-std::vector<std::unique_ptr<ExprAST>> createExpr(std::unique_ptr<ExprAST> exprInit)
+std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> &exprInit)
 {
     std::string variable = "z";
     int term[] = {0, 1, 2, 3, 4, 5};

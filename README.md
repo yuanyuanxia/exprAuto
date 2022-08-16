@@ -83,10 +83,14 @@ factor -> number | variable | (expr) | func(expr, ...)
   - std::unique_ptr\<ExprAST> expandExpr(std::unique_ptr\<ExprAST> &expr) ★★★
   - bool isEqual(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
 - createExpr
-  - vector<std::unique_ptr\<ExprAST>> createExpr(std::unique_ptr\<ExprAST> exprInit)
-  - void getReady(std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
+  - vector<std::unique_ptr\<ExprAST>> createExpr(const std::unique_ptr\<ExprAST> exprInit)
+  - void getReady(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
   - std::vector<std::unique_ptr\<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len)
-  - ······
+- mathfunctrans
+  - std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
+  - logTolog1
+  - sqrtTohypot
+- ······
 
 
 ### 安装教程
@@ -145,9 +149,9 @@ expr type: Number;      number: 4.000000
 * [ ] 规范化含除法的表达式：$\frac{1}{x+1} - \frac{1}{x} \Rightarrow \frac{x-(x+1)}{(x+1) \times x}$ ★★
 * [x] 支持多项式等价变换 ★★★
 * [ ] 支持数学函数等价变换 ★★★
-  * [ ] $exp(x)-1 \Rightarrow expm1(x)$
-  * [ ] $log(x-1) \Rightarrow log1p(x)$
-  * [ ] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
+  * [x] $exp(x)-1 \Rightarrow expm1(x)$
+  * [x] $log(x+1) \Rightarrow log1p(x)$
+  * [x] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
   * [ ] $log(exp(x)) \Rightarrow x$
   * [ ] $exp(log(x)) \Rightarrow x$
 * [ ] 排序含双参乃至多参变量的表达式 ★

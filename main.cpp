@@ -3,6 +3,7 @@
 #include "printAST.hpp"
 #include "changeAST.hpp"
 #include "createExpr.hpp"
+#include "mathfunctransAST.hpp"
 // #define DEBUG
 
 //===----------------------------------------------------------------------===//
@@ -11,7 +12,7 @@
 
 static void HandleDefinition()
 {
-    if (ParseDefinition())
+    if(ParseDefinition())
     {
         fprintf(stderr, "Parsed a function definition.\n");
     }
@@ -24,7 +25,7 @@ static void HandleDefinition()
 
 static void HandleExtern()
 {
-    if (ParseExtern())
+    if(ParseExtern())
     {
         fprintf(stderr, "Parsed an extern\n");
     }
@@ -39,30 +40,31 @@ static void HandleTopLevelExpression()
 {
     std::unique_ptr<FunctionAST> fun = ParseTopLevelExpr();
     // Evaluate a top-level expression into an anonymous function.
-    if (fun)
+    if(fun)
     {
         fprintf(stderr, "Parsed a top-level expr\n");
-        PrintFunction(fun);
+        // PrintFunction(fun);
 
         fprintf(stderr, "After change\n");
-
         std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();
-        std::unique_ptr<ExprAST> exprNew;
-        while (1)
-        {
-            exprNew = expandExpr(exprOrigin);
-            bool a = isEqual(exprNew, exprOrigin);
-            std::cout << a << std::endl;
-            if (!a)
-            {
-                exprOrigin = std::move(exprNew);
-            }
-            else
-                break;
-        }
+
+        std::unique_ptr<ExprAST> exprNew = expandExprWrapper(exprOrigin);
         std::string funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
-        auto exprs = createExpr(std::move(exprNew));
+        fprintf(stderr, "\texpandExpr: %s\n", funcBodyStr.c_str());
+
+        exprNew = sqrtTohypot(exprOrigin);
+        funcBodyStr = PrintExpression(exprNew);
+        fprintf(stderr, "\tsqrtTohypot: %s\n", funcBodyStr.c_str());
+
+        exprNew = expToexpm1(exprOrigin);
+        funcBodyStr = PrintExpression(exprNew);
+        fprintf(stderr, "\texpToexpm1: %s\n", funcBodyStr.c_str());
+
+        exprNew = logTolog1p(exprOrigin);
+        funcBodyStr = PrintExpression(exprNew);
+        fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
+
+        auto exprs = createExpr((exprOrigin));
     }
     else
     {
@@ -74,25 +76,25 @@ static void HandleTopLevelExpression()
 /// top ::= definition | external | expression | ';'
 static void MainLoop()
 {
-    while (true)
+    while(true)
     {
         fprintf(stderr, "ready> ");
-        switch (CurTok)
+        switch(CurTok)
         {
-        case tok_eof:
-            return;
-        case ';': // ignore top-level semicolons.
-            getNextToken();
-            break;
-        case tok_def:
-            HandleDefinition();
-            break;
-        case tok_extern:
-            HandleExtern();
-            break;
-        default:
-            HandleTopLevelExpression();
-            break;
+            case tok_eof:
+                return;
+            case ';':  // ignore top-level semicolons.
+                getNextToken();
+                break;
+            case tok_def:
+                HandleDefinition();
+                break;
+            case tok_extern:
+                HandleExtern();
+                break;
+            default:
+                HandleTopLevelExpression();
+                break;
         }
     }
 }

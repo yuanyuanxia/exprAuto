@@ -1,12 +1,14 @@
+#ifndef CHANGEEXPR
+#define CHANGEEXPR
 #include "basic.hpp"
 
 //===----------------------------------------------------------------------===//
 // Change exprAST equally
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
+std::unique_ptr<ExprAST> expandExpr(const std::unique_ptr<ExprAST> &expr)
 {
-    if (expr == nullptr)
+    if(expr == nullptr)
     {
         fprintf(stderr, "empty\n");
     }
@@ -15,7 +17,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
     fprintf(stderr, "expr type: %s;\t", exprType.c_str());
 #endif
 
-    if (expr->type() == "Number")
+    if(expr->type() == "Number")
     {
         NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
         double number = (numberExpr->getNumber());
@@ -25,7 +27,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
 
         return std::make_unique<NumberExprAST>(number);
     }
-    else if (expr->type() == "Variable")
+    else if(expr->type() == "Variable")
     {
         VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
         std::string variable = (variableExpr->getVariable());
@@ -34,7 +36,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
 #endif
         return std::make_unique<VariableExprAST>(variable);
     }
-    else if (expr->type() == "Call")
+    else if(expr->type() == "Call")
     {
         CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
         std::string callee = (callExpr->getCallee());
@@ -44,7 +46,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
         std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
 
         std::vector<std::unique_ptr<ExprAST>> argsNew;
-        for (long unsigned int i = 0; i < args.size(); ++i)
+        for(long unsigned int i = 0; i < args.size(); ++i)
         {
             auto arg = expandExpr(args.at(i));
             argsNew.push_back(std::move(arg));
@@ -52,7 +54,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
 
         return std::make_unique<CallExprAST>(callee, std::move(argsNew));
     }
-    else if (expr->type() == "Binary")
+    else if(expr->type() == "Binary")
     {
         BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
         char op = binOp->getOp();
@@ -67,9 +69,9 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
         const std::string exprTypeLHS = lhs->type();
         const std::string exprTypeRHS = rhs->type();
 
-        if (op == '*')
+        if(op == '*')
         {
-            if ((exprTypeLHS == "Binary") && (exprTypeRHS == "Binary")) // LHS = RHS = "Binary" && opL = opR = "+"
+            if((exprTypeLHS == "Binary") && (exprTypeRHS == "Binary"))  // LHS = RHS = "Binary" && opL = opR = "+"
             {
                 BinaryExprAST *binOpL = dynamic_cast<BinaryExprAST *>(lhs.get());
                 BinaryExprAST *binOpR = dynamic_cast<BinaryExprAST *>(rhs.get());
@@ -78,7 +80,7 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
                 std::string opLStr(1, opL);
                 char opR = binOpR->getOp();
                 std::string opRStr(1, opR);
-                if ((opL == '+') && (opR == '+'))
+                if((opL == '+') && (opR == '+'))
                 {
                     // ready for left
                     std::unique_ptr<ExprAST> &lhsL = binOpL->getLHS();
@@ -114,14 +116,14 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
                     return exprFinal;
                 }
             }
-            else if (exprTypeLHS == "Binary") // LHS = "Binary" && RHS != "Binary" && opL = "+"
+            else if(exprTypeLHS == "Binary")  // LHS = "Binary" && RHS != "Binary" && opL = "+"
             {
                 BinaryExprAST *binOpL = dynamic_cast<BinaryExprAST *>(lhs.get());
 
                 char opL = binOpL->getOp();
                 std::string opLStr(1, opL);
 
-                if (opLStr == "+")
+                if(opLStr == "+")
                 {
                     std::unique_ptr<ExprAST> &lhsL = binOpL->getLHS();
                     std::unique_ptr<ExprAST> &rhsL = binOpL->getRHS();
@@ -140,14 +142,14 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
                     return exprFinal;
                 }
             }
-            else if (exprTypeRHS == "Binary") // LHS != "Binary" && RHS = "Binary" && opR = "+"
+            else if(exprTypeRHS == "Binary")  // LHS != "Binary" && RHS = "Binary" && opR = "+"
             {
                 BinaryExprAST *binOpR = dynamic_cast<BinaryExprAST *>(rhs.get());
 
                 char opR = binOpR->getOp();
                 std::string opRStr(1, opR);
 
-                if (opRStr == "+")
+                if(opRStr == "+")
                 {
                     std::unique_ptr<ExprAST> &lhsR = binOpR->getLHS();
                     std::unique_ptr<ExprAST> &rhsR = binOpR->getRHS();
@@ -172,14 +174,14 @@ std::unique_ptr<ExprAST> expandExpr(std::unique_ptr<ExprAST> &expr)
         std::unique_ptr<ExprAST> exprFinal = std::make_unique<BinaryExprAST>(op, std::move(lhsNew), std::move(rhsNew));
         return exprFinal;
     }
-    else // TODO: Error handling is to be supported
+    else  // TODO: Error handling is to be supported
     {
         std::string exprStr = "unknown expression";
         return std::make_unique<VariableExprAST>(exprStr);
     }
 }
 
-bool isEqual(std::unique_ptr<ExprAST> &expr1, std::unique_ptr<ExprAST> &expr2)
+bool isEqual(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2)
 {
     if(expr1 == nullptr || expr2 == nullptr)
     {
@@ -275,3 +277,24 @@ bool isEqual(std::unique_ptr<ExprAST> &expr1, std::unique_ptr<ExprAST> &expr2)
         return false;
     }
 }
+
+std::unique_ptr<ExprAST> expandExprWrapper(const std::unique_ptr<ExprAST> &exprOrigin)
+{
+    std::unique_ptr<ExprAST> exprTmp = exprOrigin->Clone();
+    std::unique_ptr<ExprAST> exprNew = nullptr;
+    while(true)
+    {
+        exprNew = expandExpr(exprTmp);
+        if(isEqual(exprNew, exprTmp))
+        {
+            break;
+        }
+        else
+        {
+            exprTmp = std::move(exprNew);
+        }
+    }
+    return exprNew;
+}
+
+#endif
