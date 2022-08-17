@@ -115,6 +115,14 @@ std::unique_ptr<ExprAST> expandExpr(const std::unique_ptr<ExprAST> &expr)
 
                     return exprFinal;
                 }
+                else if((opL == '/') && (opR != '/'))// TODO: opL or opR is /
+                {
+
+                }
+                else if((opL != '/') && (opR == '/'))// TODO: opL or opR is /
+                {
+
+                }
             }
             else if(exprTypeLHS == "Binary")  // LHS = "Binary" && RHS != "Binary" && opL = "+"
             {

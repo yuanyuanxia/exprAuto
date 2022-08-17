@@ -11,6 +11,7 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
     if(expr == nullptr)
     {
         fprintf(stderr, "empty\n");
+        return nullptr;
     }
     const std::string exprType = expr->type();
 #ifdef DEBUG
@@ -105,6 +106,7 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
     if(expr == nullptr)
     {
         fprintf(stderr, "empty\n");
+        return nullptr;
     }
     const std::string exprType = expr->type();
 #ifdef DEBUG
@@ -154,6 +156,11 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
 // sqrt(expr1*expr1+expr2*expr2) ==> hypot(expr1, expr2)
 std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
 {
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+        return nullptr;
+    }
     if(expr->type() == "Call")
     {
         CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
