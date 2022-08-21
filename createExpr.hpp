@@ -506,10 +506,10 @@ std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> 
 
     auto exprsFinal = createMiddle(variable, term, coefficient, len);
 
-    fprintf(stderr, "exprsFinal: %ld\n", exprsFinal.size());
+    fprintf(stderr, "\texprsFinal: %ld\n", exprsFinal.size());
     for(long unsigned int i = 0; i < exprsFinal.size(); i++)
     {
-        fprintf(stderr, "exprsFinal: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
+        fprintf(stderr, "\tpolyRewrite: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
     }
 
     return exprsFinal;
