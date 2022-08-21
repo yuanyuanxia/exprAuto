@@ -4,6 +4,7 @@
 #include "changeAST.hpp"
 #include "createExpr.hpp"
 #include "mathfunctransAST.hpp"
+#include "exprAuto.hpp"
 // #define DEBUG
 
 //===----------------------------------------------------------------------===//
@@ -65,6 +66,8 @@ static void HandleTopLevelExpression()
         fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
 
         auto exprs = createExpr((exprOrigin));
+
+        auto exprsFinal = exprAuto(exprOrigin);
     }
     else
     {
