@@ -217,3 +217,49 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
     }
     return expr->Clone();
 }
+
+// log(exp(x))⇒x OR exp(log(x))⇒x
+std::unique_ptr<ExprAST> lex_x_Or_elx_x(std::unique_ptr<ExprAST> &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+    }
+    const std::string exprType = expr->type();
+	if(exprType == "Call")
+	{
+        CallExprAST *expr01 = dynamic_cast<CallExprAST *>(expr.get());
+		
+        std::string callee01 = (expr01->getCallee());
+        std::vector<std::unique_ptr<ExprAST>> &args01 = expr01->getArgs();
+		// log(exp(x))⇒x
+        if(callee01 == "log" && args01.size() == 1)    //log(***)
+        {    
+			std::unique_ptr<ExprAST> &expr02 = args01.at(0);
+    	    if(expr02->type() == "Call")
+            {
+				std::string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
+			    std::vector<std::unique_ptr<ExprAST>> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
+				if(callee02 == "exp" && args02.size() == 1)    //log(exp(***))
+				{
+					return (args02.at(0))->Clone();
+                }
+            }
+        }
+		//exp(log(x))⇒x
+		if(callee01 == "exp" && args01.size() == 1)    //exp(***)
+        {    
+			std::unique_ptr<ExprAST> &expr02 = args01.at(0);
+    	    if(expr02->type() == "Call")
+            {
+				std::string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
+			    std::vector<std::unique_ptr<ExprAST>> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
+				if(callee02 == "log" && args02.size() == 1)    //exp(log(***))
+				{
+					return (args02.at(0))->Clone();
+                }
+            }
+        }
+    }
+	return expr->Clone();
+}

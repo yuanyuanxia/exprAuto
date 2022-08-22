@@ -65,6 +65,10 @@ static void HandleTopLevelExpression()
         funcBodyStr = PrintExpression(exprNew);
         fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
 
+        exprNew = lex_x_Or_elx_x(exprOrigin);
+		funcBodyStr = PrintExpression(exprNew);
+		fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
+
         auto exprs = createExpr((exprOrigin));
 
         auto exprsFinal = exprAuto(exprOrigin);
