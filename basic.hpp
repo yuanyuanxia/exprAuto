@@ -84,8 +84,12 @@ public:
     std::string type() { return "Binary"; }
 
     char getOp() { return Op; }
+    void setOp(char opNew) { Op = opNew;}
     std::unique_ptr<ExprAST> &getLHS() { return LHS; }
     std::unique_ptr<ExprAST> &getRHS() { return RHS; }
+
+    void setLSH(std::unique_ptr<ExprAST> &newLHS) { LHS = newLHS->Clone();}
+    void setRSH(std::unique_ptr<ExprAST> &newRHS) { RHS = newRHS->Clone();}
 
     std::unique_ptr<ExprAST> Clone()
     {
