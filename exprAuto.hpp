@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <queue>
 
 #include "basic.hpp"
 
@@ -182,16 +183,147 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
     return items;
 }
 
+//层序遍历表达式
+std::unique_ptr<ExprAST> levelTraversalExpr(const std::unique_ptr<ExprAST> &expr)
+{
+	std::queue<BinaryExprAST *> que1;    //que1存储层序遍历的节点
+	std::queue<char> que2;    //que2只能存储'L'和'R',表示对应节点在根节点的左边还是右边
+	std::unique_ptr<ExprAST> in = expr->Clone();
+    std::unique_ptr<ExprAST> beiyong = expr->Clone();
+	const std::string exprType = expr->type();
+	if(exprType == "Binary")
+	{
+		BinaryExprAST *root = dynamic_cast<BinaryExprAST *>(in.get());
+		char rootOp = root->getOp();
+  	    std::unique_ptr<ExprAST> &rootLsh = root->getLHS();  //根左表达式
+    	std::unique_ptr<ExprAST> &rootRsh = root->getRHS();  //根右表达式
+        
+		if(in != nullptr) que1.push(root);
+        
+		if((rootLsh ->type()) == "Binary") que2.push('L');
+		if((rootRsh ->type()) == "Binary") que2.push('R');
+
+		int s =0;    //s代表层数
+        char biaoji;
+		while(!que1.empty()){
+	    	int size = que1.size();
+			// 这里一定要使用固定大小size，不使用que.size()，因为que.size是不断变化的
+			for(int i = 0; i < size; i++)
+			{
+         	    auto node = que1.front();
+        	    que1.pop();
+
+				if(s>0)    //第二层开始，que1每出队一个节点,que2也会出队
+                {
+                    biaoji = que2.front();
+                    que2.pop();
+                }
+				BinaryExprAST *node1 = node;
+                
+				if(node1->getOp() == '/' && s ==0)    //根节点为'/'
+				{
+				    return expr->Clone();
+				}
+
+				if(node1->getOp() == '*')
+				{
+					if(node1->getLHS())
+					{
+						if(node1->getLHS()->type() == "Binary")
+						{
+                            BinaryExprAST *ddd = dynamic_cast<BinaryExprAST *>(std::move((node1->getLHS()).get()));    //ddd为新入队的节点
+							que1.push(ddd);
+
+                            if(s == 0) biaoji = 'L';
+							if(s>0) que2.push(biaoji == 'L' ? 'L' :'R');    //第二层开始，每往队列que1中添加一个节点，都要在que2中添加一个'L'或者'R'
+                            
+						    if(ddd->getOp() == '/')    //新入队的节点为目标节点
+							{
+								if(biaoji == 'L')    //目标节点在根节点的左侧时
+							    {
+								    //换操作符
+                                    ddd->setOp(root->getOp());
+                                    root->setOp('/');
+                                    //将根节点和目标节点的左边互换
+                                    root->getRHS().swap(ddd->getRHS());
+
+								    return root->Clone();
+								}
+								if(biaoji == 'R')    //目标节点在根节点的右侧时，且ddd在node1左侧时
+								{
+                                    std::unique_ptr<ExprAST> resultRight = ddd->getRHS()->Clone();    //'/'右子树resultRight成为result的右子树
+                                    std::unique_ptr<ExprAST> s = ddd->getLHS()->Clone();    //'/'左子树根节点s将成为替代'/'的节点
+									
+                                    node1->setLSH(s);    //改变node1的左子树
+                                    std::unique_ptr<ExprAST> resultLeft = root->Clone();    //node1左子树变化后，root将成为result左子树
+
+                                    BinaryExprAST *result = dynamic_cast<BinaryExprAST *>(beiyong.get());
+                                    result->setOp('/');
+                                    result->setLSH(resultLeft);
+                                    result->setRSH(resultRight);
+                                    
+									return result->Clone();
+								}
+                            }
+						}
+					}
+                	if(node1->getRHS())
+					{
+						if(node1->getRHS()->type() == "Binary")
+						{
+                            BinaryExprAST *ddd = dynamic_cast<BinaryExprAST *>((node1->getRHS()).get());    //ddd为新入队的节点
+							que1.push(ddd);
+
+                            if(s == 0) biaoji = 'R';
+							if(s>0) que2.push(biaoji == 'L' ? 'L' :'R');
+                            
+						    if(ddd->getOp() == '/')
+							{
+							    if(biaoji == 'L')
+								{
+                                    ddd->setOp(root->getOp());
+                                    root->setOp('/');
+                                    root->getRHS().swap(ddd->getRHS());
+									return root->Clone();
+								}
+                                if(biaoji == 'R')    //目标节点在根节点的右侧时，且ddd在node1右侧时
+                                {   
+                                    std::unique_ptr<ExprAST> resultRight = ddd->getRHS()->Clone();
+                                    std::unique_ptr<ExprAST> s = ddd->getLHS()->Clone();
+									
+                                    node1->setRSH(s);    //改变node1的右子树
+                                    std::unique_ptr<ExprAST> resultLeft = root->Clone();
+
+                                    BinaryExprAST *result = dynamic_cast<BinaryExprAST *>(beiyong.get());
+                                    result->setOp('/');
+                                    result->setLSH(resultLeft);
+                                    result->setRSH(resultRight);
+                                    
+									return result->Clone();
+                                }
+                            }
+						}
+					}
+				}
+        	}
+			s++;
+		}
+	}
+	return expr->Clone();
+}
+
 // TODO: implement
 std::vector<std::unique_ptr<ExprAST>> moveDiv(const std::vector<std::unique_ptr<ExprAST>>& exprs)
 {
     fprintf(stderr, "moveDiv: start--------\n");
     std::vector<std::unique_ptr<ExprAST>> items;
+    std::unique_ptr<ExprAST> moveBefore, moveAfter;
     for(long unsigned int i = 0; i < exprs.size(); i++)
     {
-        std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
+        moveBefore = exprs.at(i)->Clone();
         // TODO: try to move '/' to the root node equally for each monomial
-        items.push_back(std::move(exprTmp));
+        moveAfter = levelTraversalExpr(moveBefore);
+        items.push_back(std::move(moveAfter));
     }
     // print info for debug
     fprintf(stderr, "\tmoveDiv: expr size = %ld\n", items.size());
