@@ -13,7 +13,7 @@
 
 static void HandleDefinition()
 {
-    if(ParseDefinition())
+    if (ParseDefinition())
     {
         fprintf(stderr, "Parsed a function definition.\n");
     }
@@ -26,7 +26,7 @@ static void HandleDefinition()
 
 static void HandleExtern()
 {
-    if(ParseExtern())
+    if (ParseExtern())
     {
         fprintf(stderr, "Parsed an extern\n");
     }
@@ -41,7 +41,7 @@ static void HandleTopLevelExpression()
 {
     std::unique_ptr<FunctionAST> fun = ParseTopLevelExpr();
     // Evaluate a top-level expression into an anonymous function.
-    if(fun)
+    if (fun)
     {
         fprintf(stderr, "Parsed a top-level expr\n");
         PrintFunction(fun);
@@ -66,8 +66,8 @@ static void HandleTopLevelExpression()
         fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
 
         exprNew = lex_x_Or_elx_x(exprOrigin);
-		funcBodyStr = PrintExpression(exprNew);
-		fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
+        funcBodyStr = PrintExpression(exprNew);
+        fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
 
         auto exprs = createExpr((exprOrigin));
 
@@ -83,25 +83,25 @@ static void HandleTopLevelExpression()
 /// top ::= definition | external | expression | ';'
 static void MainLoop()
 {
-    while(true)
+    while (true)
     {
         fprintf(stderr, "ready> ");
-        switch(CurTok)
+        switch (CurTok)
         {
-            case tok_eof:
-                return;
-            case ';':  // ignore top-level semicolons.
-                getNextToken();
-                break;
-            case tok_def:
-                HandleDefinition();
-                break;
-            case tok_extern:
-                HandleExtern();
-                break;
-            default:
-                HandleTopLevelExpression();
-                break;
+        case tok_eof:
+            return;
+        case ';': // ignore top-level semicolons.
+            getNextToken();
+            break;
+        case tok_def:
+            HandleDefinition();
+            break;
+        case tok_extern:
+            HandleExtern();
+            break;
+        default:
+            HandleTopLevelExpression();
+            break;
         }
     }
 }
@@ -112,6 +112,7 @@ static void MainLoop()
 
 int main()
 {
+
     // Install standard binary operators.
     installOperators();
 
