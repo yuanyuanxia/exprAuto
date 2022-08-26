@@ -266,7 +266,7 @@ std::unique_ptr<ExprAST> levelTraversalExpr(const std::unique_ptr<ExprAST> &expr
                                     BinaryExprAST *result = dynamic_cast<BinaryExprAST *>(beiyong.get());
                                     result->setOp('/');
                                     result->setLHS(resultLeft);
-                                    result->setLHS(resultRight);
+                                    result->setRHS(resultRight);
 
                                     return result->Clone();
                                 }
@@ -304,7 +304,7 @@ std::unique_ptr<ExprAST> levelTraversalExpr(const std::unique_ptr<ExprAST> &expr
 
                                     BinaryExprAST *result = dynamic_cast<BinaryExprAST *>(beiyong.get());
                                     result->setOp('/');
-                                    result->setRHS(resultLeft);
+                                    result->setLHS(resultLeft);
                                     result->setRHS(resultRight);
 
                                     return result->Clone();
