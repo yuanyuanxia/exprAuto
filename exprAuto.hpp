@@ -2,6 +2,7 @@
 #include <queue>
 
 #include "basic.hpp"
+#include "monoInfo.hpp"
 
 bool isFraction(const std::unique_ptr<ExprAST> &expr)
 {
@@ -423,40 +424,6 @@ std::unique_ptr<ExprAST> preprocess(const std::unique_ptr<ExprAST> &expr)
     return std::move(exprNew);
 }
 
-struct Monomial;
-struct funcInfo
-{
-    std::string callee;
-    std::vector<Monomial> args;
-
-    void showInfo() { fprintf(stderr, "\tfuncInfo: callee = %s, args size = %ld;\n", callee.c_str(), args.size()); }
-};
-
-struct variableInfo
-{
-    std::string name;
-    int degree;
-
-    void showInfo() { fprintf(stderr, "\tvariableInfo: name = %s; degree = %d\n", name.c_str(), degree); }
-};
-
-struct Monomial
-{
-    double coefficient = 1;
-    std::vector<funcInfo> functions;
-    std::vector<variableInfo> variables;
-
-    void showInfo()
-    {
-        fprintf(stderr, "\tcoefficient = %f;\n", coefficient);
-        fprintf(stderr, "\tvariables size = %ld;\n", variables.size());
-        for (long unsigned int i = 0; i < variables.size(); i++)
-        {
-            (variables.at(i)).showInfo();
-        }
-    }
-};
-
 std::vector<variableInfo> mergeVariables(std::vector<variableInfo> vec1, std::vector<variableInfo> vec2)
 {
     std::vector<variableInfo> vec3;
@@ -482,24 +449,40 @@ std::vector<variableInfo> mergeVariables(std::vector<variableInfo> vec1, std::ve
     return vec3;
 }
 
-Monomial mergeMonomial(const Monomial &mono1, const Monomial &mono2)
+monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2)
 {
-    Monomial monoFinal;
+    monoInfo monoFinal;
     double &coefficient = monoFinal.coefficient;
+    std::vector<funcInfo> &functions = monoFinal.functions;
     std::vector<variableInfo> &variables = monoFinal.variables;
     variableInfo variableTmp;
 
     coefficient = mono1.coefficient * mono2.coefficient;
     variables = mergeVariables(mono1.variables, mono2.variables);
 
+    for(size_t i = 0; i < (mono1.functions).size(); ++i)
+    {
+        auto arg = (mono1.functions).at(i);
+        functions.push_back(std::move(arg));
+    }
+    for(size_t i = 0; i < (mono2.functions).size(); ++i)
+    {
+        auto arg = (mono2.functions).at(i);
+        functions.push_back(std::move(arg));
+    }
+
     return monoFinal;
 }
 
-Monomial extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
+std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs);
+
+monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
 {
-    Monomial monoFinal;
+    monoInfo monoFinal;
     double &coefficient = monoFinal.coefficient;
+    std::vector<funcInfo> &functions = monoFinal.functions;
     std::vector<variableInfo> &variables = monoFinal.variables;
+    funcInfo funcTmp;
     variableInfo variableTmp;
 
     std::string exprType = expr->type();
@@ -520,9 +503,24 @@ Monomial extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
         variables.push_back(variableTmp);
         return monoFinal;
     }
+    else if (exprType == "Call")
+    {
+        // fprintf(stderr, "extractInfoKernel: variable\n");
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        funcTmp.callee = callPtr->getCallee();
+        for(size_t i = 0; i < (callPtr->getArgs()).size(); ++i)
+        {
+            auto arg = (callPtr->getArgs().at(i))->Clone();
+            auto exprsTmp = extractItems(arg);
+            auto funcs = extractInfo(exprsTmp);
+            (funcTmp.args).insert((funcTmp.args).begin(), funcs.begin(), funcs.end());
+        }
+        functions.push_back(funcTmp);
+        return monoFinal;
+    }
     if (exprType != "Binary")
-    {                                                                                        // eg: poly := exp(x) or x or 2.2
-        fprintf(stderr, "extractInfoKernel: expr is neither number, variable, or binary\n"); // print info for debug
+    {   // eg: poly := exp(x) or x or 2.2
+        fprintf(stderr, "extractInfoKernel: expr is neither number, variable, call or binary\n");
         return monoFinal;
     }
     BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
@@ -531,10 +529,10 @@ Monomial extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
     {
         // fprintf(stderr, "extractInfoKernel: expr op is '*'\n");
         std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
-        Monomial monoTmp1 = extractInfoKernel(lhs);
+        monoInfo monoTmp1 = extractInfoKernel(lhs);
         // monoTmp1.showInfo();
         std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
-        Monomial monoTmp2 = extractInfoKernel(rhs);
+        monoInfo monoTmp2 = extractInfoKernel(rhs);
         // monoTmp2.showInfo();
 
         monoFinal = mergeMonomial(monoTmp1, monoTmp2);
@@ -546,36 +544,73 @@ Monomial extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
     return monoFinal;
 }
 
-std::vector<Monomial> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs)
 {
     fprintf(stderr, "extractInfo: start--------\n");
-    std::vector<Monomial> results;
+    std::vector<monoInfo> results;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
         std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
-        Monomial monoTmp = extractInfoKernel(exprTmp);
+        monoInfo monoTmp = extractInfoKernel(exprTmp);
+        std::vector<variableInfo> &variables = monoTmp.variables;
+        std::sort(variables.begin(), variables.end());
         results.push_back(monoTmp);
     }
+
     // print information of info
     for (long unsigned int i = 0; i < results.size(); i++)
     {
-        fprintf(stderr, "\tThe Monomial No.%lu: \n", i);
+        fprintf(stderr, "The monoInfo No.%lu: \n", i);
         (results.at(i)).showInfo();
+        fprintf(stderr, "\n");
     }
     fprintf(stderr, "extractInfo: end----------\n");
     return results;
 }
 
-// TODO: implement
-std::vector<struct Monomial> mergePolynomial(const std::vector<struct Monomial> &info)
+std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
 {
     fprintf(stderr, "mergePolynomial: start--------\n");
+    size_t size = info.size();
+    bool used[size] = {false};
+    size_t i = 0, j = 0;
+    std::vector<monoInfo> results;
+    while (i < info.size())
+    {
+        if(used[i])
+        {
+            i++;
+            continue;
+        }
+        monoInfo tmp = info.at(i);
+        used[i] = true;
+        j = i + 1;
+        while (j < info.size())
+        {
+            monoInfo tmp1 = info.at(j);
+            if(tmp.hasCommonTerm(tmp1))
+            {
+                tmp.combine(tmp1);
+                used[j] = true;
+            }
+            j++;
+        }
+        results.push_back(tmp);
+    }
+    std::sort(results.begin(), results.end());
+    // print information of info
+    for (size_t i = 0; i < results.size(); i++)
+    {
+        fprintf(stderr, "The Monomial No.%llu: \n", i);
+        (results.at(i)).showInfo();
+        fprintf(stderr, "\n");
+    }
     fprintf(stderr, "mergePolynomial: end----------\n");
-    return {};
+    return results;
 }
 
 // TODO: implement
-std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
+std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
 {
     // info为monomial对象容器
     //表达式为数字单项式
@@ -801,8 +836,8 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST>
 std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST> &expr)
 {
     std::vector<std::unique_ptr<ExprAST>> items = extractItems(expr);
-    std::vector<Monomial> info = extractInfo(items);
-    std::vector<Monomial> infoNew = mergePolynomial(info);
+    std::vector<monoInfo> info = extractInfo(items);
+    std::vector<monoInfo> infoNew = mergePolynomial(info);
     std::unique_ptr<ExprAST> exprNew = geneExprAST(infoNew);
     return rewriteExpr(exprNew);
 }
