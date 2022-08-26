@@ -344,16 +344,17 @@ std::vector<std::unique_ptr<ExprAST>> moveDiv(const std::vector<std::unique_ptr<
 }
 
 // TODO: implement
-std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST>>& exprs)
 {
+    //把分子和分母分开
     std::vector<std::unique_ptr<ExprAST>> numerators;
     std::vector<std::unique_ptr<ExprAST>> denominators;
-    for (long unsigned int i = 0; i < exprs.size(); i++)
+    for(long unsigned int i = 0; i < exprs.size(); i++)
     {
         std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
         std::unique_ptr<ExprAST> numeratorTmp = nullptr;
         std::unique_ptr<ExprAST> denominatorTmp = nullptr;
-        if (isFraction(exprTmp))
+        if(isFraction(exprTmp))
         {
             numeratorTmp = getNumerator(exprTmp);
             denominatorTmp = getDenominator(exprTmp);
@@ -366,14 +367,51 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
         numerators.push_back(std::move(numeratorTmp));
         denominators.push_back(std::move(denominatorTmp));
     }
-    // demo implementation: return the corresbonding exprAST for the input vector to ensure normal execution
-    std::unique_ptr<ExprAST> result = nullptr;
-    for (long unsigned int i = 0; i < exprs.size(); i++)
+//处理分子，进行循环合并
+    std::vector<std::unique_ptr<ExprAST>> numeratorcom; //建立合并之后的分子数组
+    for (long unsigned int i = 0; i < exprs.size(); i++)  //写在循环里，每循环一次重置一次
     {
-        std::unique_ptr<ExprAST> exprTmp = numerators.at(i)->Clone();
-        std::unique_ptr<ExprAST> numeratorTmp = nullptr;
-        std::unique_ptr<ExprAST> denominatorTmp = nullptr;
-        if (i == 0)
+       std::unique_ptr<ExprAST> exprTmp_i = numerators.at(i)->Clone();  //获得第一个的分子
+       std::unique_ptr<ExprAST> numeratorTmp = nullptr;
+       numeratorTmp = getNumerator(exprTmp_i); //赋值
+       for (long unsigned int j = 0; j < exprs.size(); j++)
+        {
+           if (i==j){
+               continue;
+           }
+           else 
+           {
+                std::unique_ptr<ExprAST> exprTmp_j = denominators.at(j)->Clone();  //乘以除了原本分母的分母
+                numeratorTmp = mulExpr(numeratorTmp,exprTmp_j );
+           }
+        }
+       numeratorcom.push_back(std::move(numeratorTmp)); //压进分子数组
+    }
+
+   //处理分母
+    std::unique_ptr<ExprAST> denominatorTmp = denominators.at(0)->Clone(); //获得第一个分母
+    for (long unsigned int i = 0; i < exprs.size(); i++)  //循环把各自的分母变成公分母
+    {
+            if(i==0)
+            {
+                continue;
+            }
+            else
+            {
+                std::unique_ptr<ExprAST> exprTmp = denominators.at(i)->Clone();
+                denominatorTmp=mulExpr(denominatorTmp, exprTmp);
+            }
+}
+
+    // demo implementation: return the corresbonding exprAST for the input vector to ensure normal execution
+    //合并
+    std::unique_ptr<ExprAST> result = nullptr;
+    for(long unsigned int i = 0; i < exprs.size(); i++)  //合并分子
+    {
+        std::unique_ptr<ExprAST> exprTmp = numeratorcom.at(i)->Clone();
+        // std::unique_ptr<ExprAST> numeratorTmp = nullptr;
+        // std::unique_ptr<ExprAST> denominatorTmp = nullptr;
+        if(i == 0)
         {
             result = std::move(exprTmp);
         }
@@ -382,7 +420,7 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
             result = addExpr(result, exprTmp);
         }
     }
-    // a simple example
+// a simple example
     // std::unique_ptr<ExprAST> numeratorTmp = numerators.at(0)->Clone();
     // std::unique_ptr<ExprAST> denominatorTmp = denominators.at(0)->Clone();
     // if(isEqual(denominatorTmp, std::make_unique<NumberExprAST>(1)))
@@ -394,6 +432,7 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
     //     result = divExpr(numeratorTmp, denominatorTmp);
     // }
 
+    result=divExpr(result,denominatorTmp);
     return std::move(result);
 }
 
