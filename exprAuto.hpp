@@ -780,8 +780,26 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST
 // TODO: implement
 std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
 {
+    std::unique_ptr<ExprAST> resultsTemp;
     std::vector<std::unique_ptr<ExprAST>> results;
-    return results;
+    //判断输入是否为空
+    if(numerators.at(0) != nullptr && denominators.at(0) != nullptr)
+    {//双循环进行组合
+        for(long unsigned int i = 0; i < numerators.size(); i++)
+        {
+            for(long unsigned int j = 0; j < denominators.size(); j++)
+            {
+                resultsTemp = divExpr(numerators.at(i),denominators.at(j));
+                results.push_back(std::move(resultsTemp));
+            }
+        }
+        return results;
+    }
+    else
+    {
+        fprintf(stderr, "\tERROR: creatAll: the input include nullptr!\n");
+        return {};
+    }
 }
 
 // TODO: check
