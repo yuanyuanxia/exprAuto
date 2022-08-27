@@ -677,56 +677,64 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
 
         else
         {
-            //该容器存放变量名
-            std::vector<std::string> varVec2;
-            //将变量名存入容器
-            for (int m = 0; m < info.at(i).variables.size(); m++)
+            //表达式为变量单项式
+            if ((info.at(i).variables.size() == 1) && (info.at(i).variables.at(0).degree == 1) && i > 0)
             {
-                for (int n = 0; n < info.at(i).variables.at(m).degree; n++)
-                {
-                    varVec2.push_back(info.at(i).variables.at(m).name);
-                }
+                ExprASTASTVar = std::move(std::make_unique<VariableExprAST>(VariableExprAST(info.at(i).variables.at(0).name)));
             }
-
-            //对容器排序
-            std::sort(varVec2.begin(), varVec2.end());
-
-            //系数不等于1
-            if (info.at(i).coefficient != 1)
+            else
             {
-
-                std::unique_ptr<NumberExprAST> numAST = std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient));
-
-                tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(numAST), nullptr)));
-
-                for (int v = 0; v < varVec2.size(); v++)
+                //该容器存放变量名
+                std::vector<std::string> varVec2;
+                //将变量名存入容器
+                for (int m = 0; m < info.at(i).variables.size(); m++)
                 {
-                    std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(v)));
-                    std::unique_ptr<ExprAST> varAST1 = varAST.get()->Clone();
-                    tempBinaryAST.get()->setRHS(varAST1);
-
-                    if (v == varVec2.size() - 1)
-                        break;
-                    std::unique_ptr<ExprAST> tempBinaryAST3 = tempBinaryAST.get()->Clone();
-                    tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(tempBinaryAST3), nullptr)));
+                    for (int n = 0; n < info.at(i).variables.at(m).degree; n++)
+                    {
+                        varVec2.push_back(info.at(i).variables.at(m).name);
+                    }
                 }
-            }
-            else //系数等于1
-            {
 
-                std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(0)));
+                //对容器排序
+                std::sort(varVec2.begin(), varVec2.end());
 
-                tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(varAST), nullptr)));
-                for (int v = 1; v < varVec2.size(); v++)
+                //系数不等于1
+                if (info.at(i).coefficient != 1)
                 {
-                    std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(v)));
-                    std::unique_ptr<ExprAST> varAST1 = varAST.get()->Clone();
-                    tempBinaryAST.get()->setRHS(varAST1);
 
-                    if (v == varVec2.size() - 1)
-                        break;
-                    std::unique_ptr<ExprAST> tempBinaryAST3 = tempBinaryAST.get()->Clone();
-                    tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(tempBinaryAST3), nullptr)));
+                    std::unique_ptr<NumberExprAST> numAST = std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient));
+
+                    tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(numAST), nullptr)));
+
+                    for (int v = 0; v < varVec2.size(); v++)
+                    {
+                        std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(v)));
+                        std::unique_ptr<ExprAST> varAST1 = varAST.get()->Clone();
+                        tempBinaryAST.get()->setRHS(varAST1);
+
+                        if (v == varVec2.size() - 1)
+                            break;
+                        std::unique_ptr<ExprAST> tempBinaryAST3 = tempBinaryAST.get()->Clone();
+                        tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(tempBinaryAST3), nullptr)));
+                    }
+                }
+                else //系数等于1
+                {
+
+                    std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(0)));
+
+                    tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(varAST), nullptr)));
+                    for (int v = 1; v < varVec2.size(); v++)
+                    {
+                        std::unique_ptr<VariableExprAST> varAST = std::make_unique<VariableExprAST>(VariableExprAST(varVec2.at(v)));
+                        std::unique_ptr<ExprAST> varAST1 = varAST.get()->Clone();
+                        tempBinaryAST.get()->setRHS(varAST1);
+
+                        if (v == varVec2.size() - 1)
+                            break;
+                        std::unique_ptr<ExprAST> tempBinaryAST3 = tempBinaryAST.get()->Clone();
+                        tempBinaryAST = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(tempBinaryAST3), nullptr)));
+                    }
                 }
             }
         }
