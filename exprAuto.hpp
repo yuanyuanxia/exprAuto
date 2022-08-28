@@ -575,7 +575,6 @@ std::vector<struct Monomial> mergePolynomial(const std::vector<struct Monomial> 
 }
 
 // TODO: implement
-// TODO: implement
 std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
 {
     // info为monomial对象容器
@@ -606,6 +605,7 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
             //表达式为数字单项式
             if (info.at(i).variables.size() == 0)
             {
+
                 tempBinaryASTLhs = std::move(std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient)));
             }
             //表达式为变量单项式
@@ -629,10 +629,17 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
 
                 //对容器排序
                 std::sort(varVec1.begin(), varVec1.end());
+                std::cout << "begin to print vector" << std::endl;
+                for (int k = 0; k < varVec1.size(); k++)
+                {
+                    std::cout << varVec1.at(k) << std::endl;
+                }
+                std::cout << "print end" << std::endl;
 
                 //系数不等于1
                 if (info.at(i).coefficient != 1)
                 {
+                    std::cout << "coefficient:" << info.at(i).coefficient << std::endl;
                     std::unique_ptr<NumberExprAST> numAST = std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient));
 
                     binaryASTLhs = std::move(std::make_unique<BinaryExprAST>(BinaryExprAST('*', std::move(numAST), nullptr)));
@@ -677,13 +684,16 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
 
         else
         {
+            std::cout << "here" << std::endl;
+
             //表达式为变量单项式
-            if ((info.at(i).variables.size() == 1) && (info.at(i).variables.at(0).degree == 1) && i > 0)
+            if ((info.at(i).variables.size() == 1) && (info.at(i).variables.at(0).degree == 1) && i > 0 && info.at(i).coefficient == 1)
             {
                 ExprASTASTVar = std::move(std::make_unique<VariableExprAST>(VariableExprAST(info.at(i).variables.at(0).name)));
             }
             else
             {
+
                 //该容器存放变量名
                 std::vector<std::string> varVec2;
                 //将变量名存入容器
@@ -698,9 +708,17 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
                 //对容器排序
                 std::sort(varVec2.begin(), varVec2.end());
 
+                std::cout << "begin to print vector" << std::endl;
+                for (int k = 0; k < varVec2.size(); k++)
+                {
+                    std::cout << varVec2.at(k) << std::endl;
+                }
+
                 //系数不等于1
                 if (info.at(i).coefficient != 1)
                 {
+
+                    std::cout << "coefficient:" << info.at(i).coefficient << std::endl;
 
                     std::unique_ptr<NumberExprAST> numAST = std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient));
 
@@ -743,6 +761,10 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<struct Monomial> &info)
         {
             std::unique_ptr<ExprAST> tempBinaryAST1 = tempBinaryASTLhs.get()->Clone();
             newExpr->setLHS(tempBinaryAST1);
+            if (info.size() == 1)
+            {
+                return tempBinaryAST1->Clone();
+            }
             continue;
         }
         else
