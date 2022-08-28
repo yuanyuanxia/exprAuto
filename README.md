@@ -4,8 +4,7 @@
   - [介绍](#介绍)
     - [工作流程](#工作流程)
     - [软件架构](#软件架构)
-    - [安装教程](#安装教程)
-    - [使用说明](#使用说明)
+    - [编译运行](#编译运行)
   - [参考链接](#参考链接)
   - [目前进度](#目前进度)
 
@@ -77,36 +76,36 @@ factor -> number | variable | (expr) | func(expr, ...)
   - ParseTopLevelxpr()
   - ParseExtern()
 - Print
-  - std::string PrintExpression(std::unique_ptr\<ExprAST> &expr)  ★★
-  - void PrintFunction(std::unique_ptr\<FunctionAST> &fun) ★
+  - std::string **PrintExpression**(std::unique_ptr\<ExprAST> &expr)  ★★
+  - void **PrintFunction**(std::unique_ptr\<FunctionAST> &fun) ★
 - changeExpression
-  - std::unique_ptr\<ExprAST> expandExpr(std::unique_ptr\<ExprAST> &expr) ★★★
-  - bool isEqual(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
+  - std::unique_ptr\<ExprAST> **expandExpr**(std::unique_ptr\<ExprAST> &expr) ★★★
+  - bool **isEqual**(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
 - createExpr
-  - vector<std::unique_ptr\<ExprAST>> createExpr(const std::unique_ptr\<ExprAST> exprInit)
-  - void getReady(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
-  - std::vector<std::unique_ptr\<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len)
+  - vector<std::unique_ptr\<ExprAST>> **createExpr**(const std::unique_ptr\<ExprAST> exprInit)
+  - void **getReady**(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
+  - std::vector<std::unique_ptr\<ExprAST>> **createMiddle**(const std::string variable, const int *term, const double *coefficient, const int len)
 - mathfunctrans
-  - std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
-  - logTolog1
-  - sqrtTohypot
-- ······
+  - std::unique_ptr<ExprAST> **expToexpm1**(const std::unique_ptr<ExprAST> &expr)
+  - **logTolog1**
+  - **sqrtTohypot**
+- exprAuto
+  - std::unique_ptr<ExprAST> **preprocess**(const std::unique_ptr<ExprAST> &expr)
+  - std::vector<std::unique_ptr<ExprAST>> **rewriteExprWrapper**(std::unique_ptr<ExprAST> &expr)
+  - std::vector<std::unique_ptr<ExprAST>> **createAll**(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
+  - ······
 
 
-### 安装教程
+### 编译运行
 
--  `g++ main.cpp -o exprAuto.exe` (the simple and suggested way)
-
-OR
-
--  ``clang++ -g -O3 main.cpp `llvm-config --cxxflags` -o exprAuto.exe``
-
-### 使用说明
-
-1.  `./exprAuto.exe`
-
+```
+cd path/to/exprAuto
+make
+./bin/exprAuto.exe
+```
 will get
 
+**TODO**: update the follwing screen output which is the earliest version.
 ```
 ready> (1+3)*4
 ```
@@ -143,19 +142,20 @@ expr type: Number;      number: 4.000000
 * [x] 展开（消除括号）数学表达式
 * [x] 支持负数和除法
 * [x] 判断2个表达式是否相等：isEqual(expr1, expr2) return *true* or *false* ★★
-* [ ] 计算表达式中的常数子项：$1+3.4/2+x \Rightarrow 2.7 + x$ ★
-* [ ] 合并含单参变量的表达式中的同类项：$x+2 \times x \Rightarrow 3 \times x$ ★★
-* [ ] 按阶数排序含单参变量的表达式：$5 \times x + 4 \times x \times x + 1 \Rightarrow 1 + 5 \times x + 4 \times x \times x$ ★★
-* [ ] 规范化含除法的表达式：$\frac{1}{x+1} - \frac{1}{x} \Rightarrow \frac{x-(x+1)}{(x+1) \times x}$ ★★★
+* [x] 计算表达式中的常数子项：$1+3.4/2+x \Rightarrow 2.7 + x$ ★
+* [x] 合并含单参变量的表达式中的同类项：$x+2 \times x \Rightarrow 3 \times x$ ★★
+* [x] 按阶数排序含单参变量的表达式：$5 \times x + 4 \times x \times x + 1 \Rightarrow 1 + 5 \times x + 4 \times x \times x$ ★★
+* [x] 规范化含除法的表达式：$\frac{1}{x+1} - \frac{1}{x} \Rightarrow \frac{x-(x+1)}{(x+1) \times x}$ ★★★
 * [x] 支持多项式等价变换 ★★★
 * [ ] 支持数学函数等价变换 ★★★
   * [x] $exp(x)-1 \Rightarrow expm1(x)$
   * [x] $log(x+1) \Rightarrow log1p(x)$
   * [x] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
-  * [ ] $log(exp(x)) \Rightarrow x$
-  * [ ] $exp(log(x)) \Rightarrow x$
+  * [x] $log(exp(x)) \Rightarrow x$
+  * [x] $exp(log(x)) \Rightarrow x$
   * [ ] $sqrt(x) \times sqrt(y) \Rightarrow sqrt(x \times y)$
   * [ ] $sqrt(x) / sqrt(y) \Rightarrow sqrt(x / y)$
+* [ ] 整合单参多项式变换和数学函数表换 ★
 * [ ] 支持含双参乃至多参变量的表达式 ★
 * [ ] 生成 mpfr 代码 ★
 * [ ] 生成符合 herbie、daisy 等工具格式要求的数学表达式 ★
