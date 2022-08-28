@@ -1,5 +1,5 @@
-#ifndef EXPR
-#define EXPR
+#ifndef _BASIC
+#define _BASIC
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>

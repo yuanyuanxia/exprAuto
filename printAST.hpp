@@ -1,3 +1,5 @@
+#ifndef _PRINTAST
+#define _PRINTAST
 #include "basic.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -119,3 +121,5 @@ static void PrintFunction(std::unique_ptr<FunctionAST> &fun)
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
     }
 }
+
+#endif

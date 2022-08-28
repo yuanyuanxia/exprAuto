@@ -1,5 +1,5 @@
-#ifndef CHANGEEXPR
-#define CHANGEEXPR
+#ifndef _CHANGEEXPR
+#define _CHANGEEXPR
 #include "basic.hpp"
 
 //===----------------------------------------------------------------------===//
