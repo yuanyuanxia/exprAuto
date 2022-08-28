@@ -15,8 +15,8 @@
 // Abstract Syntax Tree (aka Parse Tree)
 //===----------------------------------------------------------------------===//
 
-namespace
-{
+// namespace
+// {
 
     /// ExprAST - Base class for all expression nodes.
     class ExprAST
@@ -165,6 +165,6 @@ namespace
         std::unique_ptr<ExprAST> &getFuncBody() { return Body; }
     };
 
-} // end anonymous namespace
+// } // end anonymous namespace
 
 #endif

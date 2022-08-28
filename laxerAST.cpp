@@ -1,29 +1,17 @@
-#include "basic.hpp"
+#include "laxerAST.h"
+
+std::string IdentifierStr;  // Filled in if tok_identifier
+double NumVal;              // Filled in if tok_number
+int CurTok;                 // CurTok is the current token the parser is looking at.
+// BinopPrecedence - This holds the precedence for each binary operator that is defined.
+std::map<char, int> BinopPrecedence;
 
 //===----------------------------------------------------------------------===//
 // Lexer
 //===----------------------------------------------------------------------===//
 
-// The lexer returns tokens [0-255] if it is an unknown character, otherwise one
-// of these for known things.
-enum Token
-{
-    tok_eof = -1,
-
-    // commands
-    tok_def = -2,
-    tok_extern = -3,
-
-    // primary
-    tok_identifier = -4,
-    tok_number = -5
-};
-
-static std::string IdentifierStr;  // Filled in if tok_identifier
-static double NumVal;              // Filled in if tok_number
-
 /// gettok - Return the next token from standard input.
-static int gettok()
+int gettok()
 {
     static int LastChar = ' ';
     bool minusFlag = false;
@@ -98,12 +86,7 @@ static int gettok()
 /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current
 /// token the parser is looking at.  getNextToken reads another token from the
 /// lexer and updates CurTok with its results.
-static int CurTok;
-static int getNextToken() { return CurTok = gettok(); }
-
-/// BinopPrecedence - This holds the precedence for each binary operator that is
-/// defined.
-static std::map<char, int> BinopPrecedence;
+int getNextToken() { return CurTok = gettok(); }
 
 // Install standard binary operators.
 void installOperators()
@@ -117,7 +100,7 @@ void installOperators()
 }
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
-static int GetTokPrecedence()
+int GetTokPrecedence()
 {
     if(!isascii(CurTok))
         return -1;

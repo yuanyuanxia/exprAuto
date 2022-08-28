@@ -3,6 +3,9 @@
 
 #include "basic.hpp"
 #include "monoInfo.hpp"
+#include "printAST.h"
+#include "changeAST.h"
+#include "exprAuto.h"
 
 bool isFraction(const std::unique_ptr<ExprAST> &expr)
 {
@@ -186,8 +189,8 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
 
 std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
 {                                          // level Traversal
-    std::queue<BinaryExprAST *> nodeQueue; // nodeQueue存储层序遍历的节点
-    std::queue<char> sideQueue;            // sideQueue只能存储'L'和'R',表示对应节点在根节点的左边还是右边
+    std::queue<BinaryExprAST *> nodeQueue; // nodeQueue存储层序遍历的节�?
+    std::queue<char> sideQueue;            // sideQueue�?能存�?'L'�?'R',表示对应节点在根节点的左边还�?右边
     std::unique_ptr<ExprAST> in = expr->Clone();
     const std::string exprType = expr->type();
     if (exprType == "Binary")
@@ -208,13 +211,13 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
         char side;
         while (!nodeQueue.empty())
         {
-            int size = nodeQueue.size(); // 这里一定要使用固定大小size，不使用que.size()，因为que.size是不断变化的
+            int size = nodeQueue.size(); // 这里一定�?�使用固定大小size，不使用que.size()，因为que.size�?不断变化�?
             for (int i = 0; i < size; i++)
             {
                 auto node = nodeQueue.front();
                 nodeQueue.pop();
 
-                if (level > 0) //第二层开始，nodeQueue每出队一个节点,sideQueue也会出队
+                if (level > 0) //�?二层开始，nodeQueue每出队一�?节点,sideQueue也会出队
                 {
                     side = sideQueue.front();
                     sideQueue.pop();
@@ -237,13 +240,13 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
                             if (level == 0)
                                 side = 'L';
                             if (level > 0)
-                                sideQueue.push(side == 'L' ? 'L' : 'R'); //第二层开始，每往队列nodeQueue中添加一个节点，都要在sideQueue中添加一个'L'或者'R'
+                                sideQueue.push(side == 'L' ? 'L' : 'R'); //�?二层开始，每往队列nodeQueue�?添加一�?节点，都要在sideQueue�?添加一�?'L'或�?'R'
 
-                            if (nodeLHSPtr->getOp() == '/') //新入队的节点为目标节点
+                            if (nodeLHSPtr->getOp() == '/') //新入队的节点为目标节�?
                             {
-                                if (side == 'L') //目标节点在根节点的左侧时
+                                if (side == 'L') //�?标节点在根节点的左侧�?
                                 {
-                                    //换操作符
+                                    //换操作�??
                                     nodeLHSPtr->setOp(root->getOp());
                                     root->setOp('/');
                                     //将根节点和目标节点的左边互换
@@ -251,13 +254,13 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
 
                                     return root->Clone();
                                 }
-                                if (side == 'R') //目标节点在根节点的右侧时，且 nodeLHSPtr 在node左侧时
+                                if (side == 'R') //�?标节点在根节点的右侧时，�? nodeLHSPtr 在node左侧�?
                                 {
                                     std::unique_ptr<ExprAST> resultRight = nodeLHSPtr->getRHS()->Clone(); //'/'右子树resultRight成为result的右子树
-                                    std::unique_ptr<ExprAST> tmp = nodeLHSPtr->getLHS()->Clone();         //'/'左子树根节点将成为替代'/'的节点
+                                    std::unique_ptr<ExprAST> tmp = nodeLHSPtr->getLHS()->Clone();         //'/'左子树根节点将成为替�?'/'的节�?
 
                                     node->setLHS(tmp);                                   //改变node的左子树
-                                    std::unique_ptr<ExprAST> resultLeft = root->Clone(); // node左子树变化后，root将成为result左子树
+                                    std::unique_ptr<ExprAST> resultLeft = root->Clone(); // node左子树变化后，root将成为result左子�?
 
                                     return std::make_unique<BinaryExprAST>('/', std::move(resultLeft), std::move(resultRight));
                                 }
@@ -285,7 +288,7 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
                                     root->getRHS().swap(nodeRHSPtr->getRHS());
                                     return root->Clone();
                                 }
-                                if (side == 'R') //目标节点在根节点的右侧时，且 nodeRHSPtr 在node右侧时
+                                if (side == 'R') //�?标节点在根节点的右侧时，�? nodeRHSPtr 在node右侧�?
                                 {
                                     std::unique_ptr<ExprAST> resultRight = nodeRHSPtr->getRHS()->Clone();
                                     std::unique_ptr<ExprAST> tmp = nodeRHSPtr->getLHS()->Clone();
@@ -352,16 +355,16 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
         numerators.push_back(std::move(numeratorTmp));
         denominators.push_back(std::move(denominatorTmp));
     }
-    //处理分子，进行循环合并
-    std::vector<std::unique_ptr<ExprAST>> numeratorcom;  //建立合并之后的分子数组
-    for (long unsigned int i = 0; i < exprs.size(); i++) //写在循环里，每循环一次重置一次
+    //处理分子，进行循�?合并
+    std::vector<std::unique_ptr<ExprAST>> numeratorcom;  //建立合并之后的分子数�?
+    for (long unsigned int i = 0; i < exprs.size(); i++) //写在�?�?里，每循�?一次重�?一�?
     {
         std::unique_ptr<ExprAST> exprTmp_i = numerators.at(i)->Clone();
         std::unique_ptr<ExprAST> numeratorTmp = nullptr;
         numeratorTmp = std::move(exprTmp_i);
         for (long unsigned int j = 0; j < exprs.size(); j++)
         {
-            if (i != j) //乘以除了原本分母的分母
+            if (i != j) //乘以除了原本分母的分�?
             {
                 std::unique_ptr<ExprAST> exprTmp_j = denominators.at(j)->Clone();
                 numeratorTmp = mulExpr(numeratorTmp, exprTmp_j);
@@ -381,7 +384,7 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
     if (fractionCount > 0)
     {
         std::unique_ptr<ExprAST> denominatorTmp = denominators.at(0)->Clone();
-        for (long unsigned int i = 1; i < exprs.size(); i++) //循环把各自的分母变成公分母
+        for (long unsigned int i = 1; i < exprs.size(); i++) //�?�?把各�?的分母变成公分母
         {
             exprTmp = denominators.at(i)->Clone();
             denominatorTmp = mulExpr(denominatorTmp, exprTmp);
@@ -612,14 +615,14 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
 {
     fprintf(stderr, "geneExprAST: start--------\n");
     // info为monomial对象容器
-    //表达式为数字单项式
+    //表达式为数字单项�?
     if (info.size() == 1 && info.at(0).variables.size() == 0)
     {
         std::unique_ptr<NumberExprAST> newExpr = std::make_unique<NumberExprAST>(NumberExprAST(info.at(0).coefficient));
         fprintf(stderr, "geneExprAST: end--------\n");
         return newExpr.get()->Clone();
     }
-    //表达式为变量单项式
+    //表达式为变量单项�?
     if (info.size() == 1 && info.at(0).variables.size() == 1 && info.at(0).variables.at(0).degree == 1 && info.at(0).coefficient == 1)
     {
         std::unique_ptr<VariableExprAST> newExpr = std::make_unique<VariableExprAST>(VariableExprAST(info.at(0).variables.at(0).name));
@@ -632,24 +635,24 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
     std::unique_ptr<BinaryExprAST> binaryASTLhs = nullptr;
     std::unique_ptr<ExprAST> ExprASTASTVar = nullptr;
     std::unique_ptr<ExprAST> tempBinaryASTLhs = nullptr;
-    //先创建一个临时的binaryAST,将第一个表达式作为左子树
+    //先创建一�?临时的binaryAST,将�??一�?表达式作为左子树
     for (size_t i = 0; i < info.size(); i++)
     {
         if (i == 0)
         {
-            //表达式为数字单项式
+            //表达式为数字单项�?
             if (info.at(i).variables.size() == 0)
             {
                 tempBinaryASTLhs = std::move(std::make_unique<NumberExprAST>(NumberExprAST(info.at(i).coefficient)));
             }
-            //表达式为变量单项式
+            //表达式为变量单项�?
             else if ((info.at(i).variables.size() == 1) && (info.at(i).coefficient == 1) && (info.at(i).variables.at(0).degree == 1))
             {
                 tempBinaryASTLhs = std::move(std::make_unique<VariableExprAST>(VariableExprAST(info.at(i).variables.at(0).name)));
             }
             else
             {
-                //该容器存放变量名
+                //该�?�器存放变量�?
                 std::vector<std::string> varVec1;
 
                 //将变量名存入容器
@@ -661,7 +664,7 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
                     }
                 }
 
-                //对容器排序
+                //对�?�器排序
                 std::sort(varVec1.begin(), varVec1.end());
                 // std::cout << "begin to print vector" << std::endl;
                 // for (int k = 0; k < varVec1.size(); k++)
@@ -670,7 +673,7 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
                 // }
                 // std::cout << "print end" << std::endl;
 
-                //系数不等于1
+                //系数不等�?1
                 if (info.at(i).coefficient != 1)
                 {
                     // std::cout << "coefficient:" << info.at(i).coefficient << std::endl;
@@ -719,14 +722,14 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
         {
             // std::cout << "here" << std::endl;
 
-            //表达式为变量单项式
+            //表达式为变量单项�?
             if ((info.at(i).variables.size() == 1) && (info.at(i).variables.at(0).degree == 1) && i > 0 && info.at(i).coefficient == 1)
             {
                 ExprASTASTVar = std::move(std::make_unique<VariableExprAST>(VariableExprAST(info.at(i).variables.at(0).name)));
             }
             else
             {
-                //该容器存放变量名
+                //该�?�器存放变量�?
                 std::vector<std::string> varVec2;
                 //将变量名存入容器
                 for (size_t m = 0; m < info.at(i).variables.size(); m++)
@@ -737,7 +740,7 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
                     }
                 }
 
-                //对容器排序
+                //对�?�器排序
                 std::sort(varVec2.begin(), varVec2.end());
 
                 // std::cout << "begin to print vector" << std::endl;
@@ -746,7 +749,7 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
                 //     std::cout << varVec2.at(k) << std::endl;
                 // }
 
-                //系数不等于1
+                //系数不等�?1
                 if (info.at(i).coefficient != 1)
                 {
                     // std::cout << "coefficient:" << info.at(i).coefficient << std::endl;

@@ -1,5 +1,3 @@
-#ifndef _CHANGEEXPR
-#define _CHANGEEXPR
 #include "basic.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -304,5 +302,3 @@ std::unique_ptr<ExprAST> expandExprWrapper(const std::unique_ptr<ExprAST> &exprO
     }
     return exprNew;
 }
-
-#endif

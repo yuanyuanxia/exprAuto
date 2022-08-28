@@ -1,6 +1,4 @@
-#ifndef _PRINTAST
-#define _PRINTAST
-#include "basic.hpp"
+#include "printAST.h"
 
 //===----------------------------------------------------------------------===//
 // print information
@@ -90,7 +88,7 @@ std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
     return exprStr;
 }
 
-static void PrintFunction(std::unique_ptr<FunctionAST> &fun)
+void PrintFunction(std::unique_ptr<FunctionAST> &fun)
 {
     if(fun == nullptr)
     {
@@ -121,5 +119,3 @@ static void PrintFunction(std::unique_ptr<FunctionAST> &fun)
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
     }
 }
-
-#endif

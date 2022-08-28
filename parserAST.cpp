@@ -1,14 +1,14 @@
 #include "basic.hpp"
-#include "laxerAST.hpp"
+#include "laxerAST.h"
 
 //===----------------------------------------------------------------------===//
 // Parser
 //===----------------------------------------------------------------------===//
 
-static std::unique_ptr<ExprAST> ParseExpression();
+std::unique_ptr<ExprAST> ParseExpression();
 
 /// numberexpr ::= number
-static std::unique_ptr<ExprAST> ParseNumberExpr()
+std::unique_ptr<ExprAST> ParseNumberExpr()
 {
     auto Result = std::make_unique<NumberExprAST>(NumVal);
     getNextToken();  // consume the number
@@ -16,7 +16,7 @@ static std::unique_ptr<ExprAST> ParseNumberExpr()
 }
 
 /// parenexpr ::= '(' expression ')'
-static std::unique_ptr<ExprAST> ParseParenExpr()
+std::unique_ptr<ExprAST> ParseParenExpr()
 {
     getNextToken();  // eat (.
     auto V = ParseExpression();
@@ -32,7 +32,7 @@ static std::unique_ptr<ExprAST> ParseParenExpr()
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
-static std::unique_ptr<ExprAST> ParseIdentifierExpr()
+std::unique_ptr<ExprAST> ParseIdentifierExpr()
 {
     std::string IdName = IdentifierStr;
 
@@ -72,7 +72,7 @@ static std::unique_ptr<ExprAST> ParseIdentifierExpr()
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-static std::unique_ptr<ExprAST> ParsePrimary()
+std::unique_ptr<ExprAST> ParsePrimary()
 {
     switch(CurTok)
     {
@@ -89,7 +89,7 @@ static std::unique_ptr<ExprAST> ParsePrimary()
 
 /// binoprhs
 ///   ::= ('+' primary)*
-static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
+std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
 {
     // If this is a binop, find its precedence.
     while(true)
@@ -128,7 +128,7 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<Expr
 /// expression
 ///   ::= primary binoprhs
 ///
-static std::unique_ptr<ExprAST> ParseExpression()
+std::unique_ptr<ExprAST> ParseExpression()
 {
     auto LHS = ParsePrimary();
     if(!LHS)
@@ -139,7 +139,7 @@ static std::unique_ptr<ExprAST> ParseExpression()
 
 /// prototype
 ///   ::= id '(' id* ')'
-static std::unique_ptr<PrototypeAST> ParsePrototype()
+std::unique_ptr<PrototypeAST> ParsePrototype()
 {
     if(CurTok != tok_identifier)
         return LogErrorP("Expected function name in prototype");
@@ -163,7 +163,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype()
 }
 
 /// definition ::= 'def' prototype expression
-static std::unique_ptr<FunctionAST> ParseDefinition()
+std::unique_ptr<FunctionAST> ParseDefinition()
 {
     getNextToken();  // eat def.
     auto Proto = ParsePrototype();
@@ -176,7 +176,7 @@ static std::unique_ptr<FunctionAST> ParseDefinition()
 }
 
 /// toplevelexpr ::= expression
-static std::unique_ptr<FunctionAST> ParseTopLevelExpr()
+std::unique_ptr<FunctionAST> ParseTopLevelExpr()
 {
     if(auto E = ParseExpression())
     {
@@ -188,7 +188,7 @@ static std::unique_ptr<FunctionAST> ParseTopLevelExpr()
 }
 
 /// external ::= 'extern' prototype
-static std::unique_ptr<PrototypeAST> ParseExtern()
+std::unique_ptr<PrototypeAST> ParseExtern()
 {
     getNextToken();  // eat extern.
     return ParsePrototype();

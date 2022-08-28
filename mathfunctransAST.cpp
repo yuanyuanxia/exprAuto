@@ -1,5 +1,5 @@
 #include "basic.hpp"
-#include "changeAST.hpp"
+#include "changeAST.h"
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
