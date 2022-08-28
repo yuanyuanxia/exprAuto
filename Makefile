@@ -1,51 +1,27 @@
 export PROJECT_NAME = exprAuto
+
 CC = gcc
 CPP = g++
-INCLUDE =
+INCLUDE = -Iinclude
 LIBS=
+
+EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp )
+EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:.cpp=.cpp.o)))
 # $(info $(CFLAGS) )
 override CFLAGS += -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
 # $(info $(CFLAGS) )
 
+default: all
+
 .PHONY: all
-all: main
+all: bin/main.exe
 
-main: main.o laxerAST.o parserAST.o printAST.o changeAST.o createExpr.o mathfunctransAST.o monoInfo.o variableInfo.o funcInfo.o exprAuto.o
-	$(CPP) $^ -o main.exe $(LIBS)
+bin/main.exe: $(EXPRAUTO_ALL_SRCS_OBJS)
+	$(CPP) -o $@ $^ $(LIBS)
 
-main.o: main.cpp basic.hpp parserAST.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-laxerAST.o: laxerAST.cpp laxerAST.hpp basic.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-parserAST.o: parserAST.cpp parserAST.hpp basic.hpp laxerAST.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-printAST.o: printAST.cpp printAST.hpp basic.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-changeAST.o: changeAST.cpp changeAST.hpp basic.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-createExpr.o: createExpr.cpp createExpr.hpp basic.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-mathfunctransAST.o: mathfunctransAST.cpp basic.hpp changeAST.hpp mathfunctransAST.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-monoInfo.o: monoInfo.cpp monoInfo.hpp funcInfo.hpp polyInfo.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-variableInfo.o: variableInfo.cpp variableInfo.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-funcInfo.o: funcInfo.cpp funcInfo.hpp monoInfo.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
-
-exprAuto.o: exprAuto.cpp basic.hpp monoInfo.hpp exprAuto.hpp
-	$(CC) ${CFLAGS} $< -c $(INCLUDE)
+objs/src_%.cpp.o: src/%.cpp
+	$(CPP) -o $@ -c $< $(CFLAGS) $(INCLUDE)
 
 .PHONY: clean
 clean:
-	rm -f *.o *.exe
+	rm -f objs/*.o bin/*.exe
