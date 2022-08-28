@@ -1,11 +1,11 @@
 #include "basic.hpp"
-#include "laxerAST.h"
-#include "parserAST.h"
-#include "printAST.h"
-#include "changeAST.h"
-#include "createExpr.h"
-#include "mathfunctransAST.h"
-#include "exprAuto.h"
+#include "laxerAST.hpp"
+#include "parserAST.hpp"
+#include "printAST.hpp"
+#include "changeAST.hpp"
+#include "createExpr.hpp"
+#include "mathfunctransAST.hpp"
+#include "exprAuto.hpp"
 // #define DEBUG
 
 //===----------------------------------------------------------------------===//

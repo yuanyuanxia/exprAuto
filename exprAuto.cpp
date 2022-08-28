@@ -3,9 +3,9 @@
 
 #include "basic.hpp"
 #include "monoInfo.hpp"
-#include "printAST.h"
-#include "changeAST.h"
-#include "exprAuto.h"
+#include "printAST.hpp"
+#include "changeAST.hpp"
+#include "exprAuto.hpp"
 
 bool isFraction(const std::unique_ptr<ExprAST> &expr)
 {

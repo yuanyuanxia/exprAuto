@@ -1,5 +1,5 @@
 #include "basic.hpp"
-#include "laxerAST.h"
+#include "laxerAST.hpp"
 
 //===----------------------------------------------------------------------===//
 // Parser

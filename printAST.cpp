@@ -1,4 +1,4 @@
-#include "printAST.h"
+#include "printAST.hpp"
 
 //===----------------------------------------------------------------------===//
 // print information
