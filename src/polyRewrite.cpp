@@ -1,5 +1,5 @@
 #include "basic.hpp"
-#include "printAST.hpp"
+#include "polyRewrite.hpp"
 
 #define DEBUG_LEVEL 0
 int debugLevel = -1;

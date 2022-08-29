@@ -39,34 +39,32 @@ factor -> number | variable | (expr) | func(expr, ...)
 ```
 .
 ├── bin
-│   └── main.exe
+│   └── exprAuto.exe
 ├── include
 │   ├── basic.hpp
-│   ├── changeAST.hpp
-│   ├── createExpr.hpp
+│   ├── expandAST.hpp
 │   ├── exprAuto.hpp
 │   ├── funcInfo.hpp
 │   ├── laxerAST.hpp
-│   ├── mathfunctransAST.hpp
+│   ├── mathfuncRewrite.hpp
 │   ├── monoInfo.hpp
 │   ├── parserAST.hpp
 │   ├── polyInfo.hpp
-│   ├── printAST.hpp
+│   ├── polyRewrite.hpp
 │   └── variableInfo.hpp
 ├── Makefile
-├── objs
 ├── README.md
 └── src
-    ├── changeAST.cpp
-    ├── createExpr.cpp
+    ├── basic.cpp
+    ├── expandAST.cpp
     ├── exprAuto.cpp
     ├── funcInfo.cpp
     ├── laxerAST.cpp
     ├── main.cpp
-    ├── mathfunctransAST.cpp
+    ├── mathfuncRewrite.cpp
     ├── monoInfo.cpp
     ├── parserAST.cpp
-    ├── printAST.cpp
+    ├── polyRewrite.cpp
     └── variableInfo.cpp
 ```
 
@@ -99,36 +97,30 @@ factor -> number | variable | (expr) | func(expr, ...)
   - ParseDefinition()
   - ParseTopLevelxpr()
   - ParseExtern()
-- PrintAST
-  - std::string **PrintExpression**(std::unique_ptr\<ExprAST> &expr)  ★★
-  - void **PrintFunction**(std::unique_ptr\<FunctionAST> &fun) ★
-- ChangeExpression
+- ExpandExpr
   - std::unique_ptr\<ExprAST> **expandExpr**(std::unique_ptr\<ExprAST> &expr) ★★★
-  - bool **isEqual**(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
-- CreateExpr
+- PolyRewrite
   - vector<std::unique_ptr\<ExprAST>> **createExpr**(const std::unique_ptr\<ExprAST> exprInit)
   - void **getReady**(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
   - std::vector<std::unique_ptr\<ExprAST>> **createMiddle**(const std::string variable, const int *term, const double *coefficient, const int len)
-- Mathfunctrans
+- MathfuncRewrite
   - std::unique_ptr<ExprAST> **expToexpm1**(const std::unique_ptr<ExprAST> &expr)
   - **logTolog1**
   - **sqrtTohypot**
+  - ······
 - ExprAuto
   - std::unique_ptr<ExprAST> **preprocess**(const std::unique_ptr<ExprAST> &expr)
   - std::vector<std::unique_ptr<ExprAST>> **rewriteExprWrapper**(std::unique_ptr<ExprAST> &expr)
   - std::vector<std::unique_ptr<ExprAST>> **createAll**(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
   - ······
 
-
 ### 编译运行
 
 ```bash
 git clone https://gitee.com/mathlib/expr-auto.git
 cd path/to/exprAuto
-mkdir objs  # if "objs" directory do not exist
-mkdir bin   # if "bin" directory do not exist
 make
-./bin/main.exe
+./bin/exprAuto.exe
 ```
 
 OR
@@ -137,8 +129,8 @@ OR
 git clone https://gitee.com/mathlib/expr-auto.git
 cd path/to/exprAuto
 cd src
-g++ *.c -o main.exe
-./main.exe
+g++ *.c -o exprAuto.exe
+./exprAuto.exe
 ```
 
 ```

@@ -4,22 +4,28 @@ CC = gcc
 CPP = g++
 INCLUDE = -Iinclude
 LIBS=
+ECHO = printf
 
-EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp )
-EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:.cpp=.cpp.o)))
 # $(info $(CFLAGS) )
 override CFLAGS += -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
 # $(info $(CFLAGS) )
 
-default: all
+EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp )
+EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:.cpp=.cpp.o)))
 
-.PHONY: all
-all: bin/main.exe
+default: dirs \
+		 bin/exprAuto.exe
+dirs:
+	mkdir -p bin objs
 
-bin/main.exe: $(EXPRAUTO_ALL_SRCS_OBJS)
+.PHONY: dirs
+
+bin/exprAuto.exe: $(EXPRAUTO_ALL_SRCS_OBJS)
+	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
 	$(CPP) -o $@ $^ $(LIBS)
 
 objs/src_%.cpp.o: src/%.cpp
+	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
 	$(CPP) -o $@ -c $< $(CFLAGS) $(INCLUDE)
 
 .PHONY: clean

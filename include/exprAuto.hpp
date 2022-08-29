@@ -3,20 +3,6 @@
 
 #include "monoInfo.hpp"
 
-bool isFraction(const std::unique_ptr<ExprAST> &expr);
-
-std::unique_ptr<ExprAST> getNumerator(const std::unique_ptr<ExprAST> &expr);
-
-std::unique_ptr<ExprAST> getDenominator(const std::unique_ptr<ExprAST> &expr);
-
-std::unique_ptr<ExprAST> createBinaryExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2, const char op);
-
-std::unique_ptr<ExprAST> addExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
-
-std::unique_ptr<ExprAST> mulExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
-
-std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
-
 std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerator, const std::unique_ptr<ExprAST> &denominator);
 
 std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST> &expr);

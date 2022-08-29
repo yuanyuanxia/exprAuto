@@ -3,87 +3,8 @@
 
 #include "basic.hpp"
 #include "monoInfo.hpp"
-#include "printAST.hpp"
-#include "changeAST.hpp"
+#include "expandAST.hpp"
 #include "exprAuto.hpp"
-
-bool isFraction(const std::unique_ptr<ExprAST> &expr)
-{
-    if (expr == nullptr)
-    {
-        fprintf(stderr, "\tERROR: isFraction: the input expr is nullptr!\n");
-        return false;
-    }
-    if (expr->type() == "Binary")
-    {
-        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-        char op = binOpPtr->getOp();
-        if (op == '/')
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-std::unique_ptr<ExprAST> getNumerator(const std::unique_ptr<ExprAST> &expr)
-{
-    if (expr == nullptr)
-    {
-        fprintf(stderr, "\tERROR: getNumerator: the input expr is nullptr!\n");
-        return nullptr;
-    }
-    if (expr->type() == "Binary")
-    {
-        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-        char op = binOpPtr->getOp();
-        if (op == '/')
-        {
-            return std::move(binOpPtr->getLHS());
-        }
-    }
-    fprintf(stderr, "\tWARNING: getNumerator: the input expr is not match for fraction\n");
-    return expr->Clone();
-}
-
-std::unique_ptr<ExprAST> getDenominator(const std::unique_ptr<ExprAST> &expr)
-{
-    if (expr == nullptr)
-    {
-        fprintf(stderr, "\tERROR: getDenominator: the input expr is nullptr!\n");
-        return nullptr;
-    }
-    if (expr->type() == "Binary")
-    {
-        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-        char op = binOpPtr->getOp();
-        if (op == '/')
-        {
-            return std::move(binOpPtr->getRHS());
-        }
-    }
-    fprintf(stderr, "\tWARNING: getDenominator: the input expr is not match for fraction\n");
-    return expr->Clone();
-}
-
-std::unique_ptr<ExprAST> createBinaryExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2, const char op)
-{
-    if (expr1 == nullptr || expr2 == nullptr)
-    {
-        fprintf(stderr, "\tERROR: createBinaryExpr: the input contain nullptr!");
-        return nullptr;
-    }
-
-    auto lhs = expr1->Clone();
-    auto rhs = expr2->Clone();
-    return std::make_unique<BinaryExprAST>(op, std::move(lhs), std::move(rhs));
-}
-
-std::unique_ptr<ExprAST> addExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2) { return createBinaryExpr(expr1, expr2, '+'); }
-
-std::unique_ptr<ExprAST> mulExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2) { return createBinaryExpr(expr1, expr2, '*'); }
-
-std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2) { return createBinaryExpr(expr1, expr2, '/'); }
 
 std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerator, const std::unique_ptr<ExprAST> &denominator)
 {

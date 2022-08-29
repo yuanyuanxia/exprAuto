@@ -2,7 +2,6 @@
 #define _MATHFUNCTRANSAST
 
 #include "basic.hpp"
-#include "changeAST.hpp"
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function

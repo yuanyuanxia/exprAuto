@@ -1,10 +1,9 @@
 #include "basic.hpp"
 #include "laxerAST.hpp"
 #include "parserAST.hpp"
-#include "printAST.hpp"
-#include "changeAST.hpp"
-#include "createExpr.hpp"
-#include "mathfunctransAST.hpp"
+#include "expandAST.hpp"
+#include "polyRewrite.hpp"
+#include "mathfuncRewrite.hpp"
 #include "exprAuto.hpp"
 // #define DEBUG
 

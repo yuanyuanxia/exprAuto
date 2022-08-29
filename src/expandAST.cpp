@@ -1,4 +1,5 @@
 #include "basic.hpp"
+#include "expandAST.hpp"
 
 //===----------------------------------------------------------------------===//
 // Change exprAST equally
@@ -184,103 +185,6 @@ std::unique_ptr<ExprAST> expandExpr(const std::unique_ptr<ExprAST> &expr)
     {
         std::string exprStr = "unknown expression";
         return std::make_unique<VariableExprAST>(exprStr);
-    }
-}
-
-bool isEqual(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2)
-{
-    if(expr1 == nullptr || expr2 == nullptr)
-    {
-        fprintf(stderr, "empty\n");
-        return false;
-    }
-
-    const std::string expr1Type = expr1->type();
-    const std::string expr2Type = expr2->type();
-
-    if(expr1Type == expr2Type)
-    {
-        if(expr1->type() == "Number")
-        {
-            NumberExprAST *numberExpr1 = dynamic_cast<NumberExprAST *>(expr1.get());
-            double number1 = (numberExpr1->getNumber());
-            NumberExprAST *numberExpr2 = dynamic_cast<NumberExprAST *>(expr2.get());
-            double number2 = (numberExpr2->getNumber());
-
-            return (number1 == number2);
-        }
-        else if(expr1->type() == "Variable")
-        {
-            VariableExprAST *variableExpr1 = dynamic_cast<VariableExprAST *>(expr1.get());
-            std::string variable1 = (variableExpr1->getVariable());
-            VariableExprAST *variableExpr2 = dynamic_cast<VariableExprAST *>(expr2.get());
-            std::string variable2 = (variableExpr2->getVariable());
-
-            return (variable1 == variable2);
-        }
-        else if(expr1->type() == "Call")
-        {
-            CallExprAST *callExpr1 = dynamic_cast<CallExprAST *>(expr1.get());
-            std::string callee1 = (callExpr1->getCallee());
-            CallExprAST *callExpr2 = dynamic_cast<CallExprAST *>(expr2.get());
-            std::string callee2 = (callExpr2->getCallee());
-
-            if(callee1 == callee2)
-            {
-                std::vector<std::unique_ptr<ExprAST>> &args1 = callExpr1->getArgs();
-                std::vector<std::unique_ptr<ExprAST>> &args2 = callExpr2->getArgs();
-
-                if(args1.size() == args2.size())
-                {
-                    for(long unsigned int i = 0; i < args1.size(); ++i)
-                    {
-                        if(!isEqual(args1.at(i), args2.at(i)))
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else if(expr1Type == "Binary")
-        {
-            BinaryExprAST *binOp1 = dynamic_cast<BinaryExprAST *>(expr1.get());
-            char op1 = binOp1->getOp();
-            std::string opStr1(1, op1);
-            BinaryExprAST *binOp2 = dynamic_cast<BinaryExprAST *>(expr2.get());
-            char op2 = binOp2->getOp();
-            std::string opStr2(1, op2);
-            if(opStr1 == opStr2)
-            {
-                std::unique_ptr<ExprAST> &lhs1 = binOp1->getLHS();
-                std::unique_ptr<ExprAST> &rhs1 = binOp1->getRHS();
-                std::unique_ptr<ExprAST> &lhs2 = binOp2->getLHS();
-                std::unique_ptr<ExprAST> &rhs2 = binOp2->getRHS();
-
-                return (isEqual(lhs1, lhs2) && isEqual(rhs1, rhs2));
-            }
-            else
-            {
-                return false;
-            }
-        }
-        else
-        {
-            return false;  // TODO: handle the other cases
-        }
-    }
-    else
-    {
-        return false;
     }
 }
 

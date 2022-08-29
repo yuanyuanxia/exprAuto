@@ -1,5 +1,6 @@
 #include "basic.hpp"
-#include "changeAST.hpp"
+#include "expandAST.hpp"
+#include "mathfuncRewrite.hpp"
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
