@@ -38,12 +38,36 @@ factor -> number | variable | (expr) | func(expr, ...)
 主要文件目录如下：
 ```
 .
-├── main.cpp
-├── basic.hpp
-├── laxerAST.hpp
-├── parserAST.hpp
-├── printAST.hpp  ★★
-├── changeAST.hpp ★★★
+├── bin
+│   └── main.exe
+├── include
+│   ├── basic.hpp
+│   ├── changeAST.hpp
+│   ├── createExpr.hpp
+│   ├── exprAuto.hpp
+│   ├── funcInfo.hpp
+│   ├── laxerAST.hpp
+│   ├── mathfunctransAST.hpp
+│   ├── monoInfo.hpp
+│   ├── parserAST.hpp
+│   ├── polyInfo.hpp
+│   ├── printAST.hpp
+│   └── variableInfo.hpp
+├── Makefile
+├── objs
+├── README.md
+└── src
+    ├── changeAST.cpp
+    ├── createExpr.cpp
+    ├── exprAuto.cpp
+    ├── funcInfo.cpp
+    ├── laxerAST.cpp
+    ├── main.cpp
+    ├── mathfunctransAST.cpp
+    ├── monoInfo.cpp
+    ├── parserAST.cpp
+    ├── printAST.cpp
+    └── variableInfo.cpp
 ```
 
 主要类、方法如下：
@@ -75,21 +99,21 @@ factor -> number | variable | (expr) | func(expr, ...)
   - ParseDefinition()
   - ParseTopLevelxpr()
   - ParseExtern()
-- Print
+- PrintAST
   - std::string **PrintExpression**(std::unique_ptr\<ExprAST> &expr)  ★★
   - void **PrintFunction**(std::unique_ptr\<FunctionAST> &fun) ★
-- changeExpression
+- ChangeExpression
   - std::unique_ptr\<ExprAST> **expandExpr**(std::unique_ptr\<ExprAST> &expr) ★★★
   - bool **isEqual**(std::unique_ptr\<ExprAST> &expr1, std::unique_ptr\<ExprAST> &expr2) ★
-- createExpr
+- CreateExpr
   - vector<std::unique_ptr\<ExprAST>> **createExpr**(const std::unique_ptr\<ExprAST> exprInit)
   - void **getReady**(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
   - std::vector<std::unique_ptr\<ExprAST>> **createMiddle**(const std::string variable, const int *term, const double *coefficient, const int len)
-- mathfunctrans
+- Mathfunctrans
   - std::unique_ptr<ExprAST> **expToexpm1**(const std::unique_ptr<ExprAST> &expr)
   - **logTolog1**
   - **sqrtTohypot**
-- exprAuto
+- ExprAuto
   - std::unique_ptr<ExprAST> **preprocess**(const std::unique_ptr<ExprAST> &expr)
   - std::vector<std::unique_ptr<ExprAST>> **rewriteExprWrapper**(std::unique_ptr<ExprAST> &expr)
   - std::vector<std::unique_ptr<ExprAST>> **createAll**(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
@@ -97,6 +121,25 @@ factor -> number | variable | (expr) | func(expr, ...)
 
 
 ### 编译运行
+
+```bash
+git clone https://gitee.com/mathlib/expr-auto.git
+cd path/to/exprAuto
+mkdir objs  # if "objs" directory do not exist
+mkdir bin   # if "bin" directory do not exist
+make
+./bin/main.exe
+```
+
+OR
+
+```bash
+git clone https://gitee.com/mathlib/expr-auto.git
+cd path/to/exprAuto
+cd src
+g++ *.c -o main.exe
+./main.exe
+```
 
 ```
 cd path/to/exprAuto
@@ -155,8 +198,8 @@ expr type: Number;      number: 4.000000
   * [x] $exp(log(x)) \Rightarrow x$
   * [ ] $sqrt(x) \times sqrt(y) \Rightarrow sqrt(x \times y)$
   * [ ] $sqrt(x) / sqrt(y) \Rightarrow sqrt(x / y)$
-* [ ] 整合单参多项式变换和数学函数表换 ★
-* [ ] 支持含双参乃至多参变量的表达式 ★
-* [ ] 生成 mpfr 代码 ★
+* [ ] 整合单参多项式变换和数学函数表换 ★★★
+* [ ] 支持含双参乃至多参变量的表达式 ★★★
+* [ ] 生成 mpfr 代码 ★★
 * [ ] 生成符合 herbie、daisy 等工具格式要求的数学表达式 ★
 * ······
