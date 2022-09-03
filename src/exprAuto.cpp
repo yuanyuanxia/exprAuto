@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <queue>
+#include <numeric>
 
 #include "basic.hpp"
 #include "monoInfo.hpp"
@@ -748,7 +749,9 @@ std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info)
     return newExpr->Clone();
 }
 
-std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<ExprAST> &expr) {
+// TODO: implement
+std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<ExprAST> &expr)
+{
     fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     std::vector<std::unique_ptr<ExprAST>> results;
     results.push_back(std::move(expr->Clone()));
@@ -757,86 +760,70 @@ std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<Expr
 }
 
 // a kernel function within rewriteExpr
-std::vector<size_t> getCombineOrders(std::vector<size_t> lenVariants, size_t order) {
+std::vector<size_t> getCombineOrders(const std::vector<size_t> widths, const size_t identifier)
+{
     std::vector<size_t> orders;
-    size_t start = 0;
-    for (size_t i = 0; i < lenVariants.size(); i++)
+    size_t order, start = 0;
+    for(const auto &width : widths)
     {
-        size_t tmp = start + order % lenVariants.at(i);
-        orders.push_back(tmp);
-        order = order / lenVariants.at(i);
-        start += lenVariants.at(i);
+        order = start + identifier % width;
+        orders.push_back(order);
+        order = identifier / width;
+        start += width;
     }
-    
     return orders;
 }
 
 // a kernel function within rewriteExpr
-std::unique_ptr<ExprAST> getExprFromVariants(std::vector<std::unique_ptr<ExprAST>> &variants, std::vector<size_t> orders) {
-    std::unique_ptr<ExprAST> result;
-    size_t order;
-    for (size_t i = 0; i < orders.size(); i++)
+std::unique_ptr<ExprAST> getExprFromVariants(const std::vector<std::unique_ptr<ExprAST>> &variants, const std::vector<size_t> orders)
+{
+    std::unique_ptr<ExprAST> result = nullptr;
+    for(const auto &order : orders)
     {
-        order = orders.at(i);
-        if(i == 0) {
-            result = variants.at(order)->Clone();
-        }
-        else
-        {
-            result = addExpr(result, variants.at(order));
-        }
+        result = addExpr(result, variants.at(order));
     }
-
     return result;
 }
 
 // a kernel function within rewriteExpr
-std::vector<std::unique_ptr<ExprAST>> combineMonomial(std::vector<std::unique_ptr<ExprAST>> &variants, std::vector<size_t> lenVariants){
-    size_t numOfMonomial = lenVariants.size();
-    size_t numOfCombinations = 1;
+std::vector<std::unique_ptr<ExprAST>> combineMonomial(const std::vector<std::unique_ptr<ExprAST>> &variants, const std::vector<size_t> widths)
+{
     std::vector<std::unique_ptr<ExprAST>> results;
+    size_t numOfCombinations = std::accumulate(std::begin(widths), std::end(widths), 1, std::multiplies<>());
 
-    for (size_t i = 0; i < numOfMonomial; i++)
+    for(size_t i = 0; i < numOfCombinations; i++)
     {
-        numOfCombinations *= lenVariants.at(i);
-    }
-    for (size_t i = 0; i < numOfCombinations; i++)
-    {
-        std::vector<size_t> orders = getCombineOrders(lenVariants, i);
+        std::vector<size_t> orders = getCombineOrders(widths, i);
         std::unique_ptr<ExprAST> tmp = getExprFromVariants(variants, orders);
         results.push_back(std::move(tmp));
     }
     return results;
 }
 
-// TODO: implement. rewriteExpr should contain poly and math function equal change
+// TODO: check
 std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST> &expr)
 {
     fprintf(stderr, "rewriteExpr: start--------\n");
     std::vector<std::unique_ptr<ExprAST>> monomials = extractItems(expr);
     std::vector<std::unique_ptr<ExprAST>> variants;
-    std::vector<size_t> lenVariants;
-    for (size_t i = 0; i < monomials.size(); i++)
+    std::vector<size_t> widths;
+
+    for(const auto &monomial : monomials)
     {
-        std::unique_ptr<ExprAST> &monomial = monomials.at(i);
         std::vector<std::unique_ptr<ExprAST>> tmps = mathfuncRewrite(monomial);
         variants.insert(variants.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
-        lenVariants.push_back(tmps.size());
+        widths.push_back(tmps.size());
     }
-    for (size_t i = 0; i < variants.size(); i++)
-    {
-        fprintf(stderr, "rewriteExpr: before middle, No.%lu: %s\n", i, PrintExpression(variants[i]).c_str());
-    }
-    // std::for_each(variants.begin(), variants.end(), [](const auto &it){fprintf(stderr, "rewriteExpr: before middle11, No.%lu: %s\n", it - variants.begin(), PrintExpression(*it).c_str());});
-    std::vector<std::unique_ptr<ExprAST>> middles = combineMonomial(variants, lenVariants);
-    for (size_t i = 0; i < middles.size(); i++)
-    {
-        fprintf(stderr, "rewriteExpr: after middle, No.%lu: %s\n", i, PrintExpression(middles[i]).c_str());
-    }
+
+    std::for_each(variants.begin(), variants.end(),
+                  [index = 0](const auto &it) mutable { fprintf(stderr, "rewriteExpr: before middle, No.%d: %s\n", index++, PrintExpression(it).c_str()); });
+    std::vector<std::unique_ptr<ExprAST>> middles = combineMonomial(variants, widths);
+    std::for_each(middles.begin(), middles.end(),
+                  [index = 0](const auto &it) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(it).c_str()); });
     std::vector<std::unique_ptr<ExprAST>> results;
-    for (size_t i = 0; i < middles.size(); i++)
+
+    for(const auto &middle : middles)
     {
-        std::unique_ptr<ExprAST> &middle = middles.at(i);
         std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle);
         results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
     }

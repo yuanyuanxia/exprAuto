@@ -162,12 +162,19 @@ std::unique_ptr<ExprAST> getDenominator(const std::unique_ptr<ExprAST> &expr)
 
 std::unique_ptr<ExprAST> createBinaryExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2, const char op)
 {
-    if (expr1 == nullptr || expr2 == nullptr)
+    if (expr1 == nullptr && expr2 == nullptr)
     {
-        fprintf(stderr, "\tERROR: createBinaryExpr: the input contain nullptr!");
+        fprintf(stderr, "\tERROR: createBinaryExpr: all the inputs are nullptr!");
         return nullptr;
     }
-
+    if (expr1 == nullptr)
+    {
+        return expr2->Clone();
+    }
+    if (expr2 == nullptr)
+    {
+        return expr1->Clone();
+    }
     auto lhs = expr1->Clone();
     auto rhs = expr2->Clone();
     return std::make_unique<BinaryExprAST>(op, std::move(lhs), std::move(rhs));
@@ -183,7 +190,7 @@ std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const st
 // print information
 //===----------------------------------------------------------------------===//
 
-std::string PrintExpression(std::unique_ptr<ExprAST> &expr)
+std::string PrintExpression(const std::unique_ptr<ExprAST> &expr)
 {
     if(expr == nullptr)
     {

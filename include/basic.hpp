@@ -189,7 +189,7 @@ std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const st
 // print information
 //===----------------------------------------------------------------------===//
 
-std::string PrintExpression(std::unique_ptr<ExprAST> &expr);
+std::string PrintExpression(const std::unique_ptr<ExprAST> &expr);
 
 void PrintFunction(std::unique_ptr<FunctionAST> &fun);
 
