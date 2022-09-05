@@ -19,7 +19,10 @@ enum Token
 
     // primary
     tok_identifier = -4,
-    tok_number = -5
+    tok_number = -5,
+    
+    //StringExpr
+    tok_string = -6
 };
 
 extern std::string IdentifierStr;  // Filled in if tok_identifier

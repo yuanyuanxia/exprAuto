@@ -26,6 +26,8 @@ int gettok()
         while(isalnum((LastChar = getchar())))
             IdentifierStr += LastChar;
 
+        if(IdentifierStr == "string")    //add the option of stringToExpr
+			return tok_string;
         if(IdentifierStr == "def")
             return tok_def;
         if(IdentifierStr == "extern")

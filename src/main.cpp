@@ -5,6 +5,11 @@
 #include "polyRewrite.hpp"
 #include "mathfuncRewrite.hpp"
 #include "exprAuto.hpp"
+
+#include "laxerASTLY.hpp"
+#include "parserASTLY.hpp"
+#include "string.h"
+
 // #define DEBUG
 
 //===----------------------------------------------------------------------===//
@@ -69,15 +74,27 @@ static void HandleTopLevelExpression()
         funcBodyStr = PrintExpression(exprNew);
         fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
 
-        auto exprs = createExpr((exprOrigin));
+        //auto exprs = createExpr((exprOrigin));
 
-        auto exprsFinal = exprAuto(exprOrigin);
+        //auto exprsFinal = exprAuto(exprOrigin);
     }
     else
     {
         // Skip token for error recovery.
         getNextToken();
     }
+}
+
+static void HandleParseExpressionFromString()
+{
+	std::unique_ptr<ExprAST> es = ParseExpressionFromString();
+	if(es)
+	{
+		fprintf(stderr, "Parsed an string\n");
+		std::string str = PrintExpression(es);
+        fprintf(stderr, "\tstr: %s\n", str.c_str());
+	}
+	getNextToken();
 }
 
 /// top ::= definition | external | expression | ';'
@@ -99,6 +116,9 @@ static void MainLoop()
         case tok_extern:
             HandleExtern();
             break;
+        case tok_string:    //input "string;" to trigger this case
+		    HandleParseExpressionFromString();
+			break;
         default:
             HandleTopLevelExpression();
             break;
@@ -115,6 +135,7 @@ int main()
 
     // Install standard binary operators.
     installOperators();
+    installOperatorsForStr();
 
     // Prime the first token.
     fprintf(stderr, "ready> ");
