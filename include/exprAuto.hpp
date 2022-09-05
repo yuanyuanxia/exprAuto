@@ -27,7 +27,9 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
 
 std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info);
 
-std::unique_ptr<ExprAST> geneExprAST(std::vector<monoInfo> &info);
+std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial);
+
+std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &info);
 
 // TODO: implement. rewriteExpr should contain poly and math function equal change
 std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST> &expr);
