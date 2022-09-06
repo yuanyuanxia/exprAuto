@@ -3,13 +3,14 @@
 #include <iostream>
 #include <vector>
 #include "monoInfo.hpp"
+#include "polyInfo.hpp"
 
 struct monoInfo;
 
 struct funcInfo
 {
     std::string callee;
-    std::vector<monoInfo> args;
+    std::vector<polyInfo> args;
 
     void showInfo();
 

@@ -438,10 +438,15 @@ monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
         funcTmp.callee = callPtr->getCallee();
         for(size_t i = 0; i < (callPtr->getArgs()).size(); ++i)
         {
-            auto arg = (callPtr->getArgs().at(i))->Clone();
-            auto exprsTmp = extractItems(arg);
-            auto funcs = extractInfo(exprsTmp);
-            (funcTmp.args).insert((funcTmp.args).begin(), funcs.begin(), funcs.end());
+            auto argAST = (callPtr->getArgs().at(i))->Clone();
+            auto exprsTmp = extractItems(argAST);
+            auto monosTmp = extractInfo(exprsTmp);
+            polyInfo poly;
+            for(auto monoTmp : monosTmp)
+            {
+                (poly.monos).push_back(monoTmp);
+            }
+            (funcTmp.args).push_back(poly);
         }
         functions.push_back(funcTmp);
         return monoFinal;
@@ -539,13 +544,30 @@ std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
 std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
 {
     const std::vector<variableInfo> &vars = monomial.variables;
-    if (vars.size() == 0) // number
+    const std::vector<funcInfo> &funcs = monomial.functions;
+    if (vars.size() == 0 && funcs.size() == 0) // number
     {
         return std::make_unique<NumberExprAST>(monomial.coefficient);
     }
-    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && monomial.coefficient == 1) // single variable
+    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && (monomial.coefficient == 1) && (funcs.size() == 0)) // single variable
     {
         return std::make_unique<VariableExprAST>(vars.at(0).name);
+    }
+    else if (vars.size() == 0 && funcs.size() == 1) // single function
+    {
+        funcInfo func = funcs.at(0);
+        std::string callee = func.callee;
+        std::vector<std::unique_ptr<ExprAST>> argASTs;
+        for(size_t i = 0; i < func.args.size(); i++)
+        {
+            polyInfo arg = func.args.at(i);
+            
+            std::unique_ptr<ExprAST> argAST = geneExprAST(arg.monos);
+            // std::unique_ptr<ExprAST> argAST = std::make_unique<NumberExprAST>(2);
+            argASTs.push_back(std::move(argAST));
+        }
+        std::unique_ptr<CallExprAST> call = std::make_unique<CallExprAST>(callee, std::move(argASTs));
+        return std::make_unique<CallExprAST>(call);
     }
     else // many variable
     {
