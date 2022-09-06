@@ -549,31 +549,19 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
     }
     else // many variable
     {
-        std::vector<std::string> varVec;
-        for (auto &var : vars)
+        std::unique_ptr<ExprAST> tempBinaryAST = std::make_unique<NumberExprAST>(monomial.coefficient);
+        for (size_t i = 0; i < vars.size(); ++i)
         {
-            for (int n = 0; n < var.degree; n++)
+            const variableInfo &var = vars.at(i);
+            std::unique_ptr<ExprAST> elementAST = std::make_unique<VariableExprAST>(var.name);
+            std::unique_ptr<ExprAST> varAST = nullptr;
+            for (int j = 0; j < var.degree; j++)
             {
-                varVec.push_back(var.name);
+                varAST = mulExpr(std::move(varAST), std::move(elementAST->Clone()));
             }
+            tempBinaryAST = mulExpr(std::move(tempBinaryAST), std::move(varAST));
         }
-        std::sort(varVec.begin(), varVec.end());
 
-        std::unique_ptr<ExprAST> numAST = std::make_unique<NumberExprAST>(monomial.coefficient);
-        std::unique_ptr<BinaryExprAST> tempBinaryAST = std::move(std::make_unique<BinaryExprAST>('*', std::move(numAST), nullptr));
-        for (size_t v = 0; v < varVec.size(); v++)
-        {
-            std::unique_ptr<ExprAST> varAST = std::make_unique<VariableExprAST>(varVec.at(v));
-            tempBinaryAST->setRHS(varAST);
-            if (v < varVec.size() - 1)
-            {
-                tempBinaryAST = std::move(std::make_unique<BinaryExprAST>('*', std::move(tempBinaryAST), nullptr));
-            }
-            else
-            {
-                break;
-            }
-        }
         return tempBinaryAST;
     }
 }
