@@ -477,7 +477,7 @@ monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
 
 std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs)
 {
-    fprintf(stderr, "extractInfo: start--------\n");
+    // fprintf(stderr, "extractInfo: start--------\n");
     std::vector<monoInfo> results;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
@@ -495,13 +495,13 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
     //     (results.at(i)).showInfo();
     //     fprintf(stderr, "\n");
     // }
-    fprintf(stderr, "extractInfo: end----------\n");
+    // fprintf(stderr, "extractInfo: end----------\n");
     return results;
 }
 
 std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
 {
-    fprintf(stderr, "mergePolynomial: start--------\n");
+    // fprintf(stderr, "mergePolynomial: start--------\n");
     size_t size = info.size();
     bool *merged = new bool[size]{};
     size_t i = 0, j = 0;
@@ -528,7 +528,9 @@ std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
         }
         results.push_back(tmp);
     }
+    // TODO: check sort. Eg: b*d + a*b + b*b + a*a, output should be a*a + a*b + b*b + b*d, but is a*a + b*b + a*b + b*d;
     std::sort(results.begin(), results.end());
+
     // print information of info
     // for (size_t i = 0; i < results.size(); i++)
     // {
@@ -537,77 +539,94 @@ std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
     //     fprintf(stderr, "\n");
     // }
     delete []merged;
-    fprintf(stderr, "mergePolynomial: end----------\n");
+    // fprintf(stderr, "mergePolynomial: end----------\n");
     return results;
+}
+
+std::unique_ptr<ExprAST> geneFunctionAST(const funcInfo &func)
+{
+    std::string callee = func.callee;
+    std::vector<std::unique_ptr<ExprAST>> argASTs;
+    for(const polyInfo &arg : func.args)
+    {
+        std::unique_ptr<ExprAST> argAST = geneExprAST(arg.monos);
+        argASTs.push_back(std::move(argAST));
+    }
+    return std::make_unique<CallExprAST>(callee, std::move(argASTs));
 }
 
 std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
 {
     const std::vector<variableInfo> &vars = monomial.variables;
     const std::vector<funcInfo> &funcs = monomial.functions;
-    if (vars.size() == 0 && funcs.size() == 0) // number
+    const polyInfo &poly = monomial.poly;
+    if (vars.size() == 0 && funcs.size() == 0 && poly.monos.size() == 0) // number
     {
         return std::make_unique<NumberExprAST>(monomial.coefficient);
     }
-    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && (monomial.coefficient == 1) && (funcs.size() == 0)) // single variable
+    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && (monomial.coefficient == 1) && (funcs.size() == 0) && poly.monos.size() == 0) // single variable
     {
         return std::make_unique<VariableExprAST>(vars.at(0).name);
     }
-    else if (vars.size() == 0 && funcs.size() == 1) // single function
+    else if (vars.size() == 0 && funcs.size() == 1 && poly.monos.size() == 0) // single function
     {
         funcInfo func = funcs.at(0);
-        std::string callee = func.callee;
-        std::vector<std::unique_ptr<ExprAST>> argASTs;
-        for(size_t i = 0; i < func.args.size(); i++)
-        {
-            polyInfo arg = func.args.at(i);
-            
-            std::unique_ptr<ExprAST> argAST = geneExprAST(arg.monos);
-            // std::unique_ptr<ExprAST> argAST = std::make_unique<NumberExprAST>(2);
-            argASTs.push_back(std::move(argAST));
-        }
-        std::unique_ptr<CallExprAST> call = std::make_unique<CallExprAST>(callee, std::move(argASTs));
-        return std::make_unique<CallExprAST>(call);
+        return geneFunctionAST(func);
     }
-    else // many variable
+    else // many variables or functions
     {
-        std::unique_ptr<ExprAST> tempBinaryAST = std::make_unique<NumberExprAST>(monomial.coefficient);
-        for (size_t i = 0; i < vars.size(); ++i)
+        // set monomial's coefficient
+        std::unique_ptr<ExprAST> newExpr = std::make_unique<NumberExprAST>(monomial.coefficient);
+
+        // set monomial's functions
+        const std::vector<funcInfo> &functions = monomial.functions;
+        for (const auto &func : functions)
         {
-            const variableInfo &var = vars.at(i);
+            std::unique_ptr<ExprAST> funcAST = geneFunctionAST(func);
+            newExpr = mulExpr(std::move(newExpr), std::move(funcAST));
+        }
+
+        // set the addtional functions in the monomial.
+        // NOTE: If there is poly, there is no func, and if there is func, there is no poly
+        std::unique_ptr<ExprAST> tempMonos;
+        for (const auto &mono : poly.monos)
+        {
+            std::unique_ptr<ExprAST> tempMono = geneMonomialAST(mono);
+            tempMonos = addExpr(std::move(tempMonos), std::move(tempMono));
+        }
+        newExpr = mulExpr(std::move(newExpr), std::move(tempMonos));
+
+        // set monomial's variables
+        for (const auto &var : vars)
+        {
             std::unique_ptr<ExprAST> elementAST = std::make_unique<VariableExprAST>(var.name);
             std::unique_ptr<ExprAST> varAST = nullptr;
             for (int j = 0; j < var.degree; j++)
             {
                 varAST = mulExpr(std::move(varAST), std::move(elementAST->Clone()));
             }
-            tempBinaryAST = mulExpr(std::move(tempBinaryAST), std::move(varAST));
+            newExpr = mulExpr(std::move(newExpr), std::move(varAST));
         }
 
-        return tempBinaryAST;
+        return newExpr;
     }
 }
 
-std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &info)
+std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &monos)
 {
-    fprintf(stderr, "geneExprAST: start--------\n");
-    std::unique_ptr<ExprAST> tempAST = geneMonomialAST(info.at(0));;
-    if (info.size() == 1)
+    // fprintf(stderr, "geneExprAST: start--------\n");
+    if (monos.size() == 0)
     {
-        fprintf(stderr, "geneExprAST: end--------\n");
-        return tempAST;
+        fprintf(stderr, "ERROR: geneExprAST: input is NONE!\n");
     }
-
-    std::unique_ptr<BinaryExprAST> newExpr = std::make_unique<BinaryExprAST>('+', std::move(tempAST), nullptr);
-    for (size_t i = 1; i < info.size() - 1; i++)
+    
+    std::unique_ptr<ExprAST> newExpr, tempAST;
+    for (const auto &mono: monos)
     {
-        tempAST = geneMonomialAST(info.at(i));
-        newExpr->setRHS(tempAST);        
-        newExpr = std::move(std::make_unique<BinaryExprAST>('+', std::move(newExpr), nullptr));
+        tempAST = geneMonomialAST(mono);
+        newExpr = addExpr(std::move(newExpr), std::move(tempAST));
     }
-    tempAST = geneMonomialAST(info.back());
-    newExpr->setRHS(tempAST);
-    fprintf(stderr, "geneExprAST: end--------\n");
+    // fprintf(stderr, "geneExprAST: end--------\n");
     return newExpr;
 }
 
@@ -911,12 +930,12 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST>
 // TODO: check
 std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST> &expr)
 {
-    fprintf(stderr, "rewriteExprWrapper: start: exprNew = %s\n", PrintExpression(expr).c_str());
+    fprintf(stderr, "rewriteExprWrapper: start: expr = %s\n", PrintExpression(expr).c_str());
     std::vector<std::unique_ptr<ExprAST>> items = extractItems(expr);
     std::vector<monoInfo> info = extractInfo(items);
     std::vector<monoInfo> infoNew = mergePolynomial(info);
     std::unique_ptr<ExprAST> exprNew = geneExprAST(infoNew);
-    fprintf(stderr, "rewriteExprWrapper: exprNew = %s\n", PrintExpression(exprNew).c_str());
+    fprintf(stderr, "rewriteExprWrapper: after geneExprAST: exprNew = %s\n", PrintExpression(exprNew).c_str());
     exprNew = simplifyExpr(exprNew);
     return rewriteExpr(exprNew);
 }

@@ -1,12 +1,22 @@
 #include "monoInfo.hpp"
 #include "funcInfo.hpp"
 
-// TODO: poly&mono poly&poly
+// TODO: poly&poly
+// TODO: Extract common factors, which can be done more finely
 void monoInfo::combine(const struct monoInfo tmp)
 {
     if (this->hasCommonFunc(tmp))
     {
         this->coefficient += tmp.coefficient;
+        return;
+    }
+    else if (poly.monos.size() > 0)
+    {
+        monoInfo m1;
+        m1.variables = {};
+        m1.functions = tmp.functions;
+        m1.coefficient = tmp.coefficient;
+        poly.monos.push_back(m1);
         return;
     }
     else
@@ -20,6 +30,9 @@ void monoInfo::combine(const struct monoInfo tmp)
         m2.coefficient = tmp.coefficient;
         poly.monos.push_back(m1);
         poly.monos.push_back(m2);
+        std::vector <funcInfo>().swap(functions); 
+        // functions.swap(std::vector<funcInfo>()); // another way but error
+        coefficient = 1;
         return;
     }
     fprintf(stderr, "monoInfo::combine(): please do something about functions!\n");
