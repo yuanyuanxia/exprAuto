@@ -108,6 +108,8 @@ class CallExprAST : public ExprAST
 public:
     CallExprAST(const std::string &Callee, std::vector<std::unique_ptr<ExprAST>> Args) : Callee(Callee), Args(std::move(Args)) {}
 
+    CallExprAST(std::unique_ptr<CallExprAST> &func) : Callee(func->Callee), Args(std::move(func->Args)) {}
+
     void printExpr()
     {
         fprintf(stderr, "call function name = %s\n", Callee.c_str());

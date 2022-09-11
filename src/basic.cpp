@@ -164,7 +164,7 @@ std::unique_ptr<ExprAST> createBinaryExpr(const std::unique_ptr<ExprAST> &expr1,
 {
     if (expr1 == nullptr && expr2 == nullptr)
     {
-        fprintf(stderr, "\tERROR: createBinaryExpr: all the inputs are nullptr!");
+        fprintf(stderr, "\tWARNING: createBinaryExpr: all the inputs are nullptr!\n");
         return nullptr;
     }
     if (expr1 == nullptr)
@@ -265,7 +265,7 @@ std::string PrintExpression(const std::unique_ptr<ExprAST> &expr)
         std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
         std::string rhsStr = PrintExpression(rhs);
 
-        exprStr += "(" + lhsStr + opStr + rhsStr + ")";
+        exprStr += "(" + lhsStr + " " + opStr + " " + rhsStr + ")";
     }
     else
     {

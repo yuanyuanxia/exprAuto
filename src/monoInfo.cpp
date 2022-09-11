@@ -2,7 +2,7 @@
 #include "funcInfo.hpp"
 
 // TODO: poly&poly
-// TODO: Extract common factors, which can be done more finely
+// TODO: !!! Extract common factors, which can be done more finely. This is the basis for completing the simplification of (exp(x)-1)*log(x)*x
 void monoInfo::combine(const struct monoInfo tmp)
 {
     if (this->hasCommonFunc(tmp))
@@ -104,7 +104,8 @@ void monoInfo::showInfo()
             (functions.at(i)).showInfo();
         }
     }
-    std::cout << "\tvariables size = " << variables.size() << std::endl;
+    // std::cout << "\tvariables size = " << variables.size() << std::endl;
+    fprintf(stderr, "\tvariables size = %lu\n", variables.size());
     for (size_t i = 0; i < variables.size(); i++)
     {
         (variables.at(i)).showInfo();

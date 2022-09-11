@@ -428,6 +428,7 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
 
 monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
 {
+    // fprintf(stderr, "extractInfoKernel: at the begin: expr = %s\n", PrintExpression(expr).c_str());
     monoInfo monoFinal;
     double &coefficient = monoFinal.coefficient;
     std::vector<funcInfo> &functions = monoFinal.functions;
@@ -492,7 +493,7 @@ monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
     }
     else
     {
-        fprintf(stderr, "\tERROR: extractInfoKernel: expr contains '+'\n");
+        fprintf(stderr, "\tERROR: extractInfoKernel: expr contains '%c'\n", op);
     }
     return monoFinal;
 }
@@ -505,10 +506,13 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
     {
         std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
         monoInfo monoTmp = extractInfoKernel(exprTmp);
+        if(monoTmp.coefficient != 0)
+        {
             std::vector<variableInfo> &variables = monoTmp.variables;
             std::sort(variables.begin(), variables.end());
             results.push_back(monoTmp);
         }
+    }
 
     // print information of info
     // for (long unsigned int i = 0; i < results.size(); i++)
@@ -590,7 +594,7 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
     {
         return std::make_unique<VariableExprAST>(vars.at(0).name);
     }
-    else if (vars.size() == 0 && funcs.size() == 1 && poly.monos.size() == 0) // single function
+    else if (vars.size() == 0 && monomial.coefficient == 1 && funcs.size() == 1 && poly.monos.size() == 0) // single function
     {
         funcInfo func = funcs.at(0);
         return geneFunctionAST(func);
@@ -598,7 +602,11 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
     else // many variables or functions
     {
         // set monomial's coefficient
-        std::unique_ptr<ExprAST> newExpr = std::make_unique<NumberExprAST>(monomial.coefficient);
+        std::unique_ptr<ExprAST> newExpr = nullptr;
+        if(monomial.coefficient != 1)
+        {
+            newExpr = std::make_unique<NumberExprAST>(monomial.coefficient);
+        }
 
         // set monomial's functions
         const std::vector<funcInfo> &functions = monomial.functions;
@@ -610,13 +618,16 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
 
         // set the addtional functions in the monomial.
         // NOTE: If there is poly, there is no func, and if there is func, there is no poly
-        std::unique_ptr<ExprAST> tempMonos;
+        std::unique_ptr<ExprAST> tempMonos = nullptr;
         for (const auto &mono : poly.monos)
         {
             std::unique_ptr<ExprAST> tempMono = geneMonomialAST(mono);
             tempMonos = addExpr(std::move(tempMonos), std::move(tempMono));
         }
+        if (tempMonos != nullptr)
+        {
             newExpr = mulExpr(std::move(newExpr), std::move(tempMonos));
+        }
 
         // set monomial's variables
         for (const auto &var : vars)
@@ -1037,11 +1048,11 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
                 [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
     std::vector<std::unique_ptr<ExprAST>> results;
 
-    for(const auto &middle : middles)
-    {
-        std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle);
-        results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
-    }
+    // for(const auto &middle : middles)
+    // {
+        // std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle);
+        // results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
+    // }
     // results = createExpr(expr);
     // results.push_back(std::move(expr->Clone()));
     fprintf(stderr, "rewriteExpr: end--------\n");
