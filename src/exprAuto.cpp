@@ -508,7 +508,7 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
             std::vector<variableInfo> &variables = monoTmp.variables;
             std::sort(variables.begin(), variables.end());
             results.push_back(monoTmp);
-    }
+        }
 
     // print information of info
     // for (long unsigned int i = 0; i < results.size(); i++)
@@ -865,14 +865,113 @@ std::unique_ptr<ExprAST> geneExprASTYHR(std::vector<monoInfo> &info)
     return newExpr->Clone();
 }
 
-// TODO: implement
+// a kernel function within mathfuncRewrite
+std::unique_ptr<ExprAST> dealWithCall(const std::unique_ptr<ExprAST> &expr)
+{
+    CallExprAST *callExpr1 = dynamic_cast<CallExprAST *>(expr.get());
+    std::string callee = callExpr1->getCallee();
+    std::unique_ptr<ExprAST> result;
+    if(callee == "exp")
+    {
+        std::cout << "That is " << callee << std::endl;
+        result = lex_x_Or_elx_x(expr);
+    }
+    else if(callee == "log")
+    {   
+        std::cout << "That is " << callee << std::endl;
+        result = lex_x_Or_elx_x(expr);
+        result = logTolog1p(result);
+    }
+    else if(callee == "sqrt")
+    {
+        std::cout << "That is " << callee << std::endl;
+        result = sqrtTohypot(expr); // if success then will be core dumped
+    }
+    else
+    {
+        std::cout << "default: That is " << callee << std::endl;
+        result = expr->Clone();
+    }
+    return result;
+}
+
+// TODO: improve
 std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<ExprAST> &expr)
 {
     fprintf(stderr, "\tmathfuncRewrite: start--------\n");
-    std::vector<std::unique_ptr<ExprAST>> results;
-    results.push_back(std::move(expr->Clone()));
+    
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+        return {};
+    }
+    std::unique_ptr<ExprAST> newexpr = expr->Clone();
+    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    if(newexpr->type() == "Call")
+    {
+        newexpr = dealWithCall(newexpr);
+    }
+    else if(newexpr->type() == "Binary")
+    {
+        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(newexpr.get());
+        char op = binOpPtr->getOp();
+        if (op == '+')
+        {
+            newexpr = expToexpm1(newexpr);
+        }
+        while(op == '*')
+        {
+            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+            // rhs
+            BinaryExprAST *binOpRPtr = nullptr;
+            if (rhs->type() == "Call")
+            {
+                std::unique_ptr<ExprAST> tmp = dealWithCall(rhs);
+                binOpPtr->setRHS(tmp);
+            }
+            else if (rhs->type() == "Binary")
+            {  // the usual case
+                binOpRPtr = dynamic_cast<BinaryExprAST *>(rhs.get());
+                char rhsOp = binOpRPtr->getOp();
+                if (rhsOp == '+')
+                {
+                    std::unique_ptr<ExprAST> tmp = expToexpm1(rhs);
+                    binOpPtr->setRHS(tmp);
+                }
+            }
+
+            // lhs
+            std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+            std::string lhsType = lhs->type();
+            if(lhsType == "Binary")
+            {
+                binOpPtr = dynamic_cast<BinaryExprAST *>(lhs.get());
+                op = binOpPtr->getOp();
+                if(op == '+')
+                {
+                    std::unique_ptr<ExprAST> tmp = expToexpm1(lhs);
+                    binOpPtr->setLHS(tmp);
+                    break;
+                }
+            }
+            else if(lhsType == "Call")
+            {
+                std::unique_ptr<ExprAST> tmp = dealWithCall(lhs);
+                binOpPtr->setLHS(tmp);
+                break;
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+    
+    exprsFinal.push_back(std::move(newexpr));
+    // std::vector<std::unique_ptr<ExprAST>> results;
+    // exprsFinal.push_back(std::move(expr->Clone()));
     fprintf(stderr, "\tmathfuncRewrite: end--------\n");
-    return results;
+    return exprsFinal;
 }
 
 // a kernel function within rewriteExpr
@@ -917,25 +1016,25 @@ std::vector<std::unique_ptr<ExprAST>> combineMonomial(const std::vector<std::uni
 }
 
 // TODO: check
-std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST> &expr)
+std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &monomials)
 {
     fprintf(stderr, "rewriteExpr: start--------\n");
-    std::vector<std::unique_ptr<ExprAST>> monomials = extractItems(expr);
     std::vector<std::unique_ptr<ExprAST>> variants;
     std::vector<size_t> widths;
 
     for(const auto &monomial : monomials)
     {
-        std::vector<std::unique_ptr<ExprAST>> tmps = mathfuncRewrite(monomial);
-        variants.insert(variants.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
-        widths.push_back(tmps.size());
+        std::unique_ptr<ExprAST> expr = geneMonomialAST(monomial);
+        std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewrite(expr);
+        variants.insert(variants.end(), std::make_move_iterator(exprs.begin()), std::make_move_iterator(exprs.end()));
+        widths.push_back(exprs.size());
     }
 
     std::for_each(variants.begin(), variants.end(),
-                  [index = 0](const auto &it) mutable { fprintf(stderr, "rewriteExpr: before middle, No.%d: %s\n", index++, PrintExpression(it).c_str()); });
+                [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: before middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
     std::vector<std::unique_ptr<ExprAST>> middles = combineMonomial(variants, widths);
     std::for_each(middles.begin(), middles.end(),
-                  [index = 0](const auto &it) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(it).c_str()); });
+                [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
     std::vector<std::unique_ptr<ExprAST>> results;
 
     for(const auto &middle : middles)
@@ -959,7 +1058,7 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST
     std::unique_ptr<ExprAST> exprNew = geneExprAST(infoNew);
     fprintf(stderr, "rewriteExprWrapper: after geneExprAST: exprNew = %s\n", PrintExpression(exprNew).c_str());
     exprNew = simplifyExpr(exprNew);
-    return rewriteExpr(exprNew);
+    return rewriteExpr(infoNew);
 }
 
 std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)

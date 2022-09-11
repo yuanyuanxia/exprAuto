@@ -51,7 +51,7 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
 
         const std::string exprTypeLHS = lhs->type();
         const std::string exprTypeRHS = rhs->type();
-        if(op == '-')
+        if(op == '+')
         {
             if((exprTypeLHS == "Call") && (exprTypeRHS == "Number"))  // LHS = "Call" && RHS ='Number'
             {
@@ -65,7 +65,7 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
                 NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(rhs.get());
                 double number = (numberExpr01->getNumber());
                 //得到这个表达式中的变量
-                if((callee01 == "exp") && (number == 1))
+                if((callee01 == "exp") && (number == -1))
                 {
                     for(long unsigned int i = 0; i < args01.size(); ++i)
                     {
@@ -220,7 +220,7 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
 }
 
 // log(exp(x))⇒x OR exp(log(x))⇒x
-std::unique_ptr<ExprAST> lex_x_Or_elx_x(std::unique_ptr<ExprAST> &expr)
+std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr)
 {
     if(expr == nullptr)
     {

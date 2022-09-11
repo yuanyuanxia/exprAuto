@@ -17,6 +17,6 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr);
 std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr);
 
 // log(exp(x))⇒x OR exp(log(x))⇒x
-std::unique_ptr<ExprAST> lex_x_Or_elx_x(std::unique_ptr<ExprAST> &expr);
+std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr);
 
 #endif
