@@ -59,48 +59,34 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
         fprintf(stderr, "\tERROR: extractItems: the input expr is nullptr!\n");
         return {};
     }
-    std::string exprType = expr->type();
     std::vector<std::unique_ptr<ExprAST>> items;
-    if (exprType != "Binary")
-    { // eg: poly := exp(x)
+    if (expr->type() != "Binary")
+    {
         std::unique_ptr<ExprAST> exprTmp = expr->Clone();
         items.push_back(std::move(exprTmp));
-
-        // print info for debug
-        // fprintf(stderr, "\textractItems: expr is monomial\n");
-        // fprintf(stderr, "\textractItems: No.0: %s\n", PrintExpression(items.at(0)).c_str());
-        // fprintf(stderr, "extractItems: end----------\n");
-        return items;
     }
-    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-    char op = binOpPtr->getOp();
-    while (op == '+')
+    else
     {
-        // rhs
-        std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
-        std::unique_ptr<ExprAST> exprTmp = rhs->Clone();
-        items.push_back(std::move(exprTmp));
-        // lhs
-        std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
-        std::string lhsType = lhs->type();
-        if (lhsType == "Binary")
-        { // the usual case
-            binOpPtr = dynamic_cast<BinaryExprAST *>(lhs.get());
-            op = binOpPtr->getOp();
+        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOpPtr->getOp();
+
+        if (op != '+')
+        {
+            std::unique_ptr<ExprAST> exprTmp = expr->Clone();
+            items.push_back(std::move(exprTmp));
         }
         else
         {
-            exprTmp = lhs->Clone();
-            items.push_back(std::move(exprTmp));
-            break;
+            std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+            auto items1 = extractItems(lhs);
+            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+            auto items2 = extractItems(rhs);
+
+            items.insert(items.end(), std::make_move_iterator(items1.begin()), std::make_move_iterator(items1.end()));
+            items.insert(items.end(), std::make_move_iterator(items2.begin()), std::make_move_iterator(items2.end()));
         }
     }
-    if (op != '+')
-    {
-        std::unique_ptr<ExprAST> exprTmp = binOpPtr->Clone();
-        items.push_back(std::move(exprTmp));
-    }
-    reverse(items.begin(), items.end());
+
     // print info for debug
     // fprintf(stderr, "\textractItems: expr size = %ld\n", items.size());
     // for (long unsigned int i = 0; i < items.size(); i++)
@@ -319,19 +305,55 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
     return result;
 }
 
+std::unique_ptr<ExprAST> minusRewrite(const std::unique_ptr<ExprAST> &expr)
+{
+    if(expr->type() != "Binary")
+    {
+        return expr->Clone();
+    }
+
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOpPtr->getOp();
+    auto &lhs = binOpPtr->getLHS();
+    auto &rhs = binOpPtr->getRHS();
+    auto lhsNew = minusRewrite(lhs);
+    auto rhsNew = minusRewrite(rhs);
+    if(op == '-')
+    {
+        std::unique_ptr<ExprAST> minusOne = std::make_unique<NumberExprAST>(-1);
+        rhsNew = createBinaryExpr(minusOne, rhsNew, '*');
+        op = '+';
+    }
+    return createBinaryExpr(lhsNew, rhsNew, op);
+}
+
 std::unique_ptr<ExprAST> preprocessInit(const std::unique_ptr<ExprAST> &expr)
 {
-    std::unique_ptr<ExprAST> exprNew = nullptr;
+    std::unique_ptr<ExprAST> exprNew = minusRewrite(expr);
+    // fprintf(stderr, "preprocessInit: after minusRewrite, exprNew = %s\n", PrintExpression(exprNew).c_str());
     if (isFraction(expr))
     {
-        exprNew = expr->Clone();
+        exprNew = exprNew->Clone();
     }
     else
     {
-        std::unique_ptr<ExprAST> exprTmp = expandExprWrapper(expr);
+        // fprintf(stderr, "preprocessInit: before expandExprWrapper, exprNew = %s\n", PrintExpression(exprNew).c_str());
+        std::unique_ptr<ExprAST> exprTmp = expandExprWrapper(exprNew);
+        // fprintf(stderr, "preprocessInit: after expandExprWrapper, exprTmp = %s\n", PrintExpression(exprTmp).c_str());
         std::vector<std::unique_ptr<ExprAST>> exprs1 = extractItems(exprTmp);
+        // fprintf(stderr, "\tpreprocessInit: after extractItems: exprs1 size = %ld\n", exprs1.size());
+        // for (size_t i = 0; i < exprs1.size(); i++)
+        // {
+            // fprintf(stderr, "\tpreprocessInit: after extractItems: No.%lu: %s\n", i, PrintExpression(exprs1[i]).c_str());
+        // }
         std::vector<std::unique_ptr<ExprAST>> exprs2 = moveDiv(exprs1);
+        // fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
+        // for (size_t i = 0; i < exprs2.size(); i++)
+        // {
+        //     fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
+        // }
         exprNew = mergeFraction(exprs2);
+        fprintf(stderr, "preprocessInit: after mergeFraction, exprNew = %s\n", PrintExpression(exprNew).c_str());
     }
     return exprNew;
 }
@@ -483,9 +505,9 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
     {
         std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
         monoInfo monoTmp = extractInfoKernel(exprTmp);
-        std::vector<variableInfo> &variables = monoTmp.variables;
-        std::sort(variables.begin(), variables.end());
-        results.push_back(monoTmp);
+            std::vector<variableInfo> &variables = monoTmp.variables;
+            std::sort(variables.begin(), variables.end());
+            results.push_back(monoTmp);
     }
 
     // print information of info
@@ -594,7 +616,7 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial)
             std::unique_ptr<ExprAST> tempMono = geneMonomialAST(mono);
             tempMonos = addExpr(std::move(tempMonos), std::move(tempMono));
         }
-        newExpr = mulExpr(std::move(newExpr), std::move(tempMonos));
+            newExpr = mulExpr(std::move(newExpr), std::move(tempMonos));
 
         // set monomial's variables
         for (const auto &var : vars)
