@@ -36,3 +36,5 @@
 .history/
 build/
 main
+*.txt
+__pycache__/

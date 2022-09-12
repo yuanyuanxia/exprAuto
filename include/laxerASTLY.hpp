@@ -19,7 +19,7 @@ enum Token1
     tok_number_forstr = -5
 };
 extern std::string filestring;
-extern int flag;
+extern size_t flag;
 extern int CurTokForStr;
 extern std::string IdentifierStr1;  // Filled in if tok_identifier
 extern double NumVal1;              // Filled in if tok_number

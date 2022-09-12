@@ -39,7 +39,7 @@ std::unique_ptr<ExprAST> ParseBinOpRHSForStr(int ExprPrec, std::unique_ptr<ExprA
 ///
 std::unique_ptr<ExprAST> ParseExpressionForStr();
 
-std::string readFileIntoString(char * filename);
+std::string readFileIntoString(const char * filename);
 
 std::unique_ptr<ExprAST> ParseExpressionFromString();
 

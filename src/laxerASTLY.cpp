@@ -3,7 +3,7 @@
 #include "string.h"
 
 std::string filestring;
-int flag = 0;    //flag为遍历filestring元素时的索引
+size_t flag = 0;    //flag为遍历filestring元素时的索引
 std::string IdentifierStr1;  // Filled in if tok_identifier
 double NumVal1;              // Filled in if tok_number
 int CurTokForStr;                 // CurTok is the current token the parser is looking at.
@@ -17,8 +17,9 @@ std::map<char, int> BinopPrecedenceForStr;
 char getCharFromStr()
 {
 	if(flag < filestring.size())
-    {    char c = filestring.at(flag++);
-         return c;
+    {   
+        char c = filestring.at(flag++);
+        return c;
     }
     //遍历完filestring，返回';'作为结束符
 	return ';';

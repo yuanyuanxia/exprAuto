@@ -1,12 +1,12 @@
 from sympy import *
-import os
+from os import path as os_path
 
-#simplify expr
+# Simplify expr
 def parse(t_str):
-    expr = simplify(sympify(t_str))
+    expr = expand(simplify(sympify(t_str)))
     return expr
 
-# expand expr,x**n ----> x*x*...*x
+# Expand expr,x**n ----> x*x*...*x
 def expand_expr(expr):
     result = ""
 
@@ -41,16 +41,17 @@ def expand_expr(expr):
 
 
 def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
-    current_path = os.path.abspath(".")
-    i_filename = current_path + "/pythoBefore.txt"
-    o_filename = current_path + "/pythonAfter.txt"
+    pyfile_path = os_path.dirname(globals()["__file__"])
+    # print("process: pyfile_path " + pyfile_path)
+    i_filename = pyfile_path + "/" + "pythonBefore.txt"
+    o_filename = pyfile_path + "/" + "pythonAfter.txt"
     with open(i_filename, "r", encoding="UTF-8") as f1, \
             open(o_filename, "w", encoding="UTF-8") as f2:
         input_str = f1.read().strip()
+        print("process: input_str " + input_str)
         out_str = str(parse(input_str))
-        out_str = "".join(out_str.split(" "))
+        print("process: out_str1 " + out_str)
         out_str = expand_expr(out_str)
+        print("process: out_str2 " + out_str)
         f2.write(out_str)
     return 1
-
-

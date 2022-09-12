@@ -54,29 +54,29 @@ static void HandleTopLevelExpression()
         fprintf(stderr, "After change\n");
         std::unique_ptr<ExprAST> &exprOrigin = fun->getFuncBody();
 
-        std::unique_ptr<ExprAST> exprNew = expandExprWrapper(exprOrigin);
-        std::string funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\texpandExpr: %s\n", funcBodyStr.c_str());
+        // std::unique_ptr<ExprAST> exprNew = expandExprWrapper(exprOrigin);
+        // std::string funcBodyStr = PrintExpression(exprNew);
+        // fprintf(stderr, "\texpandExpr: %s\n", funcBodyStr.c_str());
 
-        exprNew = sqrtTohypot(exprOrigin);
-        funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\tsqrtTohypot: %s\n", funcBodyStr.c_str());
+        // exprNew = sqrtTohypot(exprOrigin);
+        // funcBodyStr = PrintExpression(exprNew);
+        // fprintf(stderr, "\tsqrtTohypot: %s\n", funcBodyStr.c_str());
 
-        exprNew = expToexpm1(exprOrigin);
-        funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\texpToexpm1: %s\n", funcBodyStr.c_str());
+        // exprNew = expToexpm1(exprOrigin);
+        // funcBodyStr = PrintExpression(exprNew);
+        // fprintf(stderr, "\texpToexpm1: %s\n", funcBodyStr.c_str());
 
-        exprNew = logTolog1p(exprOrigin);
-        funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
+        // exprNew = logTolog1p(exprOrigin);
+        // funcBodyStr = PrintExpression(exprNew);
+        // fprintf(stderr, "\tlogTolog1p: %s\n", funcBodyStr.c_str());
 
-        exprNew = lex_x_Or_elx_x(exprOrigin);
-        funcBodyStr = PrintExpression(exprNew);
-        fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
+        // exprNew = lex_x_Or_elx_x(exprOrigin);
+        // funcBodyStr = PrintExpression(exprNew);
+        // fprintf(stderr, "\tlex_x_Or_elx_x: %s\n", funcBodyStr.c_str());
 
         //auto exprs = createExpr((exprOrigin));
 
-        //auto exprsFinal = exprAuto(exprOrigin);
+        auto exprsFinal = exprAuto(exprOrigin);
     }
     else
     {

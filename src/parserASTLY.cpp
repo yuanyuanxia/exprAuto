@@ -2,6 +2,7 @@
 #include "laxerASTLY.hpp"
 #include "parserASTLY.hpp"
 #include "string.h"
+#include <unistd.h>
 
 //===----------------------------------------------------------------------===//
 // Parser
@@ -140,7 +141,7 @@ std::unique_ptr<ExprAST> ParseExpressionForStr()
 }
 
 //从文件读入到string里
-std::string readFileIntoString(char * filename)
+std::string readFileIntoString(const char * filename)
 {
     std::ifstream ifile(filename);
     //将文件读入到ostringstream对象buf中
@@ -157,18 +158,24 @@ std::unique_ptr<ExprAST> ParseExpressionFromString()
 	if(CurTokForStr == ';')
 	{
 		filestring.clear();
-	    filestring.shrink_to_fit();
-	    flag = 0;
+        filestring.shrink_to_fit();
+        flag = 0;
 	}
 	
-	char * fn = (char*)"pythonAfter.txt";
+    std::string filename;
+    char buf[128] = {0};
+    getcwd(buf, sizeof(buf));
+    std::string bufStr = buf;
+    filename = bufStr + "/src/pythonAfter.txt";
+    const char* fn = filename.c_str();
+    // std::cout << "------- " << fn << std::endl;
 	filestring = readFileIntoString(fn);
 	
 	getNextTokenForStr();    //eat first element
     
 	if (auto E = ParseExpressionForStr()){
 		std::unique_ptr<ExprAST> es = E->Clone();
-	    return es;
+        return es;
 	}
     return nullptr;
 }

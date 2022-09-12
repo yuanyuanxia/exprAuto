@@ -2,19 +2,19 @@ export PROJECT_NAME = exprAuto
 
 CC = gcc
 CPP = g++
-INCLUDE = -Iinclude
-LIBS=
+INCLUDE = -Iinclude -I/usr/include/python3.8
+LIBS=  -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8
 ECHO = printf
 
 # $(info $(CFLAGS) )
 override CFLAGS += -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
 # $(info $(CFLAGS) )
 
-EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp )
+EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp)
 EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:.cpp=.cpp.o)))
 
 default: dirs \
-		 bin/exprAuto.exe
+	bin/exprAuto.exe
 dirs:
 	mkdir -p bin objs
 
