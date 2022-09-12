@@ -2,9 +2,10 @@
 #define _CREATEEXPR
 
 #include "basic.hpp"
+#include "monoInfo.hpp"
 
 template <typename T>
-void reverseMine(T *p, int size);
+void reverseMine(T *p, size_t size);
 
 double getCoefficient(std::unique_ptr<ExprAST> &expr);
 
@@ -15,7 +16,7 @@ std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr);
 std::string getVariableStr(const std::unique_ptr<ExprAST> &expr);
 
 // 获取多项式的系数和阶数
-void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr);
+void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr);
 
 std::unique_ptr<ExprAST> createSingle(const std::string variable, const int term, const double coefficient, std::unique_ptr<ExprAST> expr);
 
@@ -29,5 +30,7 @@ std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefo
 std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len);
 
 std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> &exprInit);
+
+std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &monomials);
 
 #endif

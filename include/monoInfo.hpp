@@ -17,11 +17,11 @@ struct monoInfo
 
     void combine(const struct monoInfo tmp);
 
-    bool hasCommonCoef(const struct monoInfo mono) const;
+    bool hasCommonCoef(const struct monoInfo &mono) const;
 
-    bool hasCommonFunc(const struct monoInfo mono) const;
+    bool hasCommonFunc(const struct monoInfo &mono) const;
 
-    bool hasCommonTerm(const struct monoInfo mono) const;
+    bool hasCommonTerm(const struct monoInfo &mono) const;
 
     void showInfo();
 

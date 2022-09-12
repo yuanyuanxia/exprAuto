@@ -39,12 +39,12 @@ void monoInfo::combine(const struct monoInfo tmp)
     return;
 }
 
-bool monoInfo::hasCommonCoef(const struct monoInfo mono) const
+bool monoInfo::hasCommonCoef(const struct monoInfo &mono) const
 {
     return (coefficient == mono.coefficient);
 }
 
-bool monoInfo::hasCommonFunc(const struct monoInfo mono) const
+bool monoInfo::hasCommonFunc(const struct monoInfo &mono) const
 {
     const std::vector<funcInfo> &funcs1 = functions;
     const std::vector<funcInfo> &funcs2 = mono.functions;
@@ -65,7 +65,7 @@ bool monoInfo::hasCommonFunc(const struct monoInfo mono) const
     return true;
 }
 
-bool monoInfo::hasCommonTerm(const struct monoInfo mono) const
+bool monoInfo::hasCommonTerm(const struct monoInfo &mono) const
 {
     const std::vector<variableInfo> &vars1 = variables;
     const std::vector<variableInfo> &vars2 = mono.variables;
@@ -136,7 +136,7 @@ bool monoInfo::operator<(const monoInfo &mono) const
 
 bool monoInfo::operator==(const monoInfo &mono) const
 {
-    return (hasCommonCoef(mono) && hasCommonFunc(mono) && hasCommonTerm(mono));
+    return (this->hasCommonCoef(mono) && this->hasCommonFunc(mono) && this->hasCommonTerm(mono));
 }
 
 bool monoInfo::operator!=(const monoInfo &mono) const

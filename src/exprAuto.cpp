@@ -307,6 +307,19 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
 
 std::unique_ptr<ExprAST> minusRewrite(const std::unique_ptr<ExprAST> &expr)
 {
+    if(expr->type() == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        std::vector<std::unique_ptr<ExprAST>> &args = callPtr->getArgs();
+        std::vector<std::unique_ptr<ExprAST>> argsNew;
+        
+        for (auto const &arg : args)
+        {
+            auto tmp = minusRewrite(arg);
+            argsNew.push_back(std::move(tmp));
+        }
+        return std::make_unique<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
+    }
     if(expr->type() != "Binary")
     {
         return expr->Clone();
@@ -909,7 +922,7 @@ std::unique_ptr<ExprAST> dealWithCall(const std::unique_ptr<ExprAST> &expr)
 // TODO: improve
 std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<ExprAST> &expr)
 {
-    fprintf(stderr, "\tmathfuncRewrite: start--------\n");
+    // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     
     if(expr == nullptr)
     {
@@ -918,6 +931,7 @@ std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<Expr
     }
     std::unique_ptr<ExprAST> newexpr = expr->Clone();
     std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    exprsFinal.push_back(std::move(expr->Clone()));
     if(newexpr->type() == "Call")
     {
         newexpr = dealWithCall(newexpr);
@@ -978,10 +992,11 @@ std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<Expr
         }
     }
     
-    exprsFinal.push_back(std::move(newexpr));
-    // std::vector<std::unique_ptr<ExprAST>> results;
-    // exprsFinal.push_back(std::move(expr->Clone()));
-    fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+    if(!isEqual(expr, newexpr))
+    {
+        exprsFinal.push_back(std::move(newexpr));
+    }
+    // fprintf(stderr, "\tmathfuncRewrite: end--------\n");
     return exprsFinal;
 }
 
@@ -1033,10 +1048,21 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
     std::vector<std::unique_ptr<ExprAST>> variants;
     std::vector<size_t> widths;
 
+    // size_t i = 0;
+    // for (auto &monomial : monomials)
+    // {
+    //     fprintf(stderr, "rewriteExpr: The Monomial No.%lu: \n", i);
+    //     (monomial).showInfo(); // not support const. error: passing ‘const monoInfo’ as ‘this’ argument discards qualifiers [-fpermissive]
+    //     fprintf(stderr, "\n");
+    //     i++;
+    // }
     for(const auto &monomial : monomials)
     {
         std::unique_ptr<ExprAST> expr = geneMonomialAST(monomial);
+        fprintf(stderr, "rewriteExpr: before mathRewrite: %s\n", PrintExpression(expr).c_str());
         std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewrite(expr);
+        std::for_each(exprs.begin(), exprs.end(),
+                [index = 0](const auto &expr1) mutable { fprintf(stderr, "rewriteExpr: after mathRewrite No.%d: %s\n", index++, PrintExpression(expr1).c_str()); });
         variants.insert(variants.end(), std::make_move_iterator(exprs.begin()), std::make_move_iterator(exprs.end()));
         widths.push_back(exprs.size());
     }
@@ -1048,13 +1074,15 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
                 [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
     std::vector<std::unique_ptr<ExprAST>> results;
 
-    // for(const auto &middle : middles)
-    // {
+    for(const auto &middle : middles)
+    {
+        std::vector<std::unique_ptr<ExprAST>> items = extractItems(middle);
+        std::vector<monoInfo> info = extractInfo(items);
+        std::vector<monoInfo> infoNew = mergePolynomial(info);
+        std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(infoNew);
         // std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle);
-        // results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
-    // }
-    // results = createExpr(expr);
-    // results.push_back(std::move(expr->Clone()));
+        results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
+    }
     fprintf(stderr, "rewriteExpr: end--------\n");
     return results;
 }
@@ -1096,6 +1124,20 @@ std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<Expr
     }
 }
 
+bool isConstant(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+{
+    size_t size = exprs.size();
+    if (size != 1)
+    {
+        return false;
+    }
+    const std::unique_ptr<ExprAST> &expr = exprs.at(0);
+    if(expr->type() == "Number")
+    {
+        return true;
+    }
+    return false;
+}
 // TODO: check
 std::vector<std::unique_ptr<ExprAST>> exprAuto(std::unique_ptr<ExprAST> &expr)
 {
@@ -1117,9 +1159,31 @@ std::vector<std::unique_ptr<ExprAST>> exprAuto(std::unique_ptr<ExprAST> &expr)
         std::unique_ptr<ExprAST> numeratorTmp = getNumerator(exprNew);
         std::unique_ptr<ExprAST> denominatorTmp = getDenominator(exprNew);
 
+        fprintf(stderr, "exprAuto: step3: perform on numerator.\n");
         auto numeratorsFinal = rewriteExprWrapper(numeratorTmp);
+        fprintf(stderr, "exprAuto: step3: end perform on numerator.\n");
+        fprintf(stderr, "exprAuto: step3: perform on denominator.\n");
         auto denominatorsFinal = rewriteExprWrapper(denominatorTmp);
-        exprsFinal = createAll(numeratorsFinal, denominatorsFinal);
+        fprintf(stderr, "exprAuto: step3: end perform on denominator.\n");
+        fprintf(stderr, "exprAuto: step4: combine numerator and denominator.\n");
+        if(isConstant(denominatorsFinal))
+        {
+            std::unique_ptr<ExprAST> one = std::make_unique<NumberExprAST>(1.0);
+            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(denominatorsFinal.at(0).get());
+            std::unique_ptr<ExprAST> denominator = std::make_unique<NumberExprAST>(numberPtr->getNumber());
+            auto coefficient = divExpr(one, denominator);
+            for(const auto& numerator : numeratorsFinal)
+            {
+                auto tmp1 = mulExpr(coefficient, numerator);
+                auto tmp2 = divExpr(numerator, denominator);
+                exprsFinal.push_back(std::move(tmp1));
+                exprsFinal.push_back(std::move(tmp2));
+            }
+        }
+        else
+        {
+            exprsFinal = createAll(numeratorsFinal, denominatorsFinal);
+        }
     }
     else
     {

@@ -1,13 +1,15 @@
 #include "basic.hpp"
 #include "polyRewrite.hpp"
+#include "monoInfo.hpp"
+#include "exprAuto.hpp"
 
 #define DEBUG_LEVEL 0
 int debugLevel = -1;
 
 template <typename T>
-void reverseMine(T *p, int size)
+void reverseMine(T *p, size_t size)
 {
-    for(int i = 0; i < size / 2; ++i)
+    for(size_t i = 0; i < size / 2; ++i)
     {
         T temp = p[i];
         p[i] = p[size - 1 - i];
@@ -210,7 +212,7 @@ std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
 }
 
 // 获取多项式的系数和阶数
-void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
+void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
 {
     if(expr == nullptr)
         return;
@@ -240,7 +242,7 @@ void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, in
         return;
     }
 
-    int plusTime = 0;
+    size_t plusTime = 0;
     BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
     char op = binOpPtr->getOp();
     while(op == '+')
@@ -497,7 +499,7 @@ std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> 
     std::string variable = "z";
     int term[] = {0, 1, 2, 3, 4, 5};
     double coefficient[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
-    int len = 1;
+    size_t len = 1;
     getReady(exprInit, &variable, term, coefficient, &len);
 
     // for(size_t i = 0; i < len; i++)
@@ -512,6 +514,72 @@ std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> 
     for(long unsigned int i = 0; i < exprsFinal.size(); i++)
     {
         fprintf(stderr, "\tpolyRewrite: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
+    }
+
+    return exprsFinal;
+}
+
+void getReady(const std::vector<monoInfo> &monomials, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
+{
+    bool variableFlags = true;
+    *variablePtr = "novariable";
+    *lenPtr = monomials.size();
+    for (size_t i = 0; i < *lenPtr; i++)
+    {
+        const monoInfo &monomial = monomials.at(i);
+        if(monomial.variables.size() == 0)
+        {
+            term[i] = 0;
+            coefficient[i] = monomial.coefficient;
+        }
+        else if(monomial.variables.size() == 1)
+        {
+            term[i] = monomial.variables.at(0).degree;
+            coefficient[i] = monomial.coefficient;
+            if(variableFlags)
+            {
+                *variablePtr = monomial.variables.at(0).name;
+                variableFlags = false;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "ERROR: we can not support multi variables!\n");
+            exit(1);
+        }
+    }
+        
+}
+
+std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &monomials)
+{
+    std::string variable = "z";
+    int term[] = {0, 1, 2, 3, 4, 5};
+    double coefficient[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    size_t len = 1;
+    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    getReady(monomials, &variable, term, coefficient, &len);
+    // getReady(exprInit, &variable, term, coefficient, &len);
+
+    // for(size_t i = 0; i < len; i++)
+    // {
+    //     fprintf(stderr, "createExpr: %lu: %d, %f\n", i, term[i], coefficient[i]);
+    // }
+    // fprintf(stderr, "createExpr: length = %lu, variable = %s\n", len, variable.c_str());
+    if (len == 1)
+    {
+        auto tmp = geneMonomialAST(monomials.at(0));
+        exprsFinal.push_back(std::move(tmp));
+    }
+    else
+    {
+        exprsFinal = createMiddle(variable, term, coefficient, len);
+    }
+
+    fprintf(stderr, "\tcreateExpr: exprsFinal: %ld\n", exprsFinal.size());
+    for(long unsigned int i = 0; i < exprsFinal.size(); i++)
+    {
+        fprintf(stderr, "\tcreateExpr: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
     }
 
     return exprsFinal;
