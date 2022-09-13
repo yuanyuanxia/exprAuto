@@ -128,9 +128,8 @@ OR
 ```bash
 git clone https://gitee.com/mathlib/expr-auto.git
 cd path/to/exprAuto
-cd src
-g++ *.c -o exprAuto.exe
-./exprAuto.exe
+g++ -o ./bin/exprAuto.exe ./src/*.cpp -Iinclude -I/usr/include/python3.8 -lpython3.8 -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
+./bin/exprAuto.exe
 ```
 
 ```

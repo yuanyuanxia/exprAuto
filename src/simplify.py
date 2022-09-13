@@ -3,8 +3,9 @@ from os import path as os_path
 
 # Simplify expr
 def parse(t_str):
-    expr = expand(simplify(sympify(t_str)))
-    return expr
+    expr = sympify(t_str)
+    exprFinal = expand(simplify(expr))
+    return exprFinal
 
 # Expand expr,x**n ----> x*x*...*x
 def expand_expr(expr):
@@ -48,10 +49,10 @@ def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
     with open(i_filename, "r", encoding="UTF-8") as f1, \
             open(o_filename, "w", encoding="UTF-8") as f2:
         input_str = f1.read().strip()
-        print("process: input_str " + input_str)
+        # print("process: input_str " + input_str)
         out_str = str(parse(input_str))
-        print("process: out_str1 " + out_str)
+        # print("process: out_str1 " + out_str)
         out_str = expand_expr(out_str)
-        print("process: out_str2 " + out_str)
+        # print("process: out_str2 " + out_str)
         f2.write(out_str)
     return 1

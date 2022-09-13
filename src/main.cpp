@@ -9,6 +9,7 @@
 #include "laxerASTLY.hpp"
 #include "parserASTLY.hpp"
 #include "string.h"
+#include "simplifyExpr.hpp"
 
 // #define DEBUG
 
@@ -117,7 +118,7 @@ static void MainLoop()
             HandleExtern();
             break;
         case tok_string:    //input "string;" to trigger this case
-		    HandleParseExpressionFromString();
+            HandleParseExpressionFromString();
 			break;
         default:
             HandleTopLevelExpression();
@@ -132,6 +133,8 @@ static void MainLoop()
 
 int main()
 {
+    // Init Python environment
+    initPython();
 
     // Install standard binary operators.
     installOperators();
@@ -142,8 +145,10 @@ int main()
     getNextToken();
 
     // Run the main "interpreter loop" now.
-
     MainLoop();
+
+    // finish Python environment
+    endPython();
 
     return 0;
 }

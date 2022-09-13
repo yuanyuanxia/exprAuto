@@ -15,8 +15,7 @@ void simplifyInit(std::unique_ptr<ExprAST> &expr)
     char buf[128] = {0};
     getcwd(buf, sizeof(buf));
     std::string bufStr = buf;
-    bufStr += "/src/";
-    filename = bufStr + "pythonBefore.txt";
+    filename = bufStr + "/src/" + "pythonBefore.txt";
     // std::cout << "exprStr : " << exprStr << std::endl;
     // std::cout << "bufStr  : " << bufStr << std::endl;
     // std::cout << "filename: " << filename << std::endl;
@@ -28,7 +27,7 @@ void simplifyInit(std::unique_ptr<ExprAST> &expr)
     fout.close();
 }
 
-void handlePython()
+void initPython()
 {
     // Initialize Python interface
     Py_Initialize();
@@ -36,17 +35,21 @@ void handlePython()
     {
         std::cout << "python init fail" << std::endl;
     }
-    // Initialize variables
-    PyObject *pModule = nullptr;
-    PyObject *pFunc = nullptr;
 
     // Initialize Python system file path
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("import os");
-    PyRun_SimpleString("path = os.path.abspath('.')");
-    PyRun_SimpleString("path = path + '/src/'");
+    PyRun_SimpleString("from sys import path as sys_path");
+    PyRun_SimpleString("from os import path as os_path");
+    PyRun_SimpleString("path = os_path.abspath('./src')");
     // PyRun_SimpleString("print(path)");
-    PyRun_SimpleString("sys.path.append(path)");
+    PyRun_SimpleString("sys_path.append(path)");
+}
+
+void handlePython()
+{
+    // Initialize variables
+    PyObject *pModule = nullptr;
+    PyObject *pFunc = nullptr;
 
     // Call simplify.py
     pModule = PyImport_ImportModule("simplify");
@@ -66,8 +69,11 @@ void handlePython()
     
     int nResult;
     PyArg_Parse(pReturn, "i", &nResult);
-    std::cout << "return result is " << nResult << std::endl;
+    // std::cout << "return result is " << nResult << std::endl;
+}
 
+void endPython()
+{
     // End Python interpreter and release resources
     Py_Finalize();
 }
@@ -85,7 +91,5 @@ std::unique_ptr<ExprAST> simplifyExpr(std::unique_ptr<ExprAST> &expr)
     handlePython();
     
     // Convert the string in pythonAfter.txt to ExprAST
-    std::unique_ptr<ExprAST> finalExpr = ParseExpressionFromString();
-
-    return finalExpr->Clone();
+    return ParseExpressionFromString();
 }

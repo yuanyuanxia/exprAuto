@@ -4,4 +4,8 @@
 #include "basic.hpp"
 std::unique_ptr<ExprAST> simplifyExpr(std::unique_ptr<ExprAST> &expr);
 
+void initPython();
+
+void endPython();
+
 #endif

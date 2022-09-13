@@ -3,11 +3,12 @@ export PROJECT_NAME = exprAuto
 CC = gcc
 CPP = g++
 INCLUDE = -Iinclude -I/usr/include/python3.8
-LIBS=  -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8
+# LIBS=  -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 # may need -L to assign the Python lobrary path
+LIBS=  -lpython3.8
 ECHO = printf
 
 # $(info $(CFLAGS) )
-override CFLAGS += -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
+override CFLAGS += -g -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
 # $(info $(CFLAGS) )
 
 EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp)

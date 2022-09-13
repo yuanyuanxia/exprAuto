@@ -343,6 +343,7 @@ std::unique_ptr<ExprAST> minusRewrite(const std::unique_ptr<ExprAST> &expr)
 std::unique_ptr<ExprAST> preprocessInit(const std::unique_ptr<ExprAST> &expr)
 {
     std::unique_ptr<ExprAST> exprNew = minusRewrite(expr);
+    // std::unique_ptr<ExprAST> exprNew = std::move(expr->Clone());
     // fprintf(stderr, "preprocessInit: after minusRewrite, exprNew = %s\n", PrintExpression(exprNew).c_str());
     if (isFraction(expr))
     {
@@ -1091,13 +1092,16 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
 std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST> &expr)
 {
     fprintf(stderr, "rewriteExprWrapper: start: expr = %s\n", PrintExpression(expr).c_str());
-    std::vector<std::unique_ptr<ExprAST>> items = extractItems(expr);
+    std::unique_ptr<ExprAST> exprNew = simplifyExpr(expr);
+    fprintf(stderr, "rewriteExprWrapper: after simplifyExpr: exprNew = %s\n", PrintExpression(exprNew).c_str());
+    exprNew = minusRewrite(exprNew);
+    fprintf(stderr, "rewriteExprWrapper: after minusRewrite: exprNew = %s\n", PrintExpression(exprNew).c_str());
+    std::vector<std::unique_ptr<ExprAST>> items = extractItems(exprNew);
     std::vector<monoInfo> info = extractInfo(items);
     std::vector<monoInfo> infoNew = mergePolynomial(info);
-    std::unique_ptr<ExprAST> exprNew = geneExprAST(infoNew);
+    exprNew = geneExprAST(infoNew); // just show information
     fprintf(stderr, "rewriteExprWrapper: after geneExprAST: exprNew = %s\n", PrintExpression(exprNew).c_str());
-    exprNew = simplifyExpr(exprNew);
-    return rewriteExpr(infoNew);
+    return rewriteExpr(infoNew); // rewrite from monoInfo
 }
 
 std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
