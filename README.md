@@ -115,7 +115,7 @@ factor -> number | variable | (expr) | func(expr, ...)
   - ······
 
 ### 编译运行
-
+#### Linux
 ```bash
 git clone https://gitee.com/mathlib/expr-auto.git
 cd path/to/exprAuto
@@ -132,11 +132,14 @@ g++ -o ./bin/exprAuto.exe ./src/*.cpp -Iinclude -I/usr/include/python3.8 -lpytho
 ./bin/exprAuto.exe
 ```
 
-```
+#### Windows
+```powershell
 cd path/to/exprAuto
-make
+g++.exe -o .\bin\exprAuto.exe .\src\*.cpp -I .\include\ -I C:\path\to\Python\Python37\include\ -L C:\path\to\Python\Python\Python37\libs\ -L C:\path\to\Python\\Python37\Lib\ -lpython37 -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
 ./bin/exprAuto.exe
 ```
+
+#### Result
 will get
 
 **TODO**: update the follwing screen output which is the earliest version.
@@ -187,8 +190,9 @@ expr type: Number;      number: 4.000000
   * [x] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
   * [x] $log(exp(x)) \Rightarrow x$
   * [x] $exp(log(x)) \Rightarrow x$
-  * [ ] $sqrt(x) \times sqrt(y) \Rightarrow sqrt(x \times y)$
-  * [ ] $sqrt(x) / sqrt(y) \Rightarrow sqrt(x / y)$
+  * [x] $sqrt(x) \times sqrt(y) \Rightarrow sqrt(x \times y)$
+  * [x] $sqrt(x) / sqrt(y) \Rightarrow sqrt(x / y)$
+  * ······
 * [ ] 整合单参多项式变换和数学函数表换 ★★★
 * [ ] 支持含双参乃至多参变量的表达式 ★★★
 * [ ] 生成 mpfr 代码 ★★
