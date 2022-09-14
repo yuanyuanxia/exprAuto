@@ -1,6 +1,9 @@
 #include "basic.hpp"
 #include "expandAST.hpp"
 #include "mathfuncRewrite.hpp"
+#include <algorithm>
+#include <queue>
+#include "exprAuto.hpp"
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
@@ -206,4 +209,136 @@ std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr)
         }
     }
 	return expr->Clone();
+}
+
+// sqrt(x)*sqrt(y) ==> sqrt(x*y)
+std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+        return nullptr;
+    }
+    if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        std::string opStr(1, op);
+#ifdef DEBUG
+        fprintf(stderr, "op: %s\n", opStr.c_str());
+#endif
+
+        std::unique_ptr<ExprAST> &lhs = binOp->getLHS();
+        std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
+
+        const std::string exprTypeLHS = lhs->type();
+        const std::string exprTypeRHS = rhs->type();
+
+        if(op == '*')
+        {
+            if((exprTypeLHS == "Call") && (exprTypeRHS == "Call"))
+            {
+                CallExprAST *callExprL = dynamic_cast<CallExprAST *>(lhs.get());
+                CallExprAST *callExprR = dynamic_cast<CallExprAST *>(rhs.get());
+
+                std::string calleeL = (callExprL->getCallee());
+                std::string calleeR = (callExprR->getCallee());
+
+                std::vector<std::unique_ptr<ExprAST>> &argsL = callExprL->getArgs();  //左表达式中函数的参数
+                std::vector<std::unique_ptr<ExprAST>> &argsR = callExprR->getArgs();  //右表达式中函数的参数
+
+                std::vector<std::unique_ptr<ExprAST>> argsNew;
+#ifdef DEBUG
+                fprintf(stderr, "call: %s\n", calleeL.c_str());
+#endif
+                if((calleeL == "sqrt") && (calleeR == "sqrt"))
+                {
+                    if((argsL.size() == 1) && (argsR.size() == 1))
+                    {//取出左右表达式中的参数
+                        auto argL = std::move(argsL.at(0));
+                        auto argR = std::move(argsR.at(0));
+                        //存放转换后的表达式x*y
+                        auto argsFinal =mulExpr(argL, argR);
+                        argsNew.push_back(std::move(argsFinal));
+                    }
+                    std::string calleeNew = "sqrt";
+                    std::unique_ptr<ExprAST> exprFinal = std::make_unique<CallExprAST>(calleeNew, std::move(argsNew));
+                    return exprFinal;
+                }
+                else
+                return expr->Clone();
+            }
+            else
+            return expr->Clone();
+        }
+        else
+        return expr->Clone();
+    }
+    return expr->Clone();
+}
+
+// sqrt(x)/sqrt(y) ==> sqrt(x/y)
+std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+        return nullptr;
+    }
+    if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        std::string opStr(1, op);
+#ifdef DEBUG
+        fprintf(stderr, "op: %s\n", opStr.c_str());
+#endif
+
+        std::unique_ptr<ExprAST> &lhs = binOp->getLHS();
+        std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
+
+        const std::string exprTypeLHS = lhs->type();
+        const std::string exprTypeRHS = rhs->type();
+
+        if(op == '/')
+        {
+            if((exprTypeLHS == "Call") && (exprTypeRHS == "Call"))
+            {
+                CallExprAST *callExprL = dynamic_cast<CallExprAST *>(lhs.get());
+                CallExprAST *callExprR = dynamic_cast<CallExprAST *>(rhs.get());
+
+                std::string calleeL = (callExprL->getCallee());
+                std::string calleeR = (callExprR->getCallee());
+
+                std::vector<std::unique_ptr<ExprAST>> &argsL = callExprL->getArgs();  //左表达式中函数的参数
+                std::vector<std::unique_ptr<ExprAST>> &argsR = callExprR->getArgs();  //右表达式中函数的参数
+
+                std::vector<std::unique_ptr<ExprAST>> argsNew;
+#ifdef DEBUG
+                fprintf(stderr, "call: %s\n", calleeL.c_str());
+#endif
+                if((calleeL == "sqrt") && (calleeR == "sqrt"))
+                {
+                    if((argsL.size() == 1) && (argsR.size() == 1))
+                    {//取出左右表达式中的参数
+                        auto argL = std::move(argsL.at(0));
+                        auto argR = std::move(argsR.at(0));
+                        //存放转换后的表达式x/y
+                        auto argsFinal =divExpr(argL, argR);
+                        argsNew.push_back(std::move(argsFinal));
+                    }
+                    std::string calleeNew = "sqrt";
+                    std::unique_ptr<ExprAST> exprFinal = std::make_unique<CallExprAST>(calleeNew, std::move(argsNew));
+                    return exprFinal;
+                }
+                else
+                return expr->Clone();
+            }
+            else
+            return expr->Clone();
+        }
+        else
+        return expr->Clone();
+    }
+    return expr->Clone();
 }

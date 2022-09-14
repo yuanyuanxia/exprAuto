@@ -19,4 +19,10 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr);
 // log(exp(x))⇒x OR exp(log(x))⇒x
 std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr);
 
+// sqrt(x)*sqrt(y)⇒sqrt(x*y)
+std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr);
+
+// sqrt(x)/sqrt(y)⇒sqrt(x/y)
+std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr);
+
 #endif
