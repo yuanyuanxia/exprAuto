@@ -27,6 +27,8 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
 
 std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info);
 
+std::unique_ptr<ExprAST> geneFunctionAST(const funcInfo &func);
+
 std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial);
 
 std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &info);

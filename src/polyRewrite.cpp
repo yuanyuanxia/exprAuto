@@ -357,6 +357,50 @@ std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, c
     return expr;
 }
 
+std::unique_ptr<ExprAST> createSingle(const std::string variable, const int term, const double coefficient, const monoInfo &monomial, std::unique_ptr<ExprAST> &expr)
+{
+    std::unique_ptr<ExprAST> exprNew = nullptr;
+    exprNew = std::make_unique<NumberExprAST>(coefficient);
+
+    const std::vector<funcInfo> &functions = monomial.functions;
+    const polyInfo &poly = monomial.poly;
+
+    std::unique_ptr<ExprAST> polyAST = nullptr;
+    for (const auto &mono : poly.monos)
+    {
+        std::unique_ptr<ExprAST> monoAST = geneMonomialAST(mono);
+        polyAST = addExpr(polyAST, monoAST);
+    }
+    exprNew = mulExpr(exprNew, polyAST);
+
+    for (const auto &func : functions)
+    {
+        std::unique_ptr<ExprAST> funcAST = geneFunctionAST(func);
+        exprNew = mulExpr(exprNew, funcAST);
+    }
+
+    for(int i = 0; i < term; i++)
+    {
+        std::unique_ptr<ExprAST> rhs = std::make_unique<VariableExprAST>(variable);
+        exprNew = mulExpr(exprNew, rhs);
+    }
+
+    return addExpr(expr, exprNew);
+}
+
+std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, const double *coefficient, const std::vector<monoInfo> &monomials, int len)
+{
+    if(len == 0)
+        return nullptr;
+
+    std::unique_ptr<ExprAST> expr = nullptr;
+    for(int i = 0; i < len; i++)
+    {
+        expr = createSingle(variable, term[i], coefficient[i], monomials.at(i), expr);
+    }
+    return expr;
+}
+
 std::unique_ptr<ExprAST> createContinuedMul(const std::string variable, const int commonDegree)
 {
     if(commonDegree == 0)
@@ -494,6 +538,84 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
     return exprsFinal;
 }
 
+std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const std::vector<monoInfo> &monomials, const int len)
+{
+    debugLevel++;
+
+    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    auto exprOrigin = createBA(variable, term, coefficient, monomials, len);
+    exprsFinal.push_back(std::move(exprOrigin));
+
+    int *termNew = (int *)malloc(sizeof(int) * len);
+
+    if(debugLevel < DEBUG_LEVEL)
+        fprintf(stderr, "Debug level %d: createMiddle: before for, exprsFinal.size() = %lu\n", debugLevel, exprsFinal.size());
+
+    for(int start = 0; start < len - 1; start++)
+    {
+        for(int end = start + 1; end < len; end++)
+        {
+            // prepare
+            bool flag = false;
+            for(int i = start; i <= end; i++)
+            {
+                int termTmp = term[i] - 1;
+                if(termTmp < 0)
+                {
+                    flag = true;
+                    break;
+                }
+                termNew[i - start] = termTmp;
+            }
+            if(flag)
+                break;
+
+            if(debugLevel < DEBUG_LEVEL)
+                fprintf(stderr, "Debug level %d: start = %d, end = %d, len = %d\n", debugLevel, start, end, len);
+
+            // exprsTmp := exprBeforeI + common * exprMiddles + exprAfterK
+            
+            std::vector<monoInfo> monomialsNew;
+            monomialsNew.insert(monomialsNew.end(), monomials.begin(), monomials.begin() + start);
+            auto exprBeforeI = createBA(variable, term, coefficient, monomialsNew, start);
+            
+            auto common = std::make_unique<VariableExprAST>(variable);
+            // auto common = createContinuedMul(variable, 1); // overqualified
+            
+            monomialsNew.clear();
+            monomialsNew.insert(monomialsNew.end(), monomials.begin() + start, monomials.begin() + end + 1);
+            std::vector<std::unique_ptr<ExprAST>> exprMiddles = createMiddle(variable, termNew, coefficient + start, monomialsNew, (end + 1 - start));
+            
+            monomialsNew.clear();
+            monomialsNew.insert(monomialsNew.end(), monomials.begin() + end + 1, monomials.end());
+            auto exprAfterK = createBA(variable, term + end + 1, coefficient + end + 1, monomialsNew, len - (end + 1));
+            std::vector<std::unique_ptr<ExprAST>> exprsTmp;
+            
+            exprsTmp = joinExpr(std::move(exprBeforeI), std::move(common), std::move(exprMiddles), std::move(exprAfterK));
+
+            // exprsFinal += exprsTmp
+            for(size_t i = 0; i < exprsTmp.size(); i++)
+            {
+                auto exprTmp = std::move(exprsTmp.at(i));
+                if(debugLevel < DEBUG_LEVEL)
+                    fprintf(stderr, "Debug level %d: createMiddle: No.%lu %s\n", debugLevel, exprsFinal.size(), PrintExpression(exprTmp).c_str());
+                exprsFinal.push_back(std::move(exprTmp));
+            }
+
+            if(debugLevel < DEBUG_LEVEL)
+                fprintf(stderr, "Debug level %d: createMiddle: exprsTmp.size() = %lu, exprsFinal.size() = %lu\n", debugLevel, exprsTmp.size(),
+                        exprsFinal.size());
+        }
+    }
+    free(termNew);
+
+    if(debugLevel < DEBUG_LEVEL)
+        fprintf(stderr, "Debug level %d: createMiddle: after for, exprsFinal.size() = %lu\n", debugLevel, exprsFinal.size());
+
+    debugLevel--;
+    return exprsFinal;
+}
+
 std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> &exprInit)
 {
     std::string variable = "z";
@@ -573,7 +695,7 @@ std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &mo
     }
     else
     {
-        exprsFinal = createMiddle(variable, term, coefficient, len);
+        exprsFinal = createMiddle(variable, term, coefficient, monomials, len);
     }
 
     fprintf(stderr, "\tcreateExpr: exprsFinal: %ld\n", exprsFinal.size());

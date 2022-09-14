@@ -890,7 +890,214 @@ std::unique_ptr<ExprAST> geneExprASTYHR(std::vector<monoInfo> &info)
     return newExpr->Clone();
 }
 
-// a kernel function within mathfuncRewrite
+std::vector<std::unique_ptr<ExprAST>> mathfuncRewriteNew(const std::unique_ptr<ExprAST> &expr);
+std::vector<size_t> getCombineOrders(const std::vector<size_t> widths, const size_t identifier);
+
+// similiar to getExprFromVariants
+std::unique_ptr<ExprAST> getCallFromVariants(const std::vector<std::unique_ptr<ExprAST>> &variants, const std::vector<size_t> orders, const std::string callee)
+{
+    std::vector<std::unique_ptr<ExprAST>> args;
+    for(const auto &order : orders)
+    {
+        args.push_back(variants.at(order)->Clone());
+    }
+    return std::make_unique<CallExprAST>(callee, std::move(args));
+}
+
+// similiar to combineMonomial
+std::vector<std::unique_ptr<ExprAST>> combineCallArgs(const std::vector<std::unique_ptr<ExprAST>> &variants, const std::vector<size_t> widths, const std::string callee)
+{
+    std::vector<std::unique_ptr<ExprAST>> results;
+    size_t numOfCombinations = std::accumulate(std::begin(widths), std::end(widths), 1, std::multiplies<>());
+
+    for(size_t i = 0; i < numOfCombinations; i++)
+    {
+        std::vector<size_t> orders = getCombineOrders(widths, i);
+        std::unique_ptr<ExprAST> tmp = getCallFromVariants(variants, orders, callee);
+        results.push_back(std::move(tmp));
+    }
+    return results;
+}
+
+std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr, const std::string callee)
+{
+    std::unique_ptr<ExprAST> result;
+    if(callee == "exp")
+    {
+        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        result = lex_x_Or_elx_x(expr);
+    }
+    else if(callee == "log")
+    {   
+        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        result = lex_x_Or_elx_x(expr);
+        result = logTolog1p(result);
+    }
+    else if(callee == "sqrt")
+    {
+        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        result = sqrtTohypot(expr);
+    }
+    else
+    {
+        // std::cout << "dealWithCalls: default: That is " << callee << std::endl;
+        result = expr->Clone();
+    }
+    return result;
+}
+
+// TODO: delete the same expr in exprs using the function 'isEqual'
+void deleteTheSame(std::vector<std::unique_ptr<ExprAST>> &exprs)
+{
+    if(exprs.size() == 0)
+    {
+        fprintf(stderr, "WARNING: deleteTheSame: the input exprs is empty\n");
+        exit(1);
+    }
+}
+
+std::vector<std::unique_ptr<ExprAST>> dealWithCalls(const std::unique_ptr<ExprAST> &expr)
+{
+    CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+    std::string callee = callExpr->getCallee();
+    std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
+    
+    std::vector<std::unique_ptr<ExprAST>> variants;
+    std::vector<size_t> widths;
+    for(const auto &arg : args)
+    {
+        auto exprs = mathfuncRewriteNew(arg);
+        variants.insert(variants.end(), std::make_move_iterator(exprs.begin()), std::make_move_iterator(exprs.end()));
+        widths.push_back(exprs.size());
+    }
+
+    std::for_each(variants.begin(), variants.end(),
+                [index = 0](const auto &variant) mutable { fprintf(stderr, "dealWithCalls: before middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
+    std::vector<std::unique_ptr<ExprAST>> middles = combineCallArgs(variants, widths, callee);
+    std::for_each(middles.begin(), middles.end(),
+                [index = 0](const auto &variant) mutable { fprintf(stderr, "dealWithCalls: after middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
+
+    std::vector<std::unique_ptr<ExprAST>> allResults;
+    for(const auto &middle : middles)
+    {
+        auto result = dealWithCallsKernel(middle, callee);
+        allResults.push_back(std::move(result));
+    }
+    
+    deleteTheSame(allResults);
+    
+    return allResults;
+}
+
+// similiar to createAll, but high level than createAll
+std::vector<std::unique_ptr<ExprAST>> createAllBinary(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators, const char op)
+{
+    std::unique_ptr<ExprAST> resultsTemp;
+    std::vector<std::unique_ptr<ExprAST>> results;
+
+    if(numerators.at(0) != nullptr && denominators.at(0) != nullptr)
+    {
+        // for(long unsigned int i = 0; i < numerators.size(); i++)
+        for(const auto &numerator : numerators)
+        {
+            // for(long unsigned int j = 0; j < denominators.size(); j++)
+            for(const auto &denominator : denominators)
+            {
+                resultsTemp = createBinaryExpr(numerator, denominator, op);
+                results.push_back(std::move(resultsTemp));
+            }
+        }
+        return results;
+    }
+    else
+    {
+        fprintf(stderr, "\tERROR: creatAll: the input include nullptr!\n");
+        return {};
+    }
+}
+
+// TODO: Do all the mathFunction rewrite to BinaryAST such as expToexpm1
+std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr, const char &op)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: dealWithBinOpKernel: the input expression is nullptr!\n");
+        return nullptr;
+    }
+    std::unique_ptr<ExprAST> result;
+    if(op == '+')
+    {
+        // std::cout << "dealWithBinOpKernel: That is " << op << std::endl;
+        result = expToexpm1(expr);
+    }
+    else
+    {
+        // std::cout << "dealWithBinOpKernel: default: That is " << op << std::endl;
+        result = expr->Clone();
+    }
+    return result;
+}
+
+std::vector<std::unique_ptr<ExprAST>> dealWithBinOp(std::vector<std::unique_ptr<ExprAST>> &exprs, const char &op)
+{
+    std::vector<std::unique_ptr<ExprAST>> results;
+    if(exprs.size() == 0)
+    {
+        fprintf(stderr, "ERROR: deleteTheSame: the input exprs is empty\n");
+        return {};
+    }
+    if(op != '+' && op != '-' && op != '*' && op != '/')
+    {
+        fprintf(stderr, "ERROR: deleteTheSame: the input op is illegal\n");
+        return {};
+    }
+    for (const auto &expr : exprs)
+    {
+        auto result = dealWithBinOpKernel(expr, op);
+        results.push_back(std::move(result));
+    }
+    return results;
+}
+
+std::vector<std::unique_ptr<ExprAST>> mathfuncRewriteNew(const std::unique_ptr<ExprAST> &expr)
+{
+    fprintf(stderr, "\tmathfuncRewrite: start--------\n");
+    
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "empty\n");
+        return {};
+    }
+    std::unique_ptr<ExprAST> newexpr = expr->Clone();
+    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    exprsFinal.push_back(std::move(newexpr->Clone()));
+    if(newexpr->type() == "Call")
+    {
+        auto newASTs = dealWithCalls(newexpr);
+        exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+        return exprsFinal;
+    }
+
+    if(expr->type() != "Binary") // May be variable or number
+    {
+        return exprsFinal;
+    }
+
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOpPtr->getOp();
+    auto &lhs = binOpPtr->getLHS();
+    auto &rhs = binOpPtr->getRHS();
+    auto lhsNewASTs = mathfuncRewriteNew(lhs);
+    auto rhsNewASTs = mathfuncRewriteNew(rhs);
+    auto newASTs = createAllBinary(lhsNewASTs, rhsNewASTs, op);
+    newASTs = dealWithBinOp(newASTs, op);
+    exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+    deleteTheSame(exprsFinal);
+    fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+    return exprsFinal;  
+}
+
+// old: A kernel function within mathfuncRewrite
 std::unique_ptr<ExprAST> dealWithCall(const std::unique_ptr<ExprAST> &expr)
 {
     CallExprAST *callExpr1 = dynamic_cast<CallExprAST *>(expr.get());
@@ -920,7 +1127,7 @@ std::unique_ptr<ExprAST> dealWithCall(const std::unique_ptr<ExprAST> &expr)
     return result;
 }
 
-// TODO: improve
+// old
 std::vector<std::unique_ptr<ExprAST>> mathfuncRewrite(const std::unique_ptr<ExprAST> &expr)
 {
     // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
@@ -1057,11 +1264,15 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
     //     fprintf(stderr, "\n");
     //     i++;
     // }
-    for(const auto &monomial : monomials)
+    
+    // generate the variants of each monomial.
+    // Then store them into vector 'variants' and record their size into vector 'widths'
+    for(const auto &monomial : monomials) 
     {
         std::unique_ptr<ExprAST> expr = geneMonomialAST(monomial);
         fprintf(stderr, "rewriteExpr: before mathRewrite: %s\n", PrintExpression(expr).c_str());
-        std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewrite(expr);
+        // std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewrite(expr);
+        std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewriteNew(expr);
         std::for_each(exprs.begin(), exprs.end(),
                 [index = 0](const auto &expr1) mutable { fprintf(stderr, "rewriteExpr: after mathRewrite No.%d: %s\n", index++, PrintExpression(expr1).c_str()); });
         variants.insert(variants.end(), std::make_move_iterator(exprs.begin()), std::make_move_iterator(exprs.end()));
@@ -1070,20 +1281,29 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
 
     std::for_each(variants.begin(), variants.end(),
                 [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: before middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
+    // generate all possible poly based on the monomials's variants, and store them into vector 'middles'
     std::vector<std::unique_ptr<ExprAST>> middles = combineMonomial(variants, widths);
     std::for_each(middles.begin(), middles.end(),
                 [index = 0](const auto &variant) mutable { fprintf(stderr, "rewriteExpr: after middle, No.%d: %s\n", index++, PrintExpression(variant).c_str()); });
-    std::vector<std::unique_ptr<ExprAST>> results;
 
+    std::vector<std::unique_ptr<ExprAST>> results;
+    // do poly rewrite for each poly generated in the last step, and store the results into vector 'results'
     for(const auto &middle : middles)
     {
-        std::vector<std::unique_ptr<ExprAST>> items = extractItems(middle);
+        std::unique_ptr<ExprAST> middleNew = expandExprWrapper(middle);
+        std::vector<std::unique_ptr<ExprAST>> items = extractItems(middleNew);
         std::vector<monoInfo> info = extractInfo(items);
         std::vector<monoInfo> infoNew = mergePolynomial(info);
         std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(infoNew);
-        // std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle);
+        // std::vector<std::unique_ptr<ExprAST>> tmps = createExpr(middle); // old method
         results.insert(results.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
     }
+
+    // fprintf(stderr, "rewriteExpr: results size = %ld\n", results.size());
+    // for (size_t i = 0; i < results.size(); i++)
+    // {
+    //     fprintf(stderr, "rewriteExpr: No.%lu: %s\n", i, PrintExpression(results[i]).c_str());
+    // }
     fprintf(stderr, "rewriteExpr: end--------\n");
     return results;
 }
@@ -1091,17 +1311,28 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
 // TODO: check
 std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST> &expr)
 {
+    std::vector<std::unique_ptr<ExprAST>> exprsInit, exprsFinal;
+    exprsInit.push_back(std::move(expr->Clone()));
     fprintf(stderr, "rewriteExprWrapper: start: expr = %s\n", PrintExpression(expr).c_str());
     std::unique_ptr<ExprAST> exprNew = simplifyExpr(expr);
     fprintf(stderr, "rewriteExprWrapper: after simplifyExpr: exprNew = %s\n", PrintExpression(exprNew).c_str());
     exprNew = minusRewrite(exprNew);
     fprintf(stderr, "rewriteExprWrapper: after minusRewrite: exprNew = %s\n", PrintExpression(exprNew).c_str());
-    std::vector<std::unique_ptr<ExprAST>> items = extractItems(exprNew);
-    std::vector<monoInfo> info = extractInfo(items);
-    std::vector<monoInfo> infoNew = mergePolynomial(info);
-    exprNew = geneExprAST(infoNew); // just show information
-    fprintf(stderr, "rewriteExprWrapper: after geneExprAST: exprNew = %s\n", PrintExpression(exprNew).c_str());
-    return rewriteExpr(infoNew); // rewrite from monoInfo
+    if(!isEqual(expr, exprNew))
+    {
+        exprsInit.push_back(std::move(exprNew));
+    }
+    for(const auto &exprInit : exprsInit)
+    {
+        std::vector<std::unique_ptr<ExprAST>> items = extractItems(exprInit);
+        std::vector<monoInfo> info = extractInfo(items);
+        std::vector<monoInfo> infoNew = mergePolynomial(info);
+        auto tmp = geneExprAST(infoNew); // just show information
+        fprintf(stderr, "rewriteExprWrapper: after geneExprAST: tmp = %s\n", PrintExpression(tmp).c_str());
+        auto tmps = rewriteExpr(infoNew); // rewrite from monoInfo
+        exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
+    }
+    return exprsFinal; // rewrite from monoInfo
 }
 
 std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators)
