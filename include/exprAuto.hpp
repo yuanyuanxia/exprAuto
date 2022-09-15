@@ -33,6 +33,14 @@ std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial);
 
 std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &info);
 
+std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr, const std::string callee);
+
+std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr);
+
+std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr, const char &op);
+
+std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr);
+
 // TODO: implement. rewriteExpr should contain poly and math function equal change
 std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST> &expr);
 

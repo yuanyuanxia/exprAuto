@@ -924,26 +924,43 @@ std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &exp
     std::unique_ptr<ExprAST> result;
     if(callee == "exp")
     {
-        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        // std::cout << "dealWithCallsKernel: That is " << callee << std::endl;
         result = lex_x_Or_elx_x(expr);
     }
     else if(callee == "log")
     {   
-        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        // std::cout << "dealWithCallsKernel: That is " << callee << std::endl;
         result = lex_x_Or_elx_x(expr);
         result = logTolog1p(result);
     }
     else if(callee == "sqrt")
     {
-        // std::cout << "dealWithCalls: That is " << callee << std::endl;
+        // std::cout << "dealWithCallsKernel: That is " << callee << std::endl;
         result = sqrtTohypot(expr);
     }
     else
     {
-        // std::cout << "dealWithCalls: default: That is " << callee << std::endl;
+        // std::cout << "dealWithCallsKernel: default: That is " << callee << std::endl;
         result = expr->Clone();
     }
     return result;
+}
+
+std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: dealWithCallsKernel: the input expression is nullptr!\n");
+        return nullptr;
+    }
+    if(expr->type() != "Call") // May be variable or number or Binary
+    {
+        fprintf(stderr, "WARNING: dealWithCallsKernel: the input expression is not Call!\n");
+        return expr->Clone();
+    }
+    CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+    const std::string callee = callPtr->getCallee();
+    return dealWithCallsKernel(expr, callee);
 }
 
 // TODO: delete the same expr in exprs using the function 'isEqual'
@@ -1038,17 +1055,34 @@ std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &exp
     return result;
 }
 
+std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: dealWithBinOpKernel: the input expression is nullptr!\n");
+        return nullptr;
+    }
+    if(expr->type() != "Binary") // May be variable or number or Call
+    {
+        fprintf(stderr, "WARNING: dealWithBinOpKernel: the input expression is not Binary!\n");
+        return expr->Clone();
+    }
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    const char op = binOpPtr->getOp();
+    return dealWithBinOpKernel(expr, op);
+}
+
 std::vector<std::unique_ptr<ExprAST>> dealWithBinOp(std::vector<std::unique_ptr<ExprAST>> &exprs, const char &op)
 {
     std::vector<std::unique_ptr<ExprAST>> results;
     if(exprs.size() == 0)
     {
-        fprintf(stderr, "ERROR: deleteTheSame: the input exprs is empty\n");
+        fprintf(stderr, "ERROR: dealWithBinOp: the input exprs is empty\n");
         return {};
     }
     if(op != '+' && op != '-' && op != '*' && op != '/')
     {
-        fprintf(stderr, "ERROR: deleteTheSame: the input op is illegal\n");
+        fprintf(stderr, "ERROR: dealWithBinOp: the input op is illegal\n");
         return {};
     }
     for (const auto &expr : exprs)
