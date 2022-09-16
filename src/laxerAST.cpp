@@ -14,13 +14,13 @@ std::map<char, int> BinopPrecedence;
 int gettok()
 {
     static int LastChar = ' ';
-    bool minusFlag = false;
+    static bool minusFlag = false;
 
     // Skip any whitespace.
     while(isspace(LastChar))
         LastChar = getchar();
 
-    if(isalpha(LastChar))
+    if((minusFlag == false) && isalpha(LastChar))
     {  // identifier: [a-zA-Z][a-zA-Z0-9]*
         IdentifierStr = LastChar;
         while(isalnum((LastChar = getchar())))
@@ -44,16 +44,19 @@ int gettok()
             return '-';
         }
         minusFlag = true;
+        NumVal = -1;
+        return tok_number;
+    }
+
+    if(minusFlag)
+    {
+        minusFlag = false;
+        return '`';
     }
 
     if(isdigit(LastChar) || LastChar == '.')
     {  // Number: [0-9.]+
         std::string NumStr;
-        if(minusFlag)
-        {
-            NumStr += '-';
-            minusFlag = false;
-        }
         do
         {
             NumStr += LastChar;
@@ -97,8 +100,9 @@ void installOperators()
     BinopPrecedence['<'] = 10;
     BinopPrecedence['+'] = 20;
     BinopPrecedence['-'] = 20;
-    BinopPrecedence['*'] = 40;  // highest.
-    BinopPrecedence['/'] = 40;  // highest.
+    BinopPrecedence['*'] = 40;
+    BinopPrecedence['/'] = 40;
+    BinopPrecedence['`'] = 50;  // highest.
 }
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.

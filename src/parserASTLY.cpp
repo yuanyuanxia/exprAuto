@@ -60,7 +60,7 @@ std::unique_ptr<ExprAST> ParseIdentifierExprForStr()
                 break;
 
             if(CurTokForStr != ',')
-                return LogErrorForStr("Expected ')' or ',' in argument list");
+                return LogErrorForStr("ParseIdentifierExprForStr: Expected ')' or ',' in argument list");
             getNextTokenForStr();
         }
     }
@@ -80,7 +80,7 @@ std::unique_ptr<ExprAST> ParsePrimaryForStr()
     switch(CurTokForStr)
     {
         default:
-            return LogErrorForStr("unknown token when expecting an expression");
+            return LogErrorForStr("ParsePrimaryForStr: unknown token when expecting an expression");
         case tok_identifier_forstr:
             return ParseIdentifierExprForStr();
         case tok_number_forstr:
@@ -124,6 +124,9 @@ std::unique_ptr<ExprAST> ParseBinOpRHSForStr(int ExprPrec, std::unique_ptr<ExprA
         }
 
         // Merge LHS/RHS.
+        if(BinOp == '`'){
+            BinOp = '*';
+        }
         LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
     }
 }

@@ -28,7 +28,7 @@ char getCharFromStr()
 int gettokForStr()
 {
     static int LastChar = ' ';
-    bool minusFlag = false;
+    static bool minusFlag = false;
 
     // Skip any whitespace.
     while(isspace(LastChar))
@@ -37,7 +37,7 @@ int gettokForStr()
     if(LastChar == ';')    //当LastChar == ';'时，进入新一轮解析，此时s会被更换，LastChar也要更换
 		LastChar = getCharFromStr();
 	
-    if(isalpha(LastChar))
+    if((minusFlag == false) && isalpha(LastChar))
     {  // identifier: [a-zA-Z][a-zA-Z0-9]*
         IdentifierStr1 = LastChar;
         while(isalnum((LastChar = getCharFromStr())))
@@ -59,16 +59,19 @@ int gettokForStr()
             return '-';
         }
         minusFlag = true;
+        NumVal1 = -1;
+        return tok_number_forstr;
+    }
+
+    if(minusFlag)
+    {
+        minusFlag = false;
+        return '`';
     }
 
     if(isdigit(LastChar) || LastChar == '.')
     {  // Number: [0-9.]+
         std::string NumStr;
-        if(minusFlag)
-        {
-            NumStr += '-';
-            minusFlag = false;
-        }
         do
         {
             NumStr += LastChar;
@@ -112,8 +115,9 @@ void installOperatorsForStr()
     BinopPrecedenceForStr['<'] = 10;
     BinopPrecedenceForStr['+'] = 20;
     BinopPrecedenceForStr['-'] = 20;
-    BinopPrecedenceForStr['*'] = 40;  // highest.
-    BinopPrecedenceForStr['/'] = 40;  // highest.
+    BinopPrecedenceForStr['*'] = 40;
+    BinopPrecedenceForStr['/'] = 40;
+    BinopPrecedenceForStr['`'] = 50;  // highest.
 }
 
 /// GetTokPrecedenceForStr - Get the precedence of the pending binary operator token.
