@@ -1305,10 +1305,19 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::vector<monoInfo> &m
     {
         std::unique_ptr<ExprAST> expr = geneMonomialAST(monomial);
         fprintf(stderr, "rewriteExpr: before mathRewrite: %s\n", PrintExpression(expr).c_str());
-        // std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewrite(expr);
-        std::vector<std::unique_ptr<ExprAST>> exprs = mathfuncRewriteNew(expr);
-        std::for_each(exprs.begin(), exprs.end(),
-                [index = 0](const auto &expr1) mutable { fprintf(stderr, "rewriteExpr: after mathRewrite No.%d: %s\n", index++, PrintExpression(expr1).c_str()); });
+
+        std::vector<std::unique_ptr<ExprAST>> exprs;
+        if(monomial.functions.size() != 0 || monomial.poly.monos.size() != 0)
+        {
+            // exprs = mathfuncRewrite(expr);
+            exprs = mathfuncRewriteNew(expr);
+            std::for_each(exprs.begin(), exprs.end(),
+                    [index = 0](const auto &expr1) mutable { fprintf(stderr, "rewriteExpr: after mathRewrite No.%d: %s\n", index++, PrintExpression(expr1).c_str()); });
+        }
+        else
+        {
+            exprs.push_back(std::move(expr));
+        }
         variants.insert(variants.end(), std::make_move_iterator(exprs.begin()), std::make_move_iterator(exprs.end()));
         widths.push_back(exprs.size());
     }
