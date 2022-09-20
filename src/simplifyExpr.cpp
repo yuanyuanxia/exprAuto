@@ -6,10 +6,8 @@
 #include "laxerASTLY.hpp"
 #include "parserASTLY.hpp"
 
-void simplifyInit(std::unique_ptr<ExprAST> &expr)
+void simplifyInit(const std::string &exprStr)
 {
-    std::string exprStr = PrintExpression(expr);
-
     // Get the path of pythonBefore.txt
     std::string filename;
     char buf[128] = {0};
@@ -78,10 +76,10 @@ void endPython()
     Py_Finalize();
 }
 
-std::unique_ptr<ExprAST> simplifyExpr(std::unique_ptr<ExprAST> &expr)
+std::unique_ptr<ExprAST> simplifyExpr(const std::string &exprStr)
 {
     // Write expr string into pythonBefore.txt
-    simplifyInit(expr);
+    simplifyInit(exprStr);
     
     // Call a python script named simplify.py
     // Simplify.py:
@@ -92,4 +90,11 @@ std::unique_ptr<ExprAST> simplifyExpr(std::unique_ptr<ExprAST> &expr)
     
     // Convert the string in pythonAfter.txt to ExprAST
     return ParseExpressionFromString();
+}
+
+std::unique_ptr<ExprAST> simplifyExpr(const std::unique_ptr<ExprAST> &expr)
+{
+    std::string exprStr = PrintExpression(expr);
+
+    return simplifyExpr(exprStr);
 }

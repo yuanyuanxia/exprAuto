@@ -120,6 +120,21 @@ bool isFraction(const std::unique_ptr<ExprAST> &expr)
     return false;
 }
 
+bool isConstant(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+{
+    size_t size = exprs.size();
+    if (size != 1)
+    {
+        return false;
+    }
+    const std::unique_ptr<ExprAST> &expr = exprs.at(0);
+    if(expr->type() == "Number")
+    {
+        return true;
+    }
+    return false;
+}
+
 std::unique_ptr<ExprAST> getNumerator(const std::unique_ptr<ExprAST> &expr)
 {
     if (expr == nullptr)
@@ -185,6 +200,11 @@ std::unique_ptr<ExprAST> addExpr(const std::unique_ptr<ExprAST> &expr1, const st
 std::unique_ptr<ExprAST> mulExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2) { return createBinaryExpr(expr1, expr2, '*'); }
 
 std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2) { return createBinaryExpr(expr1, expr2, '/'); }
+
+void mineAppend(std::vector<ast_ptr> &dest, std::vector<ast_ptr> &origin)
+{
+    dest.insert(dest.end(), std::make_move_iterator(origin.begin()), std::make_move_iterator(origin.end()));
+}
 
 //===----------------------------------------------------------------------===//
 // print information
@@ -303,5 +323,22 @@ void PrintFunction(std::unique_ptr<FunctionAST> &fun)
         // expr->printExpr();
         std::string funcBodyStr = PrintExpression(expr);
         fprintf(stderr, "\t%s\n", funcBodyStr.c_str());
+    }
+}
+
+void printExpr(const ast_ptr &expr, std::string prefix, int index)
+{
+    if(index == -1)
+        fprintf(stderr, "%s%s\n", prefix.c_str(), PrintExpression(expr).c_str());
+    else
+        fprintf(stderr, "%sNo.%d: %s\n", prefix.c_str(), index, PrintExpression(expr).c_str());
+}
+
+void printExprs(const std::vector<ast_ptr> &exprs, std::string prefix)
+{
+    for(size_t i = 0; i < exprs.size(); i++)
+    {
+        auto &expr = exprs.at(i);
+        fprintf(stderr, "%sNo.%ld: %s\n", prefix.c_str(), i, PrintExpression(expr).c_str());
     }
 }

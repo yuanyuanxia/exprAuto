@@ -2,6 +2,7 @@
 #include "polyRewrite.hpp"
 #include "monoInfo.hpp"
 #include "exprAuto.hpp"
+#include "geneExpr.hpp"
 
 #define DEBUG_LEVEL 0
 int debugLevel = -1;

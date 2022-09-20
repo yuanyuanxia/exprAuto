@@ -15,4 +15,6 @@ struct variableInfo
     bool operator!=(const variableInfo &var) const;
 };
 
+std::vector<variableInfo> mergeVariables(std::vector<variableInfo> vec1, std::vector<variableInfo> vec2);
+
 #endif
