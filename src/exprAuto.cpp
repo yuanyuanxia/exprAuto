@@ -978,18 +978,19 @@ void deleteTheSame(std::vector<std::unique_ptr<ExprAST>> &exprs)
     int flag = 0;
     std::string s;
     std::unique_ptr<ExprAST> es1;
-    while (flag < size)
+    while(flag < size)
     {
         es1 = exprs.at(flag++)->Clone();
         s = PrintExpression(es1);
         vec.push_back(s);
     }
-    std::sort(vec.begin(),vec.end());
-    auto end_unique = std::unique(vec.begin(),vec.end());
-    vec.erase(end_unique,vec.end());
+    std::sort(vec.begin(), vec.end());
+    auto end_unique = std::unique(vec.begin(), vec.end());
+    vec.erase(end_unique, vec.end());
     flag = 0;
     exprs.clear();
-    for (int i = 0;i<vec.size();i++){
+    for(size_t i = 0; i < vec.size(); i++)
+    {
         std::unique_ptr<ExprAST> es = ParseExpressionFromString(vec.at(i));
         exprs.push_back(std::move(es));
     }
@@ -1388,6 +1389,7 @@ std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST
         auto tmps = rewriteExpr(infoNew); // rewrite from monoInfo
         exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(tmps.begin()), std::make_move_iterator(tmps.end()));
     }
+    deleteTheSame(exprsFinal);
     return exprsFinal; // rewrite from monoInfo
 }
 
