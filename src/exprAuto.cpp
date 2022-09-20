@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <queue>
 #include <numeric>
+#include <functional>
 
 #include "basic.hpp"
 #include "monoInfo.hpp"
@@ -9,6 +10,7 @@
 #include "polyRewrite.hpp"
 #include "mathfuncRewrite.hpp"
 #include "simplifyExpr.hpp"
+#include "parserASTLY.hpp"
 
 std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerator, const std::unique_ptr<ExprAST> &denominator)
 {
@@ -970,6 +972,26 @@ void deleteTheSame(std::vector<std::unique_ptr<ExprAST>> &exprs)
     {
         fprintf(stderr, "WARNING: deleteTheSame: the input exprs is empty\n");
         exit(1);
+    }
+    int size = exprs.size();
+    std::vector<std::string> vec;
+    int flag = 0;
+    std::string s;
+    std::unique_ptr<ExprAST> es1;
+    while (flag < size)
+    {
+        es1 = exprs.at(flag++)->Clone();
+        s = PrintExpression(es1);
+        vec.push_back(s);
+    }
+    std::sort(vec.begin(),vec.end());
+    auto end_unique = std::unique(vec.begin(),vec.end());
+    vec.erase(end_unique,vec.end());
+    flag = 0;
+    exprs.clear();
+    for (int i = 0;i<vec.size();i++){
+        std::unique_ptr<ExprAST> es = ParseExpressionFromString(vec.at(i));
+        exprs.push_back(std::move(es));
     }
 }
 

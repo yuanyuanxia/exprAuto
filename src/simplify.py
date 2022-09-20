@@ -27,159 +27,155 @@ def get_next(expr, index):
 # Expand expr,x**n ----> x*x*...*x,x**a.b ----> pow(x,a.b)
 def new_expand(expr):
     """
-    index_lst:[]    Position of the first character of the power monomial to be replaced
-    nextop_dic:{}   The position where the next operator of the power monomial is stored
-    max_op:x        The position of the last operator in the polynomial
-    coefficient_dic:{}  Power of storing power monomial
-    content_dic:{}  Store the contents after power monomial replacement
+    index_lst:[]    存放要替换的幂次单项式第一个字符所在的位置
+    nextop_dic:{}   存放幂次单项式下一个操作符所在的位置
+    max_op:x        多项式中最后一个运算符所在的位置
+    coefficient_dic:{}  存放幂次单项式的幂
+    content_dic:{}  存放幂次单项式替换后的内容
 
     """
     result = ""
 
-    # Add the index of the character to be replaced to the list
+    # 将需要替换字符的索引加入列表
     index_lst = []
     for i in range(len(expr)):
         if expr[i] == '*' and expr[i + 1] == '*':
             index_lst.append(i - 1)
-        # if expr[i] == '*' and expr[i + 1] == '*' and expr[i - 1] != ')':
-        #     index_lst.append(i - 1)
-        # if expr[i] == '*' and expr[i + 1] == '*' and expr[i - 1] == ')':
-        #     index_lst.append(i-1)
-    #print("index_lst:", index_lst)
 
-    operator_lst = ['+', '-', '*', '/']
+    if index_lst:
+        operator_lst = ['+', '-', '*', '/']
 
-    nextop_dic = {}
-    # Get the position of the next operator of the power
-    for k in index_lst:
-        nextop_dic[k] = None
-        # If the coefficient is bracketed
-        if expr[k + 3] == '(':
-            right_bracket = 0
-            # Find the location of ')' first
-            for p in range(k + 4, len(expr)):
-                if expr[p] == ')':
-                    right_bracket = p
-                    break
-            # Find the next operator starting from ')'
-            for q in range(right_bracket + 1, len(expr)):
-                if expr[q] in operator_lst:
-                    nextop_dic[k] = q
-                    break
-        else:
-            for i in range(k + 3, len(expr)):
-                if expr[i] in operator_lst:
-                    nextop_dic[k] = i
-                    break
+        nextop_dic = {}
+        # 获取幂次式下一个操作符所在的位置
+        for k in index_lst:
+            nextop_dic[k] = None
+            # 如果系数带括号
+            if expr[k + 3] == '(':
+                right_bracket = 0
+                # 先找到')'所在的位置
+                for p in range(k + 4, len(expr)):
+                    if expr[p] == ')':
+                        right_bracket = p
+                        break
+                # 从')'往后开始找下一个运算符
+                for q in range(right_bracket + 1, len(expr)):
+                    if expr[q] in operator_lst:
+                        nextop_dic[k] = q
+                        break
+            else:
+                for i in range(k + 3, len(expr)):
+                    if expr[i] in operator_lst:
+                        nextop_dic[k] = i
+                        break
 
 
-    # Get the position of the last operator
-    max_op = 0
-    flag = 0
-    while flag < len(expr):
-        if expr[flag] in operator_lst:
-            if expr[flag] == '*':
-                if expr[flag + 1] == '*':  # If it is * *, jump to the first digit after * *
-                    flag += 3
-                    continue
+        # 获取最后一个运算符所在的位置
+        max_op = 0
+        flag = 0
+        while flag < len(expr):
+            if expr[flag] in operator_lst:
+                if expr[flag] == '*':
+                    if expr[flag + 1] == '*':  # 如果是**,直接跳到**后的第一个数字
+                        flag += 3
+                        continue
+                    else:
+                        max_op = flag
                 else:
                     max_op = flag
-            else:
-                max_op = flag
-        flag += 1
+            flag += 1
 
-    # If max_ Op is 0 only to power
-    # If the index position to be replaced is greater than max_ Op, get to the end directly
+        # 如果max_op为0只有幂次
+        # 如果要替换的索引位置大于max_op,直接获取到末尾
 
-    #print("max_op:", max_op)
+        # print("max_op:", max_op)
 
-    coefficient_dic = {}
-    for index in index_lst:
-        # max_op == 0 It means that there is only one power
-        # index > max_op  Description at the end
+        coefficient_dic = {}
+        for index in index_lst:
+            # max_op == 0说明只有一个幂次
+            # index > max_op说明在最后
 
-        # is_one is used to judge whether the expression is only a power expression
-        # when max_op==0 and index==0,Conflict will occur
-        is_one = True
-        if index == 0:
-            for i in range(index + 3, len(expr)):
-                if expr[i] in operator_lst:
-                    is_one = False
-            if is_one:
+            # is_one用来判断表达式是否只是一个幂次表达式
+            # 当max_op==0且index==0时就会冲突
+            is_one = True
+            if index == 0:
+                for i in range(index + 3, len(expr)):
+                    if expr[i] in operator_lst:
+                        is_one = False
+                if is_one:
+                    coefficient = expr[index + 3:]
+                    coefficient_dic[index] = coefficient
+                else:
+                    for i in range(index + 3, len(expr)):
+                        if expr[i] in operator_lst:
+                            coefficient = expr[index + 3:i]
+                            coefficient_dic[index] = coefficient
+                            break
+            elif index > max_op:  # 如果大于最大运算符所在的位置,后边的都加上
                 coefficient = expr[index + 3:]
                 coefficient_dic[index] = coefficient
             else:
-                for i in range(index + 3, len(expr)):
-                    if expr[i] in operator_lst:
-                        coefficient = expr[index + 3:i]
-                        coefficient_dic[index] = coefficient
-                        break
-        elif index > max_op:  # If it is greater than the position of the maximum operator, add the following
-            coefficient = expr[index + 3:]
-            coefficient_dic[index] = coefficient
-        else:
-            # If power is bracketed
-            if expr[index + 3] == '(':
-                for i in range(index + 3, len(expr)):
-                    if expr[i] == ')':
-                        coefficient = expr[index + 3:i + 1]
-                        coefficient_dic[index] = coefficient
-                        break
+                # 如果幂次带括号
+                if expr[index + 3] == '(':
+                    for i in range(index + 3, len(expr)):
+                        if expr[i] == ')':
+                            coefficient = expr[index + 3:i + 1]
+                            coefficient_dic[index] = coefficient
+                            break
+                else:
+                    # 幂次不带括号
+                    for i in range(index + 3, len(expr)):
+                        if expr[i] in operator_lst:
+                            coefficient = expr[index + 3:i]
+                            coefficient_dic[index] = coefficient
+                            break
+
+
+        # 遍历字符的索引,获取要替换后的内容
+        content_dic = {}
+        for i in index_lst:
+            new = ""  # 存放替换的内容
+            if expr[i] == ')':
+                j = get_next(expr, i)
+                char = expr[j:i + 1]
+
             else:
-                # Power without parentheses
-                for i in range(index + 3, len(expr)):
-                    if expr[i] in operator_lst:
-                        coefficient = expr[index + 3:i]
-                        coefficient_dic[index] = coefficient
-                        break
+                char = expr[i]
 
-    #print("cofficient_dic:", coefficient_dic)
-
-    # Traverse the index of the character to get the content to be replaced
-    content_dic = {}
-    for i in index_lst:
-        new = ""  # Store replaced content
-        if expr[i] == ')':
-            j = get_next(expr, i)
-            char = expr[j:i + 1]
-
-        else:
-            char = expr[i]
-
-        if ('.' in coefficient_dic[i]) or ('(' in coefficient_dic[i]):  # Power is not an integer
-            new = "pow(" + char + "," + coefficient_dic[i] + ")"
-        else:  # Power is an integer
-            new += char
-            for j in range(int(coefficient_dic[i]) - 1):  # Determine how many times to expand
-                new += "*"
+            if ('.' in coefficient_dic[i]) or ('(' in coefficient_dic[i]):  # 幂次为非整数
+                new = "pow(" + char + "," + coefficient_dic[i] + ")"
+            else:  # 幂次为整数
                 new += char
-        content_dic[i] = new
+                for j in range(int(coefficient_dic[i]) - 1):  # 判断要展开几次
+                    new += "*"
+                    new += char
+            content_dic[i] = new
 
-    # Replace and generate expression
-    dic_keys = list(content_dic.keys())
+        # 进行替换,生成表达式
+        dic_keys = list(content_dic.keys())
 
-    # If the first content to be replaced is bracketed
-    if expr[dic_keys[0]] == ')':
-        j = get_next(expr, dic_keys[0])
-        result += expr[:j]
-    else:
-        result += expr[:dic_keys[0]]  # First add the content before the first content to be replaced
-
-    for i in range(len(dic_keys)):
-        if i == len(dic_keys) - 1:  # If it is the last content to be replaced
-            result += content_dic[dic_keys[i]]  # Add the content to be replaced first
-            if nextop_dic:  # If there is a nextop_dic is a polynomial
-                if nextop_dic[dic_keys[i]]:  # If the monomial is not the last polynomial
-                    result += expr[nextop_dic[dic_keys[i]]:]
+        # 如果第一个要替换的内容带括号
+        if expr[dic_keys[0]] == ')':
+            j = get_next(expr, dic_keys[0])
+            result += expr[:j]
         else:
-            result += content_dic[dic_keys[i]]  # Add the content to be replaced first
-            if expr[dic_keys[i + 1]] == ')':
-                j = get_next(expr, dic_keys[i + 1])
-                result += expr[nextop_dic[dic_keys[i]]:j]
-            else:
-                result += expr[nextop_dic[dic_keys[i]]:dic_keys[i + 1]]  # Plus the content sandwiched between the original two power monomials
+            result += expr[:dic_keys[0]]  # 先加上第一个要替换内容前面的内容
 
-    return result
+        for i in range(len(dic_keys)):
+            if i == len(dic_keys) - 1:  # 如果是最后一个要替换的内容
+                result += content_dic[dic_keys[i]]  # 先加上要替换的内容
+                if nextop_dic:  # 如果有nextop_dic 说明是多项式
+                    if nextop_dic[dic_keys[i]]:  # 如果该单项式不是多项式中的最后一个
+                        result += expr[nextop_dic[dic_keys[i]]:]
+            else:
+                result += content_dic[dic_keys[i]]  # 先加上要替换的内容
+                if expr[dic_keys[i + 1]] == ')':
+                    j = get_next(expr, dic_keys[i + 1])
+                    result += expr[nextop_dic[dic_keys[i]]:j]
+                else:
+                    result += expr[nextop_dic[dic_keys[i]]:dic_keys[i + 1]]  # 再加上原来两个幂次单项式之间夹的内容
+        return result
+    else:
+        return expr
 
 
 

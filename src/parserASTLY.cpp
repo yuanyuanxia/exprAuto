@@ -182,3 +182,23 @@ std::unique_ptr<ExprAST> ParseExpressionFromString()
 	}
     return nullptr;
 }
+std::unique_ptr<ExprAST> ParseExpressionFromString(std::string str)
+{
+    //清空filestring，flag归零
+        if(CurTokForStr == ';')
+        {
+            filestring.clear();
+            filestring.shrink_to_fit();
+            flag = 0;
+        }
+
+        filestring = str;
+
+        getNextTokenForStr();    //eat first element
+
+        if (auto E = ParseExpressionForStr()){
+            std::unique_ptr<ExprAST> es = E->Clone();
+            return es;
+        }
+    return nullptr;
+}

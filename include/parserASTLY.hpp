@@ -42,5 +42,6 @@ std::unique_ptr<ExprAST> ParseExpressionForStr();
 std::string readFileIntoString(const char * filename);
 
 std::unique_ptr<ExprAST> ParseExpressionFromString();
+std::unique_ptr<ExprAST> ParseExpressionFromString(std::string str);
 
 #endif
