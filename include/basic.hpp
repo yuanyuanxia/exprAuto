@@ -1,5 +1,6 @@
 #ifndef _BASIC
 #define _BASIC
+
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -167,6 +168,9 @@ public:
     std::unique_ptr<ExprAST> &getFuncBody() { return Body; }
 };
 
+using ast_ptr = std::unique_ptr<ExprAST>;  // typedef std::unique_ptr<ExprAST> ast_ptr;
+#define makePtr std::make_unique
+
 //===----------------------------------------------------------------------===//
 // basic operation
 //===----------------------------------------------------------------------===//
@@ -174,6 +178,8 @@ public:
 bool isEqual(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
 
 bool isFraction(const std::unique_ptr<ExprAST> &expr);
+
+bool isConstant(const std::vector<std::unique_ptr<ExprAST>> &exprs);
 
 std::unique_ptr<ExprAST> getNumerator(const std::unique_ptr<ExprAST> &expr);
 
@@ -187,6 +193,8 @@ std::unique_ptr<ExprAST> mulExpr(const std::unique_ptr<ExprAST> &expr1, const st
 
 std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
 
+void mineAppend(std::vector<ast_ptr> &dest, std::vector<ast_ptr> &origin);
+
 //===----------------------------------------------------------------------===//
 // print information
 //===----------------------------------------------------------------------===//
@@ -194,6 +202,10 @@ std::unique_ptr<ExprAST> divExpr(const std::unique_ptr<ExprAST> &expr1, const st
 std::string PrintExpression(const std::unique_ptr<ExprAST> &expr);
 
 void PrintFunction(std::unique_ptr<FunctionAST> &fun);
+
+void printExpr(const ast_ptr &expr, std::string prefix = "", int index = -1);
+
+void printExprs(const std::vector<ast_ptr> &exprs, std::string prefix = "");
 
 // } // end anonymous namespace
 

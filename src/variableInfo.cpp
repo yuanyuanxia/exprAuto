@@ -24,3 +24,28 @@ bool variableInfo::operator!=(const variableInfo &var) const
 {
     return ((name != var.name) || (degree != var.degree));
 }
+
+std::vector<variableInfo> mergeVariables(std::vector<variableInfo> vec1, std::vector<variableInfo> vec2)
+{
+    std::vector<variableInfo> vec3;
+    for (long unsigned int i = 0; i < vec1.size(); i++)
+    {
+        variableInfo &varTmp1 = vec1.at(i);
+        variableInfo varTmp3 = varTmp1;
+
+        for (long unsigned int j = 0; j < vec2.size(); j++)
+        {
+            variableInfo &varTmp2 = vec2.at(j);
+            if (varTmp1.name == varTmp2.name)
+            {
+                varTmp3.degree = varTmp1.degree + varTmp2.degree;
+                vec2.erase(vec2.begin() + j);
+                break;
+            }
+        }
+        vec3.push_back(varTmp3);
+    }
+    vec3.insert(vec3.end(), vec2.begin(), vec2.end());
+
+    return vec3;
+}

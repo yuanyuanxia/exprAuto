@@ -1,5 +1,6 @@
+#include <algorithm>
+#include "preprocess.hpp"
 #include "monoInfo.hpp"
-#include "funcInfo.hpp"
 
 // TODO: poly&poly
 // TODO: !!! Extract common factors, which can be done more finely. This is the basis for completing the simplification of (exp(x)-1)*log(x)*x
@@ -142,4 +143,172 @@ bool monoInfo::operator==(const monoInfo &mono) const
 bool monoInfo::operator!=(const monoInfo &mono) const
 {
     return !(*this == mono);
+}
+
+monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2)
+{
+    monoInfo monoFinal;
+    double &coefficient = monoFinal.coefficient;
+    std::vector<funcInfo> &functions = monoFinal.functions;
+    std::vector<variableInfo> &variables = monoFinal.variables;
+    variableInfo variableTmp;
+
+    coefficient = mono1.coefficient * mono2.coefficient;
+    variables = mergeVariables(mono1.variables, mono2.variables);
+
+    for(size_t i = 0; i < (mono1.functions).size(); ++i)
+    {
+        auto arg = (mono1.functions).at(i);
+        functions.push_back(std::move(arg));
+    }
+    for(size_t i = 0; i < (mono2.functions).size(); ++i)
+    {
+        auto arg = (mono2.functions).at(i);
+        functions.push_back(std::move(arg));
+    }
+
+    return monoFinal;
+}
+
+monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
+{
+    // fprintf(stderr, "extractInfoKernel: at the begin: expr = %s\n", PrintExpression(expr).c_str());
+    monoInfo monoFinal;
+    double &coefficient = monoFinal.coefficient;
+    std::vector<funcInfo> &functions = monoFinal.functions;
+    std::vector<variableInfo> &variables = monoFinal.variables;
+    funcInfo funcTmp;
+    variableInfo variableTmp;
+
+    std::string exprType = expr->type();
+    std::vector<std::unique_ptr<ExprAST>> items;
+    if (exprType == "Number")
+    {
+        // fprintf(stderr, "extractInfoKernel: number\n");
+        NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(expr.get());
+        coefficient = numberPtr->getNumber();
+        return monoFinal;
+    }
+    else if (exprType == "Variable")
+    {
+        // fprintf(stderr, "extractInfoKernel: variable\n");
+        VariableExprAST *variablePtr = dynamic_cast<VariableExprAST *>(expr.get());
+        variableTmp.name = variablePtr->getVariable();
+        variableTmp.degree = 1;
+        variables.push_back(variableTmp);
+        return monoFinal;
+    }
+    else if (exprType == "Call")
+    {
+        // fprintf(stderr, "extractInfoKernel: variable\n");
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        funcTmp.callee = callPtr->getCallee();
+        for(size_t i = 0; i < (callPtr->getArgs()).size(); ++i)
+        {
+            auto argAST = (callPtr->getArgs().at(i))->Clone();
+            auto exprsTmp = extractItems(argAST);
+            auto monosTmp = extractInfo(exprsTmp);
+            polyInfo poly;
+            for(auto monoTmp : monosTmp)
+            {
+                (poly.monos).push_back(monoTmp);
+            }
+            (funcTmp.args).push_back(poly);
+        }
+        functions.push_back(funcTmp);
+        return monoFinal;
+    }
+    if (exprType != "Binary")
+    {   // eg: poly := exp(x) or x or 2.2
+        fprintf(stderr, "extractInfoKernel: expr is neither number, variable, call or binary\n");
+        return monoFinal;
+    }
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOpPtr->getOp();
+    if (op == '*')
+    {
+        // fprintf(stderr, "extractInfoKernel: expr op is '*'\n");
+        std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+        monoInfo monoTmp1 = extractInfoKernel(lhs);
+        std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+        monoInfo monoTmp2 = extractInfoKernel(rhs);
+
+        monoFinal = mergeMonomial(monoTmp1, monoTmp2);
+    }
+    else
+    {
+        fprintf(stderr, "\tERROR: extractInfoKernel: expr contains '%c'\n", op);
+    }
+    return monoFinal;
+}
+
+std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+{
+    // fprintf(stderr, "extractInfo: start--------\n");
+    std::vector<monoInfo> results;
+    for (long unsigned int i = 0; i < exprs.size(); i++)
+    {
+        std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
+        monoInfo monoTmp = extractInfoKernel(exprTmp);
+        if(monoTmp.coefficient != 0)
+        {
+            std::vector<variableInfo> &variables = monoTmp.variables;
+            std::sort(variables.begin(), variables.end());
+            results.push_back(monoTmp);
+        }
+    }
+
+    // print information of info
+    // for (long unsigned int i = 0; i < results.size(); i++)
+    // {
+    //     fprintf(stderr, "The monoInfo No.%lu: \n", i);
+    //     (results.at(i)).showInfo();
+    //     fprintf(stderr, "\n");
+    // }
+    // fprintf(stderr, "extractInfo: end----------\n");
+    return results;
+}
+
+std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
+{
+    // fprintf(stderr, "mergePolynomial: start--------\n");
+    size_t size = info.size();
+    bool *merged = new bool[size]{};
+    size_t i = 0, j = 0;
+    std::vector<monoInfo> results;
+    while (i < info.size())
+    {
+        if(merged[i])
+        {
+            i++;
+            continue;
+        }
+        monoInfo tmp = info.at(i);
+        merged[i] = true;
+        j = i + 1;
+        while (j < info.size())
+        {
+            monoInfo tmp1 = info.at(j);
+            if(tmp.hasCommonTerm(tmp1))
+            {
+                tmp.combine(tmp1);
+                merged[j] = true;
+            }
+            j++;
+        }
+        results.push_back(tmp);
+    }
+    // TODO: check sort. Eg: b*d + a*b + b*b + a*a, output should be a*a + a*b + b*b + b*d, but is a*a + b*b + a*b + b*d;
+    std::sort(results.begin(), results.end());
+
+    // print information of info
+    // for (size_t i = 0; i < results.size(); i++)
+    // {
+    //     fprintf(stderr, "The Monomial No.%lu: \n", i);
+    //     (results.at(i)).showInfo();
+    //     fprintf(stderr, "\n");
+    // }
+    delete []merged;
+    // fprintf(stderr, "mergePolynomial: end----------\n");
+    return results;
 }

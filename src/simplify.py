@@ -180,7 +180,6 @@ def new_expand(expr):
 
 
 
-
 def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
     pyfile_path = os_path.dirname(globals()["__file__"])
     # print("process: pyfile_path " + pyfile_path)

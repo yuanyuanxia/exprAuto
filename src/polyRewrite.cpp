@@ -2,6 +2,7 @@
 #include "polyRewrite.hpp"
 #include "monoInfo.hpp"
 #include "exprAuto.hpp"
+#include "geneExpr.hpp"
 
 #define DEBUG_LEVEL 0
 int debugLevel = -1;
@@ -670,18 +671,16 @@ void getReady(const std::vector<monoInfo> &monomials, std::string *variablePtr, 
             exit(1);
         }
     }
-        
 }
 
 std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &monomials)
 {
     std::string variable = "z";
-    int term[] = {0, 1, 2, 3, 4, 5};
-    double coefficient[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
+    double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     size_t len = 1;
     std::vector<std::unique_ptr<ExprAST>> exprsFinal;
     getReady(monomials, &variable, term, coefficient, &len);
-    // getReady(exprInit, &variable, term, coefficient, &len);
 
     // for(size_t i = 0; i < len; i++)
     // {

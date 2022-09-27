@@ -2,6 +2,7 @@
 #define _MONOMIAL
 #include <iostream>
 #include <vector>
+#include "basic.hpp"
 #include "funcInfo.hpp"
 #include "variableInfo.hpp"
 #include "polyInfo.hpp"
@@ -31,5 +32,13 @@ struct monoInfo
 
     bool operator!=(const monoInfo &mono) const;
 };
+
+monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2);
+
+monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr);
+
+std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs);
+
+std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info);
 
 #endif
