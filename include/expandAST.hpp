@@ -7,10 +7,10 @@
 // Change exprAST equally
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> expandExpr(const std::unique_ptr<ExprAST> &expr);
+ast_ptr expandExpr(const ast_ptr &expr);
 
-bool isEqual(const std::unique_ptr<ExprAST> &expr1, const std::unique_ptr<ExprAST> &expr2);
+bool isEqual(const ast_ptr &expr1, const ast_ptr &expr2);
 
-std::unique_ptr<ExprAST> expandExprWrapper(const std::unique_ptr<ExprAST> &exprOrigin);
+ast_ptr expandExprWrapper(const ast_ptr &exprOrigin);
 
 #endif

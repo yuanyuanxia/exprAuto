@@ -1,22 +1,25 @@
 #include "basic.hpp"
 #include "laxerAST.hpp"
 
+using std::string;
+using std::vector;
+
 //===----------------------------------------------------------------------===//
 // Parser
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> ParseExpression();
+ast_ptr ParseExpression();
 
 /// numberexpr ::= number
-std::unique_ptr<ExprAST> ParseNumberExpr()
+ast_ptr ParseNumberExpr()
 {
-    auto Result = std::make_unique<NumberExprAST>(NumVal);
+    auto Result = makePtr<NumberExprAST>(NumVal);
     getNextToken();  // consume the number
     return Result;
 }
 
 /// parenexpr ::= '(' expression ')'
-std::unique_ptr<ExprAST> ParseParenExpr()
+ast_ptr ParseParenExpr()
 {
     getNextToken();  // eat (.
     auto V = ParseExpression();
@@ -32,18 +35,18 @@ std::unique_ptr<ExprAST> ParseParenExpr()
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
-std::unique_ptr<ExprAST> ParseIdentifierExpr()
+ast_ptr ParseIdentifierExpr()
 {
-    std::string IdName = IdentifierStr;
+    string IdName = IdentifierStr;
 
     getNextToken();  // eat identifier.
 
     if(CurTok != '(')  // Simple variable ref.
-        return std::make_unique<VariableExprAST>(IdName);
+        return makePtr<VariableExprAST>(IdName);
 
     // Call.
     getNextToken();  // eat (
-    std::vector<std::unique_ptr<ExprAST>> Args;
+    vector<ast_ptr> Args;
     if(CurTok != ')')
     {
         while(true)
@@ -65,14 +68,14 @@ std::unique_ptr<ExprAST> ParseIdentifierExpr()
     // Eat the ')'.
     getNextToken();
 
-    return std::make_unique<CallExprAST>(IdName, std::move(Args));
+    return makePtr<CallExprAST>(IdName, std::move(Args));
 }
 
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-std::unique_ptr<ExprAST> ParsePrimary()
+ast_ptr ParsePrimary()
 {
     switch(CurTok)
     {
@@ -89,7 +92,7 @@ std::unique_ptr<ExprAST> ParsePrimary()
 
 /// binoprhs
 ///   ::= ('+' primary)*
-std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS)
+ast_ptr ParseBinOpRHS(int ExprPrec, ast_ptr LHS)
 {
     // If this is a binop, find its precedence.
     while(true)
@@ -124,14 +127,14 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LH
         if(BinOp == '`'){
             BinOp = '*';
         }
-        LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
+        LHS = makePtr<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
     }
 }
 
 /// expression
 ///   ::= primary binoprhs
 ///
-std::unique_ptr<ExprAST> ParseExpression()
+ast_ptr ParseExpression()
 {
     auto LHS = ParsePrimary();
     if(!LHS)
@@ -147,13 +150,13 @@ std::unique_ptr<PrototypeAST> ParsePrototype()
     if(CurTok != tok_identifier)
         return LogErrorP("Expected function name in prototype");
 
-    std::string FnName = IdentifierStr;
+    string FnName = IdentifierStr;
     getNextToken();
 
     if(CurTok != '(')
         return LogErrorP("Expected '(' in prototype");
 
-    std::vector<std::string> ArgNames;
+    vector<string> ArgNames;
     while(getNextToken() == tok_identifier)
         ArgNames.push_back(IdentifierStr);
     if(CurTok != ')')
@@ -162,7 +165,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype()
     // success.
     getNextToken();  // eat ')'.
 
-    return std::make_unique<PrototypeAST>(FnName, std::move(ArgNames));
+    return makePtr<PrototypeAST>(FnName, std::move(ArgNames));
 }
 
 /// definition ::= 'def' prototype expression
@@ -174,7 +177,7 @@ std::unique_ptr<FunctionAST> ParseDefinition()
         return nullptr;
 
     if(auto E = ParseExpression())
-        return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
+        return makePtr<FunctionAST>(std::move(Proto), std::move(E));
     return nullptr;
 }
 
@@ -184,8 +187,8 @@ std::unique_ptr<FunctionAST> ParseTopLevelExpr()
     if(auto E = ParseExpression())
     {
         // Make an anonymous proto.
-        auto Proto = std::make_unique<PrototypeAST>("__anon_expr", std::vector<std::string>());
-        return std::make_unique<FunctionAST>(std::move(Proto), std::move(E));
+        auto Proto = makePtr<PrototypeAST>("__anon_expr", vector<string>());
+        return makePtr<FunctionAST>(std::move(Proto), std::move(E));
     }
     return nullptr;
 }

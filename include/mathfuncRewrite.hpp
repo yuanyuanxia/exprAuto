@@ -8,21 +8,21 @@
 //===----------------------------------------------------------------------===//
 
 // exp(expr) - 1 ==> expm1(expr)
-std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr);
+ast_ptr expToexpm1(const ast_ptr &expr);
 
 // log(expr+1) ==> log1p(expr)
-std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr);
+ast_ptr logTolog1p(const ast_ptr &expr);
 
 // sqrt(expr1*expr1+expr2*expr2) ==> hypot(expr1, expr2)
-std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr);
+ast_ptr sqrtTohypot(const ast_ptr &expr);
 
 // log(exp(x))⇒x OR exp(log(x))⇒x
-std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr);
+ast_ptr lex_x_Or_elx_x(const ast_ptr &expr);
 
 // sqrt(x)*sqrt(y)⇒sqrt(x*y)
-std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr);
+ast_ptr sqrtMult(const ast_ptr &expr);
 
 // sqrt(x)/sqrt(y)⇒sqrt(x/y)
-std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr);
+ast_ptr sqrtDiv(const ast_ptr &expr);
 
 #endif

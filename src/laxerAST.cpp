@@ -1,6 +1,8 @@
 #include "laxerAST.hpp"
 
-std::string IdentifierStr;  // Filled in if tok_identifier
+using std::string;
+
+string IdentifierStr;  // Filled in if tok_identifier
 double NumVal;              // Filled in if tok_number
 int CurTok;                 // CurTok is the current token the parser is looking at.
 // BinopPrecedence - This holds the precedence for each binary operator that is defined.
@@ -56,7 +58,7 @@ int gettok()
 
     if(isdigit(LastChar) || LastChar == '.')
     {  // Number: [0-9.]+
-        std::string NumStr;
+        string NumStr;
         do
         {
             NumStr += LastChar;
@@ -119,7 +121,7 @@ int GetTokPrecedence()
 }
 
 /// LogError* - These are little helper functions for error handling.
-std::unique_ptr<ExprAST> LogError(const char *Str)
+ast_ptr LogError(const char *Str)
 {
     fprintf(stderr, "Error: %s\n", Str);
     return nullptr;

@@ -2,9 +2,12 @@
 #define _SIMPLIFYEXPR
 
 #include "basic.hpp"
-std::unique_ptr<ExprAST> simplifyExpr(const std::string &exprStr);
 
-std::unique_ptr<ExprAST> simplifyExpr(const std::unique_ptr<ExprAST> &expr);
+using std::string;
+
+ast_ptr simplifyExpr(const string &exprStr);
+
+ast_ptr simplifyExpr(const ast_ptr &expr);
 
 void initPython();
 

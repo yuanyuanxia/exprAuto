@@ -3,6 +3,8 @@
 
 #include "basic.hpp"
 
+using std::string;
+
 //===----------------------------------------------------------------------===//
 // Lexer
 //===----------------------------------------------------------------------===//
@@ -25,7 +27,7 @@ enum Token
     tok_string = -6
 };
 
-extern std::string IdentifierStr;  // Filled in if tok_identifier
+extern string IdentifierStr;  // Filled in if tok_identifier
 extern double NumVal;              // Filled in if tok_number
 
 /// gettok - Return the next token from standard input.
@@ -48,7 +50,7 @@ void installOperators();
 int GetTokPrecedence();
 
 /// LogError* - These are little helper functions for error handling.
-std::unique_ptr<ExprAST> LogError(const char *Str);
+ast_ptr LogError(const char *Str);
 
 std::unique_ptr<PrototypeAST> LogErrorP(const char *Str);
 

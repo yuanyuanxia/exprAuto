@@ -1,6 +1,8 @@
 #include "monoInfo.hpp"
 #include "polyInfo.hpp"
 
+using std::vector;
+
 void polyInfo::showInfo()
 {
     for(size_t i = 0; i < monos.size(); ++i){
@@ -11,8 +13,8 @@ void polyInfo::showInfo()
 
 bool polyInfo::operator==(const polyInfo &poly) const
 {
-    const std::vector<monoInfo> &monos1 = monos;
-    const std::vector<monoInfo> &monos2 = poly.monos;
+    const vector<monoInfo> &monos1 = monos;
+    const vector<monoInfo> &monos2 = poly.monos;
     size_t size1 = monos1.size();
     size_t size2 = monos2.size();
     if (size1 != size2)

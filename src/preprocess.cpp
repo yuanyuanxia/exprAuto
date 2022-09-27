@@ -9,21 +9,23 @@
 #include "polyRewrite.hpp"
 #include "mathfuncRewrite.hpp"
 #include "simplifyExpr.hpp"
-
 #include "preprocess.hpp"
 
-std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerator, const std::unique_ptr<ExprAST> &denominator)
+using std::string;
+using std::vector;
+
+ast_ptr combineFraction(const ast_ptr &numerator, const ast_ptr &denominator)
 {
     // init
-    std::unique_ptr<ExprAST> numeratorNew = nullptr;
-    std::unique_ptr<ExprAST> denominatorNew = nullptr;
-    std::unique_ptr<ExprAST> numeratorFinal = nullptr;
-    std::unique_ptr<ExprAST> denominatorFinal = nullptr;
+    ast_ptr numeratorNew = nullptr;
+    ast_ptr denominatorNew = nullptr;
+    ast_ptr numeratorFinal = nullptr;
+    ast_ptr denominatorFinal = nullptr;
     // numerator
     if (isFraction(numerator))
     {
-        const std::unique_ptr<ExprAST> numeratorTmp = getNumerator(numerator);
-        const std::unique_ptr<ExprAST> denominatorTmp = getDenominator(numerator);
+        const ast_ptr numeratorTmp = getNumerator(numerator);
+        const ast_ptr denominatorTmp = getDenominator(numerator);
 
         numeratorNew = numeratorTmp->Clone();
         denominatorNew = mulExpr(denominator, denominatorTmp);
@@ -37,8 +39,8 @@ std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerat
     // denominator
     if (isFraction(denominator))
     {
-        const std::unique_ptr<ExprAST> numeratorTmp = getNumerator(denominatorNew);
-        const std::unique_ptr<ExprAST> denominatorTmp = getDenominator(denominatorNew);
+        const ast_ptr numeratorTmp = getNumerator(denominatorNew);
+        const ast_ptr denominatorTmp = getDenominator(denominatorNew);
 
         numeratorFinal = mulExpr(numeratorNew, denominatorTmp);
         denominatorFinal = numeratorTmp->Clone();
@@ -53,7 +55,7 @@ std::unique_ptr<ExprAST> combineFraction(const std::unique_ptr<ExprAST> &numerat
     return divExpr(numeratorFinal, denominatorFinal);
 }
 
-std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST> &expr)
+vector<ast_ptr> extractItems(const ast_ptr &expr)
 {
     // fprintf(stderr, "extractItems: start--------\n");
     if (expr == nullptr)
@@ -61,10 +63,10 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
         fprintf(stderr, "\tERROR: extractItems: the input expr is nullptr!\n");
         return {};
     }
-    std::vector<std::unique_ptr<ExprAST>> items;
+    vector<ast_ptr> items;
     if (expr->type() != "Binary")
     {
-        std::unique_ptr<ExprAST> exprTmp = expr->Clone();
+        ast_ptr exprTmp = expr->Clone();
         items.push_back(std::move(exprTmp));
     }
     else
@@ -74,14 +76,14 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
 
         if (op != '+')
         {
-            std::unique_ptr<ExprAST> exprTmp = expr->Clone();
+            ast_ptr exprTmp = expr->Clone();
             items.push_back(std::move(exprTmp));
         }
         else
         {
-            std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+            ast_ptr &lhs = binOpPtr->getLHS();
             auto items1 = extractItems(lhs);
-            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+            ast_ptr &rhs = binOpPtr->getRHS();
             auto items2 = extractItems(rhs);
 
             items.insert(items.end(), std::make_move_iterator(items1.begin()), std::make_move_iterator(items1.end()));
@@ -100,17 +102,17 @@ std::vector<std::unique_ptr<ExprAST>> extractItems(const std::unique_ptr<ExprAST
     return items;
 }
 
-std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
+ast_ptr moveDivKernel(const ast_ptr &expr)
 {                                          // level Traversal
-    std::queue<BinaryExprAST *> nodeQueue; // nodeQueue存储层序遍历的节�?
+    std::queue<BinaryExprAST *> nodeQueue; // nodeQueue存储层序遍历的节点
     std::queue<char> sideQueue;            // sideQueue�?能存�?'L'�?'R',表示对应节点在根节点的左边还�?右边
-    std::unique_ptr<ExprAST> in = expr->Clone();
-    const std::string exprType = expr->type();
+    ast_ptr in = expr->Clone();
+    const string exprType = expr->type();
     if (exprType == "Binary")
     {
         BinaryExprAST *root = dynamic_cast<BinaryExprAST *>(in.get());
-        std::unique_ptr<ExprAST> &rootLhs = root->getLHS();
-        std::unique_ptr<ExprAST> &rootRhs = root->getRHS();
+        ast_ptr &rootLhs = root->getLHS();
+        ast_ptr &rootRhs = root->getRHS();
 
         if (in != nullptr)
             nodeQueue.push(root);
@@ -169,13 +171,13 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
                                 }
                                 if (side == 'R') //�?标节点在根节点的右侧时，�? nodeLHSPtr 在node左侧�?
                                 {
-                                    std::unique_ptr<ExprAST> resultRight = nodeLHSPtr->getRHS()->Clone(); //'/'右子树resultRight成为result的右子树
-                                    std::unique_ptr<ExprAST> tmp = nodeLHSPtr->getLHS()->Clone();         //'/'左子树根节点将成为替�?'/'的节�?
+                                    ast_ptr resultRight = nodeLHSPtr->getRHS()->Clone(); //'/'右子树resultRight成为result的右子树
+                                    ast_ptr tmp = nodeLHSPtr->getLHS()->Clone();         //'/'左子树根节点将成为替�?'/'的节�?
 
                                     node->setLHS(tmp);                                   //改变node的左子树
-                                    std::unique_ptr<ExprAST> resultLeft = root->Clone(); // node左子树变化后，root将成为result左子�?
+                                    ast_ptr resultLeft = root->Clone(); // node左子树变化后，root将成为result左子�?
 
-                                    return std::make_unique<BinaryExprAST>('/', std::move(resultLeft), std::move(resultRight));
+                                    return makePtr<BinaryExprAST>('/', std::move(resultLeft), std::move(resultRight));
                                 }
                             }
                         }
@@ -203,13 +205,13 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
                                 }
                                 if (side == 'R') //�?标节点在根节点的右侧时，�? nodeRHSPtr 在node右侧�?
                                 {
-                                    std::unique_ptr<ExprAST> resultRight = nodeRHSPtr->getRHS()->Clone();
-                                    std::unique_ptr<ExprAST> tmp = nodeRHSPtr->getLHS()->Clone();
+                                    ast_ptr resultRight = nodeRHSPtr->getRHS()->Clone();
+                                    ast_ptr tmp = nodeRHSPtr->getLHS()->Clone();
 
                                     node->setRHS(tmp); //改变node的右子树
-                                    std::unique_ptr<ExprAST> resultLeft = root->Clone();
+                                    ast_ptr resultLeft = root->Clone();
 
-                                    return std::make_unique<BinaryExprAST>('/', std::move(resultLeft), std::move(resultRight));
+                                    return makePtr<BinaryExprAST>('/', std::move(resultLeft), std::move(resultRight));
                                 }
                             }
                         }
@@ -222,11 +224,11 @@ std::unique_ptr<ExprAST> moveDivKernel(const std::unique_ptr<ExprAST> &expr)
     return expr->Clone();
 }
 
-std::vector<std::unique_ptr<ExprAST>> moveDiv(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+vector<ast_ptr> moveDiv(const vector<ast_ptr> &exprs)
 {
     // fprintf(stderr, "moveDiv: start--------\n");
-    std::vector<std::unique_ptr<ExprAST>> items;
-    std::unique_ptr<ExprAST> moveBefore, moveAfter;
+    vector<ast_ptr> items;
+    ast_ptr moveBefore, moveAfter;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
         moveBefore = exprs.at(i)->Clone();
@@ -243,17 +245,17 @@ std::vector<std::unique_ptr<ExprAST>> moveDiv(const std::vector<std::unique_ptr<
     return items;
 }
 
-std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+ast_ptr mergeFraction(const vector<ast_ptr> &exprs)
 {
     //把分子和分母分开
-    std::vector<std::unique_ptr<ExprAST>> numerators;
-    std::vector<std::unique_ptr<ExprAST>> denominators;
+    vector<ast_ptr> numerators;
+    vector<ast_ptr> denominators;
     unsigned int fractionCount = 0;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
-        std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
-        std::unique_ptr<ExprAST> numeratorTmp = nullptr;
-        std::unique_ptr<ExprAST> denominatorTmp = nullptr;
+        ast_ptr exprTmp = exprs.at(i)->Clone();
+        ast_ptr numeratorTmp = nullptr;
+        ast_ptr denominatorTmp = nullptr;
         if (isFraction(exprTmp))
         {
             numeratorTmp = getNumerator(exprTmp);
@@ -263,31 +265,31 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
         else
         {
             numeratorTmp = std::move(exprTmp);
-            denominatorTmp = std::make_unique<NumberExprAST>(1);
+            denominatorTmp = makePtr<NumberExprAST>(1);
         }
         numerators.push_back(std::move(numeratorTmp));
         denominators.push_back(std::move(denominatorTmp));
     }
     //处理分子，进行循�?合并
-    std::vector<std::unique_ptr<ExprAST>> numeratorcom;  //建立合并之后的分子数�?
+    vector<ast_ptr> numeratorcom;  //建立合并之后的分子数�?
     for (long unsigned int i = 0; i < exprs.size(); i++) //写在�?�?里，每循�?一次重�?一�?
     {
-        std::unique_ptr<ExprAST> exprTmp_i = numerators.at(i)->Clone();
-        std::unique_ptr<ExprAST> numeratorTmp = nullptr;
+        ast_ptr exprTmp_i = numerators.at(i)->Clone();
+        ast_ptr numeratorTmp = nullptr;
         numeratorTmp = std::move(exprTmp_i);
         for (long unsigned int j = 0; j < exprs.size(); j++)
         {
             if (i != j) //乘以除了原本分母的分�?
             {
-                std::unique_ptr<ExprAST> exprTmp_j = denominators.at(j)->Clone();
+                ast_ptr exprTmp_j = denominators.at(j)->Clone();
                 numeratorTmp = mulExpr(numeratorTmp, exprTmp_j);
             }
         }
         numeratorcom.push_back(std::move(numeratorTmp));
     }
     //合并分子
-    std::unique_ptr<ExprAST> exprTmp = numeratorcom.at(0)->Clone();
-    std::unique_ptr<ExprAST> result = std::move(exprTmp);
+    ast_ptr exprTmp = numeratorcom.at(0)->Clone();
+    ast_ptr result = std::move(exprTmp);
     for (long unsigned int i = 1; i < exprs.size(); i++)
     {
         exprTmp = numeratorcom.at(i)->Clone();
@@ -296,7 +298,7 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
     //处理分母
     if (fractionCount > 0)
     {
-        std::unique_ptr<ExprAST> denominatorTmp = denominators.at(0)->Clone();
+        ast_ptr denominatorTmp = denominators.at(0)->Clone();
         for (long unsigned int i = 1; i < exprs.size(); i++) //�?�?把各�?的分母变成公分母
         {
             exprTmp = denominators.at(i)->Clone();
@@ -307,20 +309,20 @@ std::unique_ptr<ExprAST> mergeFraction(const std::vector<std::unique_ptr<ExprAST
     return result;
 }
 
-std::unique_ptr<ExprAST> minusRewrite(const std::unique_ptr<ExprAST> &expr)
+ast_ptr minusRewrite(const ast_ptr &expr)
 {
     if(expr->type() == "Call")
     {
         CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
-        std::vector<std::unique_ptr<ExprAST>> &args = callPtr->getArgs();
-        std::vector<std::unique_ptr<ExprAST>> argsNew;
+        vector<ast_ptr> &args = callPtr->getArgs();
+        vector<ast_ptr> argsNew;
         
         for (auto const &arg : args)
         {
             auto tmp = minusRewrite(arg);
             argsNew.push_back(std::move(tmp));
         }
-        return std::make_unique<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
+        return makePtr<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
     }
     if(expr->type() != "Binary")
     {
@@ -335,17 +337,17 @@ std::unique_ptr<ExprAST> minusRewrite(const std::unique_ptr<ExprAST> &expr)
     auto rhsNew = minusRewrite(rhs);
     if(op == '-')
     {
-        std::unique_ptr<ExprAST> minusOne = std::make_unique<NumberExprAST>(-1);
+        ast_ptr minusOne = makePtr<NumberExprAST>(-1);
         rhsNew = createBinaryExpr(minusOne, rhsNew, '*');
         op = '+';
     }
     return createBinaryExpr(lhsNew, rhsNew, op);
 }
 
-std::unique_ptr<ExprAST> preprocessInit(const std::unique_ptr<ExprAST> &expr)
+ast_ptr preprocessInit(const ast_ptr &expr)
 {
-    std::unique_ptr<ExprAST> exprNew = minusRewrite(expr);
-    // std::unique_ptr<ExprAST> exprNew = std::move(expr->Clone());
+    ast_ptr exprNew = minusRewrite(expr);
+    // ast_ptr exprNew = std::move(expr->Clone());
     // fprintf(stderr, "preprocessInit: after minusRewrite, exprNew = %s\n", PrintExpression(exprNew).c_str());
     if (isFraction(expr))
     {
@@ -354,15 +356,15 @@ std::unique_ptr<ExprAST> preprocessInit(const std::unique_ptr<ExprAST> &expr)
     else
     {
         // fprintf(stderr, "preprocessInit: before expandExprWrapper, exprNew = %s\n", PrintExpression(exprNew).c_str());
-        std::unique_ptr<ExprAST> exprTmp = expandExprWrapper(exprNew);
+        ast_ptr exprTmp = expandExprWrapper(exprNew);
         // fprintf(stderr, "preprocessInit: after expandExprWrapper, exprTmp = %s\n", PrintExpression(exprTmp).c_str());
-        std::vector<std::unique_ptr<ExprAST>> exprs1 = extractItems(exprTmp);
+        vector<ast_ptr> exprs1 = extractItems(exprTmp);
         // fprintf(stderr, "\tpreprocessInit: after extractItems: exprs1 size = %ld\n", exprs1.size());
         // for (size_t i = 0; i < exprs1.size(); i++)
         // {
             // fprintf(stderr, "\tpreprocessInit: after extractItems: No.%lu: %s\n", i, PrintExpression(exprs1[i]).c_str());
         // }
-        std::vector<std::unique_ptr<ExprAST>> exprs2 = moveDiv(exprs1);
+        vector<ast_ptr> exprs2 = moveDiv(exprs1);
         // fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
         // for (size_t i = 0; i < exprs2.size(); i++)
         // {
@@ -374,17 +376,17 @@ std::unique_ptr<ExprAST> preprocessInit(const std::unique_ptr<ExprAST> &expr)
     return exprNew;
 }
 
-std::unique_ptr<ExprAST> preprocess(const std::unique_ptr<ExprAST> &expr)
+ast_ptr preprocess(const ast_ptr &expr)
 {
-    std::unique_ptr<ExprAST> exprNew = preprocessInit(expr);
+    ast_ptr exprNew = preprocessInit(expr);
 
     if (isFraction(exprNew))
     {
-        std::unique_ptr<ExprAST> numeratorTmp = getNumerator(exprNew);
-        std::unique_ptr<ExprAST> denominatorTmp = getDenominator(exprNew);
+        ast_ptr numeratorTmp = getNumerator(exprNew);
+        ast_ptr denominatorTmp = getDenominator(exprNew);
 
-        std::unique_ptr<ExprAST> numeratorNew = preprocess(numeratorTmp);
-        std::unique_ptr<ExprAST> denominatorNew = preprocess(denominatorTmp);
+        ast_ptr numeratorNew = preprocess(numeratorTmp);
+        ast_ptr denominatorNew = preprocess(denominatorTmp);
         return combineFraction(numeratorNew, denominatorNew);
     }
     return exprNew;

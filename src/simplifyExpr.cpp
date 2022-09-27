@@ -1,18 +1,21 @@
-#include <iostream>
-#include <Python.h>
-#include <unistd.h>
-#include <fstream>
 #include "simplifyExpr.hpp"
 #include "laxerASTLY.hpp"
 #include "parserASTLY.hpp"
 
-void simplifyInit(const std::string &exprStr)
+#include <iostream>
+#include <Python.h>
+#include <unistd.h>
+#include <fstream>
+
+using std::string;
+
+void simplifyInit(const string &exprStr)
 {
     // Get the path of pythonBefore.txt
-    std::string filename;
+    string filename;
     char buf[128] = {0};
     getcwd(buf, sizeof(buf));
-    std::string bufStr = buf;
+    string bufStr = buf;
     filename = bufStr + "/src/" + "pythonBefore.txt";
     // std::cout << "exprStr : " << exprStr << std::endl;
     // std::cout << "bufStr  : " << bufStr << std::endl;
@@ -76,7 +79,7 @@ void endPython()
     Py_Finalize();
 }
 
-std::unique_ptr<ExprAST> simplifyExpr(const std::string &exprStr)
+ast_ptr simplifyExpr(const string &exprStr)
 {
     // Write expr string into pythonBefore.txt
     simplifyInit(exprStr);
@@ -92,9 +95,9 @@ std::unique_ptr<ExprAST> simplifyExpr(const std::string &exprStr)
     return ParseExpressionFromString();
 }
 
-std::unique_ptr<ExprAST> simplifyExpr(const std::unique_ptr<ExprAST> &expr)
+ast_ptr simplifyExpr(const ast_ptr &expr)
 {
-    std::string exprStr = PrintExpression(expr);
+    string exprStr = PrintExpression(expr);
 
     return simplifyExpr(exprStr);
 }

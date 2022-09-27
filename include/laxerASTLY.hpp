@@ -2,9 +2,9 @@
 #define _LAXERASTLY
 
 #include "basic.hpp"
-#include "string.h"
+#include <string.h>
 
-
+using std::string;
 
 enum Token1
 {
@@ -18,10 +18,10 @@ enum Token1
     tok_identifier_forstr = -4,
     tok_number_forstr = -5
 };
-extern std::string filestring;
+extern string filestring;
 extern size_t flag;
 extern int CurTokForStr;
-extern std::string IdentifierStr1;  // Filled in if tok_identifier
+extern string IdentifierStr1;  // Filled in if tok_identifier
 extern double NumVal1;              // Filled in if tok_number
 
 /// gettok - Return the next token from standard input.
@@ -44,7 +44,7 @@ void installOperatorsForStr();
 int GetTokPrecedenceForStr();
 
 /// LogError* - These are little helper functions for error handling.
-std::unique_ptr<ExprAST> LogErrorForStr(const char *Str);
+ast_ptr LogErrorForStr(const char *Str);
 
 std::unique_ptr<PrototypeAST> LogErrorPForStr(const char *Str);
 

@@ -1,33 +1,46 @@
-#ifndef _EXPRAUTO
-#define _EXPRAUTO
+#ifndef _EXPRAUTONEW
+#define _EXPRAUTONEW
 
-#include "monoInfo.hpp"
+#include <iostream>
+#include <string>
+#include <vector>
+#include "basic.hpp"
+#include "preprocess.hpp"
 
-std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr, const std::string callee);
+using std::string;
+using std::vector;
 
-std::unique_ptr<ExprAST> dealWithCallsKernel(const std::unique_ptr<ExprAST> &expr);
+// similiar to getExprFromVariants
+ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee);
 
-std::vector<std::unique_ptr<ExprAST>> createAllBinary(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators, const char op);
+// similiar to combineMonomial
+vector<ast_ptr> combineCallArgs(const vector<ast_ptr> &variants, const vector<size_t> widths, const string callee);
 
-std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr, const char &op);
+ast_ptr dealWithCallsKernel(const ast_ptr &expr, const string callee);
 
-std::unique_ptr<ExprAST> dealWithBinOpKernel(const std::unique_ptr<ExprAST> &expr);
+ast_ptr dealWithCallsKernel(const ast_ptr &expr);
 
-std::vector<std::unique_ptr<ExprAST>> dealWithBinOp(std::vector<std::unique_ptr<ExprAST>> &exprs, const char &op);
+vector<ast_ptr> createAllBinary(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators, const char op);
 
-std::vector<std::unique_ptr<ExprAST>> mathfuncRewriteNew(const std::unique_ptr<ExprAST> &expr);
+ast_ptr dealWithBinOpKernel(const ast_ptr &expr, const char &op);
 
-std::vector<size_t> getCombineOrders(const std::vector<size_t> widths, const size_t identifier);
+ast_ptr dealWithBinOpKernel(const ast_ptr &expr);
 
-// TODO: implement. rewriteExpr should contain poly and math function equal change
-std::vector<std::unique_ptr<ExprAST>> rewriteExpr(const std::unique_ptr<ExprAST> &expr);
+vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op);
 
-// TODO: check
-std::vector<std::unique_ptr<ExprAST>> rewriteExprWrapper(std::unique_ptr<ExprAST> &expr);
+// TODO: delete the same expr in exprs using the function 'isEqual'
+void deleteTheSame(vector<ast_ptr> &exprs);
 
-std::vector<std::unique_ptr<ExprAST>> createAll(std::vector<std::unique_ptr<ExprAST>> &numerators, std::vector<std::unique_ptr<ExprAST>> &denominators);
+vector<ast_ptr> dealWithCalls(const ast_ptr &expr);
 
-// TODO: check
-std::vector<std::unique_ptr<ExprAST>> exprAuto(std::unique_ptr<ExprAST> &expr);
+vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr);
+
+vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identifier);
+
+vector<ast_ptr> tryRewrite(ast_ptr expr);
+
+vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators);
+
+vector<ast_ptr> exprAutoNew(const ast_ptr &expr);
 
 #endif

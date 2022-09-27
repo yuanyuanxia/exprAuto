@@ -18,22 +18,12 @@ default: dirs \
 	bin/exprAuto.exe
 dirs:
 	mkdir -p bin objs
-new: dirs \
-	bin/exprAutoNew.exe
 
 .PHONY: dirs
 
 bin/exprAuto.exe: $(EXPRAUTO_ALL_SRCS_OBJS)
 	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
 	$(CPP) -o $@ $^ $(LIBS)
-
-bin/exprAutoNew.exe: exprAutoNew.o objs/src_preprocess.cpp.o objs/src_mathfuncRewrite.cpp.o objs/src_basic.cpp.o objs/src_simplifyExpr.cpp.o objs/src_laxerASTLY.cpp.o objs/src_parserASTLY.cpp.o objs/src_expandAST.cpp.o objs/src_polyRewrite.cpp.o objs/src_monoInfo.cpp.o objs/src_funcInfo.cpp.o objs/src_polyInfo.cpp.o objs/src_variableInfo.cpp.o objs/src_geneExpr.cpp.o
-	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
-	$(CPP) -o $@ $^ $(LIBS)
-
-exprAutoNew.o: exprAutoNew.cpp
-	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
-	$(CPP) -o $@ -c $< $(CFLAGS) $(INCLUDE)
 
 objs/src_%.cpp.o: src/%.cpp
 	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"

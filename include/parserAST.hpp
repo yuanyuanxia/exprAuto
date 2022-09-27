@@ -8,33 +8,33 @@
 // Parser
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> ParseExpression();
+ast_ptr ParseExpression();
 
 /// numberexpr ::= number
-std::unique_ptr<ExprAST> ParseNumberExpr();
+ast_ptr ParseNumberExpr();
 
 /// parenexpr ::= '(' expression ')'
-std::unique_ptr<ExprAST> ParseParenExpr();
+ast_ptr ParseParenExpr();
 
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
-std::unique_ptr<ExprAST> ParseIdentifierExpr();
+ast_ptr ParseIdentifierExpr();
 
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-std::unique_ptr<ExprAST> ParsePrimary();
+ast_ptr ParsePrimary();
 
 /// binoprhs
 ///   ::= ('+' primary)*
-std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, std::unique_ptr<ExprAST> LHS);
+ast_ptr ParseBinOpRHS(int ExprPrec, ast_ptr LHS);
 
 /// expression
 ///   ::= primary binoprhs
 ///
-std::unique_ptr<ExprAST> ParseExpression();
+ast_ptr ParseExpression();
 
 /// prototype
 ///   ::= id '(' id* ')'

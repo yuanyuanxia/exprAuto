@@ -2,6 +2,9 @@
 #include "preprocess.hpp"
 #include "monoInfo.hpp"
 
+using std::string;
+using std::vector;
+
 // TODO: poly&poly
 // TODO: !!! Extract common factors, which can be done more finely. This is the basis for completing the simplification of (exp(x)-1)*log(x)*x
 void monoInfo::combine(const struct monoInfo tmp)
@@ -31,8 +34,8 @@ void monoInfo::combine(const struct monoInfo tmp)
         m2.coefficient = tmp.coefficient;
         poly.monos.push_back(m1);
         poly.monos.push_back(m2);
-        std::vector <funcInfo>().swap(functions); 
-        // functions.swap(std::vector<funcInfo>()); // another way but error
+        vector <funcInfo>().swap(functions); 
+        // functions.swap(vector<funcInfo>()); // another way but error
         coefficient = 1;
         return;
     }
@@ -47,8 +50,8 @@ bool monoInfo::hasCommonCoef(const struct monoInfo &mono) const
 
 bool monoInfo::hasCommonFunc(const struct monoInfo &mono) const
 {
-    const std::vector<funcInfo> &funcs1 = functions;
-    const std::vector<funcInfo> &funcs2 = mono.functions;
+    const vector<funcInfo> &funcs1 = functions;
+    const vector<funcInfo> &funcs2 = mono.functions;
     size_t size1 = funcs1.size();
     size_t size2 = funcs2.size();
     if (size1 != size2)
@@ -68,8 +71,8 @@ bool monoInfo::hasCommonFunc(const struct monoInfo &mono) const
 
 bool monoInfo::hasCommonTerm(const struct monoInfo &mono) const
 {
-    const std::vector<variableInfo> &vars1 = variables;
-    const std::vector<variableInfo> &vars2 = mono.variables;
+    const vector<variableInfo> &vars1 = variables;
+    const vector<variableInfo> &vars2 = mono.variables;
     size_t size1 = vars1.size();
     size_t size2 = vars2.size();
     if (size1 != size2)
@@ -115,8 +118,8 @@ void monoInfo::showInfo()
 
 bool monoInfo::operator<(const monoInfo &mono) const
 {
-    const std::vector<variableInfo> &vars1 = variables;
-    const std::vector<variableInfo> &vars2 = mono.variables;
+    const vector<variableInfo> &vars1 = variables;
+    const vector<variableInfo> &vars2 = mono.variables;
     size_t size1 = vars1.size();
     size_t size2 = vars2.size();
     size_t size = std::min(size1, size2);
@@ -149,8 +152,8 @@ monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2)
 {
     monoInfo monoFinal;
     double &coefficient = monoFinal.coefficient;
-    std::vector<funcInfo> &functions = monoFinal.functions;
-    std::vector<variableInfo> &variables = monoFinal.variables;
+    vector<funcInfo> &functions = monoFinal.functions;
+    vector<variableInfo> &variables = monoFinal.variables;
     variableInfo variableTmp;
 
     coefficient = mono1.coefficient * mono2.coefficient;
@@ -170,18 +173,18 @@ monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2)
     return monoFinal;
 }
 
-monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
+monoInfo extractInfoKernel(const ast_ptr &expr)
 {
     // fprintf(stderr, "extractInfoKernel: at the begin: expr = %s\n", PrintExpression(expr).c_str());
     monoInfo monoFinal;
     double &coefficient = monoFinal.coefficient;
-    std::vector<funcInfo> &functions = monoFinal.functions;
-    std::vector<variableInfo> &variables = monoFinal.variables;
+    vector<funcInfo> &functions = monoFinal.functions;
+    vector<variableInfo> &variables = monoFinal.variables;
     funcInfo funcTmp;
     variableInfo variableTmp;
 
-    std::string exprType = expr->type();
-    std::vector<std::unique_ptr<ExprAST>> items;
+    string exprType = expr->type();
+    vector<ast_ptr> items;
     if (exprType == "Number")
     {
         // fprintf(stderr, "extractInfoKernel: number\n");
@@ -228,9 +231,9 @@ monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
     if (op == '*')
     {
         // fprintf(stderr, "extractInfoKernel: expr op is '*'\n");
-        std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+        ast_ptr &lhs = binOpPtr->getLHS();
         monoInfo monoTmp1 = extractInfoKernel(lhs);
-        std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+        ast_ptr &rhs = binOpPtr->getRHS();
         monoInfo monoTmp2 = extractInfoKernel(rhs);
 
         monoFinal = mergeMonomial(monoTmp1, monoTmp2);
@@ -242,17 +245,17 @@ monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr)
     return monoFinal;
 }
 
-std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs)
+vector<monoInfo> extractInfo(const vector<ast_ptr> &exprs)
 {
     // fprintf(stderr, "extractInfo: start--------\n");
-    std::vector<monoInfo> results;
+    vector<monoInfo> results;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
-        std::unique_ptr<ExprAST> exprTmp = exprs.at(i)->Clone();
+        ast_ptr exprTmp = exprs.at(i)->Clone();
         monoInfo monoTmp = extractInfoKernel(exprTmp);
         if(monoTmp.coefficient != 0)
         {
-            std::vector<variableInfo> &variables = monoTmp.variables;
+            vector<variableInfo> &variables = monoTmp.variables;
             std::sort(variables.begin(), variables.end());
             results.push_back(monoTmp);
         }
@@ -269,13 +272,13 @@ std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &e
     return results;
 }
 
-std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info)
+vector<monoInfo> mergePolynomial(const vector<monoInfo> &info)
 {
     // fprintf(stderr, "mergePolynomial: start--------\n");
     size_t size = info.size();
     bool *merged = new bool[size]{};
     size_t i = 0, j = 0;
-    std::vector<monoInfo> results;
+    vector<monoInfo> results;
     while (i < info.size())
     {
         if(merged[i])

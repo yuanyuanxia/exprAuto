@@ -7,41 +7,43 @@
 #include <sstream>
 #include <iostream>
 
+using std::string;
+
 //===----------------------------------------------------------------------===//
 // Parser
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> ParseExpressionForStr();
+ast_ptr ParseExpressionForStr();
 
 /// numberexpr ::= number
-std::unique_ptr<ExprAST> ParseNumberExprForStr();
+ast_ptr ParseNumberExprForStr();
 
 /// parenexpr ::= '(' expression ')'
-std::unique_ptr<ExprAST> ParseParenExprForStr();
+ast_ptr ParseParenExprForStr();
 
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
-std::unique_ptr<ExprAST> ParseIdentifierExprForStr();
+ast_ptr ParseIdentifierExprForStr();
 
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-std::unique_ptr<ExprAST> ParsePrimaryForStr();
+ast_ptr ParsePrimaryForStr();
 
 /// binoprhs
 ///   ::= ('+' primary)*
-std::unique_ptr<ExprAST> ParseBinOpRHSForStr(int ExprPrec, std::unique_ptr<ExprAST> LHS);
+ast_ptr ParseBinOpRHSForStr(int ExprPrec, ast_ptr LHS);
 
 /// expression
 ///   ::= primary binoprhs
 ///
-std::unique_ptr<ExprAST> ParseExpressionForStr();
+ast_ptr ParseExpressionForStr();
 
-std::string readFileIntoString(const char * filename);
+string readFileIntoString(const char * filename);
 
-std::unique_ptr<ExprAST> ParseExpressionFromString();
-std::unique_ptr<ExprAST> ParseExpressionFromString(std::string str);
+ast_ptr ParseExpressionFromString();
+ast_ptr ParseExpressionFromString(string str);
 
 #endif

@@ -1,10 +1,12 @@
 #include "laxerASTLY.hpp"
 
-#include "string.h"
+#include <string.h>
 
-std::string filestring;
+using std::string;
+
+string filestring;
 size_t flag = 0;    //flag为遍历filestring元素时的索引
-std::string IdentifierStr1;  // Filled in if tok_identifier
+string IdentifierStr1;  // Filled in if tok_identifier
 double NumVal1;              // Filled in if tok_number
 int CurTokForStr;                 // CurTok is the current token the parser is looking at.
 // BinopPrecedence - This holds the precedence for each binary operator that is defined.
@@ -71,7 +73,7 @@ int gettokForStr()
 
     if(isdigit(LastChar) || LastChar == '.')
     {  // Number: [0-9.]+
-        std::string NumStr;
+        string NumStr;
         do
         {
             NumStr += LastChar;
@@ -134,7 +136,7 @@ int GetTokPrecedenceForStr()
 }
 
 /// LogErrorForStr* - These are little helper functions for error handling.
-std::unique_ptr<ExprAST> LogErrorForStr(const char *Str)
+ast_ptr LogErrorForStr(const char *Str)
 {
     fprintf(stderr, "Error: %s\n", Str);
     return nullptr;

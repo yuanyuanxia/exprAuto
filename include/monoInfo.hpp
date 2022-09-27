@@ -7,13 +7,15 @@
 #include "variableInfo.hpp"
 #include "polyInfo.hpp"
 
+using std::vector;
+
 struct funcInfo;
 
 struct monoInfo
 {
     double coefficient = 1;
-    std::vector<funcInfo> functions;
-    std::vector<variableInfo> variables;
+    vector<funcInfo> functions;
+    vector<variableInfo> variables;
     polyInfo poly;
 
     void combine(const struct monoInfo tmp);
@@ -35,10 +37,10 @@ struct monoInfo
 
 monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2);
 
-monoInfo extractInfoKernel(const std::unique_ptr<ExprAST> &expr);
+monoInfo extractInfoKernel(const ast_ptr &expr);
 
-std::vector<monoInfo> extractInfo(const std::vector<std::unique_ptr<ExprAST>> &exprs);
+vector<monoInfo> extractInfo(const vector<ast_ptr> &exprs);
 
-std::vector<monoInfo> mergePolynomial(const std::vector<monoInfo> &info);
+vector<monoInfo> mergePolynomial(const vector<monoInfo> &info);
 
 #endif

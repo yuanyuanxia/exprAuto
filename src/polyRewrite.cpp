@@ -4,6 +4,9 @@
 #include "exprAuto.hpp"
 #include "geneExpr.hpp"
 
+using std::string;
+using std::vector;
+
 #define DEBUG_LEVEL 0
 int debugLevel = -1;
 
@@ -18,11 +21,11 @@ void reverseMine(T *p, size_t size)
     }
 }
 
-double getCoefficient(std::unique_ptr<ExprAST> &expr)  // useless
+double getCoefficient(ast_ptr &expr)  // useless
 {
     if(expr == nullptr)
         return -1;
-    std::string exprType = expr->type();
+    string exprType = expr->type();
     if(exprType != "Number")
     {
         fprintf(stderr, "getCoefficient: ERROR at the begin about the expr type, shouble be Number!\n");
@@ -45,8 +48,8 @@ void getTermSingle(BinaryExprAST *binOpPtr, int *term, double *coefficient)
     {
         mulTime++;
 
-        std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
-        std::string lhsType = lhs->type();
+        ast_ptr &lhs = binOpPtr->getLHS();
+        string lhsType = lhs->type();
         if(lhsType == "Binary")
         {
             binOpPtr = dynamic_cast<BinaryExprAST *>(lhs.get());
@@ -73,14 +76,14 @@ void getTermSingle(BinaryExprAST *binOpPtr, int *term, double *coefficient)
     fprintf(stderr, "getTermSingle: ERROR about the operator, should always be *!\n");
 }
 
-std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr)
+string getVariableInvStr(ast_ptr &expr)
 {
     if(expr == nullptr)
     {
         fprintf(stderr, "getVariableInvStr: expr is nullptr!\n");
         return "NULLPTR";
     }
-    std::string exprType = expr->type();
+    string exprType = expr->type();
     if(exprType == "Variable")
     {
         VariableExprAST *variablePtr = dynamic_cast<VariableExprAST *>(expr.get());
@@ -92,8 +95,8 @@ std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr)
         char op = binOpPtr->getOp();
         if(op == '+')
         {
-            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
-            std::string rhsType = rhs->type();
+            ast_ptr &rhs = binOpPtr->getRHS();
+            string rhsType = rhs->type();
             if(rhsType == "Binary")
             {
                 binOpPtr = dynamic_cast<BinaryExprAST *>(rhs.get());
@@ -113,7 +116,7 @@ std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr)
 
         if(op == '*')
         {
-            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+            ast_ptr &rhs = binOpPtr->getRHS();
             if(rhs->type() == "Variable")
             {
                 VariableExprAST *variablePtr = dynamic_cast<VariableExprAST *>(rhs.get());
@@ -138,14 +141,14 @@ std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr)
     }
 }
 
-std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
+string getVariableStr(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
         fprintf(stderr, "getVariableStr: expr is nullptr!\n");
         return "NULLPTR";
     }
-    std::string exprType = expr->type();
+    string exprType = expr->type();
     if(exprType == "Number")
     {
         return "CONSTANT";
@@ -161,8 +164,8 @@ std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
         char op = binOpPtr->getOp();
         if(op == '+')
         {
-            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
-            std::string rhsType = rhs->type();
+            ast_ptr &rhs = binOpPtr->getRHS();
+            string rhsType = rhs->type();
             if(rhsType == "Binary")
             {
                 binOpPtr = dynamic_cast<BinaryExprAST *>(rhs.get());
@@ -175,7 +178,7 @@ std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
             }
             else if(rhsType == "Number")
             {  // !!! the poly order is inverse, such as "x*x*x+x*x+1"
-                std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
+                ast_ptr &lhs = binOpPtr->getLHS();
                 return getVariableInvStr(lhs);
             }
             else
@@ -187,7 +190,7 @@ std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
 
         if(op == '*')
         {
-            std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+            ast_ptr &rhs = binOpPtr->getRHS();
             if(rhs->type() == "Variable")
             {
                 VariableExprAST *variablePtr = dynamic_cast<VariableExprAST *>(rhs.get());
@@ -213,13 +216,13 @@ std::string getVariableStr(const std::unique_ptr<ExprAST> &expr)
 }
 
 // 获取多项式的系数和阶数
-void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
+void getReady(const ast_ptr &expr, string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
 {
     if(expr == nullptr)
         return;
     *variablePtr = getVariableStr(expr);
 
-    std::string exprType = expr->type();
+    string exprType = expr->type();
     if(exprType == "Number")
     {  // eg: poly := 3.2
         NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(expr.get());
@@ -249,7 +252,7 @@ void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, in
     while(op == '+')
     {
         // rhs
-        std::unique_ptr<ExprAST> &rhs = binOpPtr->getRHS();
+        ast_ptr &rhs = binOpPtr->getRHS();
         BinaryExprAST *binOpRPtr = nullptr;
         if(rhs->type() == "Variable")
         {  // eg: poly := 1 + x OR the "1+x" part in "poly := 1 + x + 3 * x * x"
@@ -276,8 +279,8 @@ void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, in
         plusTime++;
 
         // lhs
-        std::unique_ptr<ExprAST> &lhs = binOpPtr->getLHS();
-        std::string lhsType = lhs->type();
+        ast_ptr &lhs = binOpPtr->getLHS();
+        string lhsType = lhs->type();
         if(lhsType == "Binary")
         {  // the usual case
             binOpPtr = dynamic_cast<BinaryExprAST *>(lhs.get());
@@ -325,32 +328,32 @@ void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, in
     }
 }
 
-std::unique_ptr<ExprAST> createSingle(const std::string variable, const int term, const double coefficient, std::unique_ptr<ExprAST> expr)
+ast_ptr createSingle(const string variable, const int term, const double coefficient, ast_ptr expr)
 {
-    std::unique_ptr<ExprAST> exprNew = std::make_unique<NumberExprAST>(coefficient);
+    ast_ptr exprNew = makePtr<NumberExprAST>(coefficient);
     for(int i = 0; i < term; i++)
     {
-        auto rhs = std::make_unique<VariableExprAST>(variable);
-        exprNew = std::make_unique<BinaryExprAST>('*', std::move(exprNew), std::move(rhs));
+        auto rhs = makePtr<VariableExprAST>(variable);
+        exprNew = makePtr<BinaryExprAST>('*', std::move(exprNew), std::move(rhs));
     }
 
-    std::string exprType = expr->type();
+    string exprType = expr->type();
     if(exprType == "Base")
     {
         return exprNew;
     }
     else
     {
-        return std::make_unique<BinaryExprAST>('+', std::move(expr), std::move(exprNew));
+        return makePtr<BinaryExprAST>('+', std::move(expr), std::move(exprNew));
     }
 }
 
-std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, const double *coefficient, int len)
+ast_ptr createBA(const string variable, const int *term, const double *coefficient, int len)
 {
     if(len == 0)
         return nullptr;
 
-    auto expr = std::make_unique<ExprAST>();
+    auto expr = makePtr<ExprAST>();
     for(int i = 0; i < len; i++)
     {
         expr = createSingle(variable, term[i], coefficient[i], std::move(expr));
@@ -358,43 +361,43 @@ std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, c
     return expr;
 }
 
-std::unique_ptr<ExprAST> createSingle(const std::string variable, const int term, const double coefficient, const monoInfo &monomial, std::unique_ptr<ExprAST> &expr)
+ast_ptr createSingle(const string variable, const int term, const double coefficient, const monoInfo &monomial, ast_ptr &expr)
 {
-    std::unique_ptr<ExprAST> exprNew = nullptr;
-    exprNew = std::make_unique<NumberExprAST>(coefficient);
+    ast_ptr exprNew = nullptr;
+    exprNew = makePtr<NumberExprAST>(coefficient);
 
-    const std::vector<funcInfo> &functions = monomial.functions;
+    const vector<funcInfo> &functions = monomial.functions;
     const polyInfo &poly = monomial.poly;
 
-    std::unique_ptr<ExprAST> polyAST = nullptr;
+    ast_ptr polyAST = nullptr;
     for (const auto &mono : poly.monos)
     {
-        std::unique_ptr<ExprAST> monoAST = geneMonomialAST(mono);
+        ast_ptr monoAST = geneMonomialAST(mono);
         polyAST = addExpr(polyAST, monoAST);
     }
     exprNew = mulExpr(exprNew, polyAST);
 
     for (const auto &func : functions)
     {
-        std::unique_ptr<ExprAST> funcAST = geneFunctionAST(func);
+        ast_ptr funcAST = geneFunctionAST(func);
         exprNew = mulExpr(exprNew, funcAST);
     }
 
     for(int i = 0; i < term; i++)
     {
-        std::unique_ptr<ExprAST> rhs = std::make_unique<VariableExprAST>(variable);
+        ast_ptr rhs = makePtr<VariableExprAST>(variable);
         exprNew = mulExpr(exprNew, rhs);
     }
 
     return addExpr(expr, exprNew);
 }
 
-std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, const double *coefficient, const std::vector<monoInfo> &monomials, int len)
+ast_ptr createBA(const string variable, const int *term, const double *coefficient, const vector<monoInfo> &monomials, int len)
 {
     if(len == 0)
         return nullptr;
 
-    std::unique_ptr<ExprAST> expr = nullptr;
+    ast_ptr expr = nullptr;
     for(int i = 0; i < len; i++)
     {
         expr = createSingle(variable, term[i], coefficient[i], monomials.at(i), expr);
@@ -402,25 +405,25 @@ std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, c
     return expr;
 }
 
-std::unique_ptr<ExprAST> createContinuedMul(const std::string variable, const int commonDegree)
+ast_ptr createContinuedMul(const string variable, const int commonDegree)
 {
     if(commonDegree == 0)
         return nullptr;
 
-    std::unique_ptr<ExprAST> expr = std::make_unique<VariableExprAST>(variable);
+    ast_ptr expr = makePtr<VariableExprAST>(variable);
     for(int i = 1; i < commonDegree; i++)
     {
-        auto rhs = std::make_unique<VariableExprAST>(variable);
-        expr = std::make_unique<BinaryExprAST>('*', std::move(expr), std::move(rhs));
+        auto rhs = makePtr<VariableExprAST>(variable);
+        expr = makePtr<BinaryExprAST>('*', std::move(expr), std::move(rhs));
     }
 
     return expr;
 }
 
-std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefore, std::unique_ptr<ExprAST> common,
-                                               std::vector<std::unique_ptr<ExprAST>> exprMiddles, std::unique_ptr<ExprAST> exprAfter)
+vector<ast_ptr> joinExpr(ast_ptr exprBefore, ast_ptr common,
+                                               vector<ast_ptr> exprMiddles, ast_ptr exprAfter)
 {
-    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    vector<ast_ptr> exprsFinal;
     for(long unsigned int i = 0; i < exprMiddles.size(); i++)
     {
         auto exprMiddle = std::move(exprMiddles.at(i));
@@ -429,12 +432,12 @@ std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefo
             fprintf(stderr, "exprMiddles[%lu] is nullptr, please check!\n", i);
             return exprsFinal;
         }
-        std::unique_ptr<ExprAST> expr = std::move(exprMiddle);
+        ast_ptr expr = std::move(exprMiddle);
 
         if(common != nullptr)
         {
-            std::unique_ptr<ExprAST> commonClone = common->Clone();
-            expr = std::make_unique<BinaryExprAST>('*', std::move(commonClone), std::move(expr));
+            ast_ptr commonClone = common->Clone();
+            expr = makePtr<BinaryExprAST>('*', std::move(commonClone), std::move(expr));
         }
 #ifdef DEBUG
         else
@@ -445,8 +448,8 @@ std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefo
 
         if(exprBefore != nullptr)
         {
-            std::unique_ptr<ExprAST> exprBeforeClone = exprBefore->Clone();
-            expr = std::make_unique<BinaryExprAST>('+', std::move(exprBeforeClone), std::move(expr));
+            ast_ptr exprBeforeClone = exprBefore->Clone();
+            expr = makePtr<BinaryExprAST>('+', std::move(exprBeforeClone), std::move(expr));
         }
 #ifdef DEBUG
         else
@@ -457,8 +460,8 @@ std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefo
 
         if(exprAfter != nullptr)
         {
-            std::unique_ptr<ExprAST> exprAfterClone = exprAfter->Clone();
-            expr = std::make_unique<BinaryExprAST>('+', std::move(expr), std::move(exprAfterClone));
+            ast_ptr exprAfterClone = exprAfter->Clone();
+            expr = makePtr<BinaryExprAST>('+', std::move(expr), std::move(exprAfterClone));
         }
 #ifdef DEBUG
         else
@@ -472,11 +475,11 @@ std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefo
     return exprsFinal;
 }
 
-std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len)
+vector<ast_ptr> createMiddle(const string variable, const int *term, const double *coefficient, const int len)
 {
     debugLevel++;
 
-    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    vector<ast_ptr> exprsFinal;
     auto exprOrigin = createBA(variable, term, coefficient, len);
     exprsFinal.push_back(std::move(exprOrigin));
 
@@ -509,11 +512,11 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
 
             // exprsTmp := exprBeforeI + common * exprMiddles + exprAfterK
             auto exprBeforeI = createBA(variable, term, coefficient, start);
-            auto common = std::make_unique<VariableExprAST>(variable);
+            auto common = makePtr<VariableExprAST>(variable);
             // auto common = createContinuedMul(variable, 1); // overqualified
-            std::vector<std::unique_ptr<ExprAST>> exprMiddles = createMiddle(variable, termNew, coefficient + start, (end - start + 1));
+            vector<ast_ptr> exprMiddles = createMiddle(variable, termNew, coefficient + start, (end - start + 1));
             auto exprAfterK = createBA(variable, term + end + 1, coefficient + end + 1, len - end - 1);
-            std::vector<std::unique_ptr<ExprAST>> exprsTmp;
+            vector<ast_ptr> exprsTmp;
             exprsTmp = joinExpr(std::move(exprBeforeI), std::move(common), std::move(exprMiddles), std::move(exprAfterK));
 
             // exprsFinal += exprsTmp
@@ -539,11 +542,11 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
     return exprsFinal;
 }
 
-std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const std::vector<monoInfo> &monomials, const int len)
+vector<ast_ptr> createMiddle(const string variable, const int *term, const double *coefficient, const vector<monoInfo> &monomials, const int len)
 {
     debugLevel++;
 
-    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    vector<ast_ptr> exprsFinal;
     auto exprOrigin = createBA(variable, term, coefficient, monomials, len);
     exprsFinal.push_back(std::move(exprOrigin));
 
@@ -576,21 +579,21 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
 
             // exprsTmp := exprBeforeI + common * exprMiddles + exprAfterK
             
-            std::vector<monoInfo> monomialsNew;
+            vector<monoInfo> monomialsNew;
             monomialsNew.insert(monomialsNew.end(), monomials.begin(), monomials.begin() + start);
             auto exprBeforeI = createBA(variable, term, coefficient, monomialsNew, start);
             
-            auto common = std::make_unique<VariableExprAST>(variable);
+            auto common = makePtr<VariableExprAST>(variable);
             // auto common = createContinuedMul(variable, 1); // overqualified
             
             monomialsNew.clear();
             monomialsNew.insert(monomialsNew.end(), monomials.begin() + start, monomials.begin() + end + 1);
-            std::vector<std::unique_ptr<ExprAST>> exprMiddles = createMiddle(variable, termNew, coefficient + start, monomialsNew, (end + 1 - start));
+            vector<ast_ptr> exprMiddles = createMiddle(variable, termNew, coefficient + start, monomialsNew, (end + 1 - start));
             
             monomialsNew.clear();
             monomialsNew.insert(monomialsNew.end(), monomials.begin() + end + 1, monomials.end());
             auto exprAfterK = createBA(variable, term + end + 1, coefficient + end + 1, monomialsNew, len - (end + 1));
-            std::vector<std::unique_ptr<ExprAST>> exprsTmp;
+            vector<ast_ptr> exprsTmp;
             
             exprsTmp = joinExpr(std::move(exprBeforeI), std::move(common), std::move(exprMiddles), std::move(exprAfterK));
 
@@ -617,9 +620,9 @@ std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, c
     return exprsFinal;
 }
 
-std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> &exprInit)
+vector<ast_ptr> createExpr(const ast_ptr &exprInit)
 {
-    std::string variable = "z";
+    string variable = "z";
     int term[] = {0, 1, 2, 3, 4, 5};
     double coefficient[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     size_t len = 1;
@@ -642,7 +645,7 @@ std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> 
     return exprsFinal;
 }
 
-void getReady(const std::vector<monoInfo> &monomials, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
+void getReady(const vector<monoInfo> &monomials, string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
 {
     bool variableFlags = true;
     *variablePtr = "novariable";
@@ -673,13 +676,13 @@ void getReady(const std::vector<monoInfo> &monomials, std::string *variablePtr, 
     }
 }
 
-std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &monomials)
+vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
 {
-    std::string variable = "z";
+    string variable = "z";
     int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
     double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     size_t len = 1;
-    std::vector<std::unique_ptr<ExprAST>> exprsFinal;
+    vector<ast_ptr> exprsFinal;
     getReady(monomials, &variable, term, coefficient, &len);
 
     // for(size_t i = 0; i < len; i++)

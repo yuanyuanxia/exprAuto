@@ -4,33 +4,36 @@
 #include "basic.hpp"
 #include "monoInfo.hpp"
 
+using std::vector;
+using std::string;
+
 template <typename T>
 void reverseMine(T *p, size_t size);
 
-double getCoefficient(std::unique_ptr<ExprAST> &expr);
+double getCoefficient(ast_ptr &expr);
 
 void getTermSingle(BinaryExprAST *binOpPtr, int *term, double *coefficient);
 
-std::string getVariableInvStr(std::unique_ptr<ExprAST> &expr);
+string getVariableInvStr(ast_ptr &expr);
 
-std::string getVariableStr(const std::unique_ptr<ExprAST> &expr);
+string getVariableStr(const ast_ptr &expr);
 
 // 获取多项式的系数和阶数
-void getReady(const std::unique_ptr<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, size_t *lenPtr);
+void getReady(const ast_ptr &expr, string *variablePtr, int *term, double *coefficient, size_t *lenPtr);
 
-std::unique_ptr<ExprAST> createSingle(const std::string variable, const int term, const double coefficient, std::unique_ptr<ExprAST> expr);
+ast_ptr createSingle(const string variable, const int term, const double coefficient, ast_ptr expr);
 
-std::unique_ptr<ExprAST> createBA(const std::string variable, const int *term, const double *coefficient, int len);
+ast_ptr createBA(const string variable, const int *term, const double *coefficient, int len);
 
-std::unique_ptr<ExprAST> createContinuedMul(const std::string variable, const int commonDegree);
+ast_ptr createContinuedMul(const string variable, const int commonDegree);
 
-std::vector<std::unique_ptr<ExprAST>> joinExpr(std::unique_ptr<ExprAST> exprBefore, std::unique_ptr<ExprAST> common,
-                                               std::vector<std::unique_ptr<ExprAST>> exprMiddles, std::unique_ptr<ExprAST> exprAfter);
+vector<ast_ptr> joinExpr(ast_ptr exprBefore, ast_ptr common,
+                                               vector<ast_ptr> exprMiddles, ast_ptr exprAfter);
 
-std::vector<std::unique_ptr<ExprAST>> createMiddle(const std::string variable, const int *term, const double *coefficient, const int len);
+vector<ast_ptr> createMiddle(const string variable, const int *term, const double *coefficient, const int len);
 
-std::vector<std::unique_ptr<ExprAST>> createExpr(const std::unique_ptr<ExprAST> &exprInit);
+vector<ast_ptr> createExpr(const ast_ptr &exprInit);
 
-std::vector<std::unique_ptr<ExprAST>> createExpr(const std::vector<monoInfo> &monomials);
+vector<ast_ptr> createExpr(const vector<monoInfo> &monomials);
 
 #endif

@@ -4,22 +4,25 @@
 #include "string.h"
 #include <unistd.h>
 
+using std::string;
+using std::vector;
+
 //===----------------------------------------------------------------------===//
 // Parser
 //===----------------------------------------------------------------------===//
 
-std::unique_ptr<ExprAST> ParseExpressionForStr();
+ast_ptr ParseExpressionForStr();
 
 /// numberexpr ::= number
-std::unique_ptr<ExprAST> ParseNumberExprForStr()
+ast_ptr ParseNumberExprForStr()
 {
-    auto Result = std::make_unique<NumberExprAST>(NumVal1);
+    auto Result = makePtr<NumberExprAST>(NumVal1);
     getNextTokenForStr();  // consume the number
     return Result;
 }
 
 /// parenexpr ::= '(' expression ')'
-std::unique_ptr<ExprAST> ParseParenExprForStr()
+ast_ptr ParseParenExprForStr()
 {
     getNextTokenForStr();  // eat (.
     auto V = ParseExpressionForStr();
@@ -35,18 +38,18 @@ std::unique_ptr<ExprAST> ParseParenExprForStr()
 /// identifierexpr
 ///   ::= identifier
 ///   ::= identifier '(' expression* ')'
-std::unique_ptr<ExprAST> ParseIdentifierExprForStr()
+ast_ptr ParseIdentifierExprForStr()
 {
-    std::string IdName = IdentifierStr1;
+    string IdName = IdentifierStr1;
 
     getNextTokenForStr();  // eat identifier.
 
     if(CurTokForStr != '(')  // Simple variable ref.
-        return std::make_unique<VariableExprAST>(IdName);
+        return makePtr<VariableExprAST>(IdName);
 
     // Call.
     getNextTokenForStr();  // eat (
-    std::vector<std::unique_ptr<ExprAST>> Args;
+    vector<ast_ptr> Args;
     if(CurTokForStr != ')')
     {
         while(true)
@@ -68,14 +71,14 @@ std::unique_ptr<ExprAST> ParseIdentifierExprForStr()
     // Eat the ')'.
     getNextTokenForStr();
 
-    return std::make_unique<CallExprAST>(IdName, std::move(Args));
+    return makePtr<CallExprAST>(IdName, std::move(Args));
 }
 
 /// primary
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
-std::unique_ptr<ExprAST> ParsePrimaryForStr()
+ast_ptr ParsePrimaryForStr()
 {
     switch(CurTokForStr)
     {
@@ -92,7 +95,7 @@ std::unique_ptr<ExprAST> ParsePrimaryForStr()
 
 /// binoprhs
 ///   ::= ('+' primary)*
-std::unique_ptr<ExprAST> ParseBinOpRHSForStr(int ExprPrec, std::unique_ptr<ExprAST> LHS)
+ast_ptr ParseBinOpRHSForStr(int ExprPrec, ast_ptr LHS)
 {
     // If this is a binop, find its precedence.
     while(true)
@@ -127,14 +130,14 @@ std::unique_ptr<ExprAST> ParseBinOpRHSForStr(int ExprPrec, std::unique_ptr<ExprA
         if(BinOp == '`'){
             BinOp = '*';
         }
-        LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
+        LHS = makePtr<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS));
     }
 }
 
 /// expression
 ///   ::= primary binoprhs
 ///
-std::unique_ptr<ExprAST> ParseExpressionForStr()
+ast_ptr ParseExpressionForStr()
 {
     auto LHS = ParsePrimaryForStr();
     if(!LHS)
@@ -144,7 +147,7 @@ std::unique_ptr<ExprAST> ParseExpressionForStr()
 }
 
 //从文件读入到string里
-std::string readFileIntoString(const char * filename)
+string readFileIntoString(const char * filename)
 {
     std::ifstream ifile(filename);
     //将文件读入到ostringstream对象buf中
@@ -155,7 +158,7 @@ std::string readFileIntoString(const char * filename)
     //返回与流对象buf关联的字符串
     return buf.str();
 }
-std::unique_ptr<ExprAST> ParseExpressionFromString()
+ast_ptr ParseExpressionFromString()
 {
     //清空filestring，flag归零
 	if(CurTokForStr == ';')
@@ -165,10 +168,10 @@ std::unique_ptr<ExprAST> ParseExpressionFromString()
         flag = 0;
 	}
 	
-    std::string filename;
+    string filename;
     char buf[128] = {0};
     getcwd(buf, sizeof(buf));
-    std::string bufStr = buf;
+    string bufStr = buf;
     filename = bufStr + "/src/pythonAfter.txt";
     const char* fn = filename.c_str();
     // std::cout << "------- " << fn << std::endl;
@@ -177,12 +180,12 @@ std::unique_ptr<ExprAST> ParseExpressionFromString()
 	getNextTokenForStr();    //eat first element
     
 	if (auto E = ParseExpressionForStr()){
-		std::unique_ptr<ExprAST> es = E->Clone();
+		ast_ptr es = E->Clone();
         return es;
 	}
     return nullptr;
 }
-std::unique_ptr<ExprAST> ParseExpressionFromString(std::string str)
+ast_ptr ParseExpressionFromString(string str)
 {
     //清空filestring，flag归零
         if(CurTokForStr == ';')
@@ -197,7 +200,7 @@ std::unique_ptr<ExprAST> ParseExpressionFromString(std::string str)
         getNextTokenForStr();    //eat first element
 
         if (auto E = ParseExpressionForStr()){
-            std::unique_ptr<ExprAST> es = E->Clone();
+            ast_ptr es = E->Clone();
             return es;
         }
     return nullptr;

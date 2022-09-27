@@ -4,13 +4,15 @@
 #include "basic.hpp"
 #include "monoInfo.hpp"
 
-std::unique_ptr<ExprAST> geneFunctionAST(const funcInfo &func);
+using std::vector;
 
-std::unique_ptr<ExprAST> geneMonomialAST(const monoInfo &monomial);
+ast_ptr geneFunctionAST(const funcInfo &func);
 
-std::unique_ptr<ExprAST> geneExprAST(const std::vector<monoInfo> &monos);
+ast_ptr geneMonomialAST(const monoInfo &monomial);
 
-std::unique_ptr<ExprAST> geneExprASTYHR(std::vector<monoInfo> &info);
+ast_ptr geneExprAST(const vector<monoInfo> &monos);
+
+ast_ptr geneExprASTYHR(vector<monoInfo> &info);
 
 
 #endif

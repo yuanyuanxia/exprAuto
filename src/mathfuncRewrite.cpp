@@ -1,16 +1,20 @@
 #include "basic.hpp"
 #include "expandAST.hpp"
 #include "mathfuncRewrite.hpp"
+#include "exprAuto.hpp"
+
 #include <algorithm>
 #include <queue>
-#include "exprAuto.hpp"
+
+using std::string;
+using std::vector;
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
 //===----------------------------------------------------------------------===//
 
 // exp(expr) - 1 ==> expm1(expr)
-std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
+ast_ptr expToexpm1(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
@@ -25,16 +29,16 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
 
     BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
     char op = binOp->getOp();
-    std::string opStr(1, op);
+    string opStr(1, op);
 
-    std::unique_ptr<ExprAST> &lhs = binOp->getLHS();
-    std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
+    ast_ptr &lhs = binOp->getLHS();
+    ast_ptr &rhs = binOp->getRHS();
     if((op == '+') && (lhs->type() == "Call") && (rhs->type() == "Number"))  // LHS = "Call" && RHS ='Number'
     {
         CallExprAST *callExpr = dynamic_cast<CallExprAST *>(lhs.get());
-        std::string callee = (callExpr->getCallee());
-        std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
-        std::vector<std::unique_ptr<ExprAST>> argsNew;
+        string callee = (callExpr->getCallee());
+        vector<ast_ptr> &args = callExpr->getArgs();
+        vector<ast_ptr> argsNew;
 
         NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(rhs.get());
         double number = (numberExpr01->getNumber());
@@ -46,8 +50,8 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
                 auto arg = expandExpr(args.at(i));
                 argsNew.push_back(std::move(arg));
             }
-            std::string calleeNew = "expm1";
-            std::unique_ptr<ExprAST> exprFinal = std::make_unique<CallExprAST>(calleeNew, std::move(argsNew));
+            string calleeNew = "expm1";
+            ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
             return exprFinal;
         }
     }
@@ -56,7 +60,7 @@ std::unique_ptr<ExprAST> expToexpm1(const std::unique_ptr<ExprAST> &expr)
 }
 
 // log(expr+1) or log(1+expr) ==> log1p(expr)
-std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
+ast_ptr logTolog1p(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
@@ -70,8 +74,8 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
     }
     
     CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
-    std::string callee = (callExpr->getCallee());
-    std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
+    string callee = (callExpr->getCallee());
+    vector<ast_ptr> &args = callExpr->getArgs();
 
     if(callee == "log" && args.size() == 1 && args.at(0)->type() == "Binary")
     {
@@ -80,9 +84,9 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
 
         if(op == '+')
         {
-            std::vector<std::unique_ptr<ExprAST>> argsNew;
-            std::unique_ptr<ExprAST> &lhs = argsOp->getLHS();
-            std::unique_ptr<ExprAST> &rhs = argsOp->getRHS();
+            vector<ast_ptr> argsNew;
+            ast_ptr &lhs = argsOp->getLHS();
+            ast_ptr &rhs = argsOp->getRHS();
             if(lhs->type() == "Number")
             {
                 NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(lhs.get());
@@ -90,7 +94,7 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
                 if(number == 1)
                 {
                     argsNew.push_back(std::move(rhs->Clone()));
-                    return std::make_unique<CallExprAST>("log1p", std::move(argsNew));
+                    return makePtr<CallExprAST>("log1p", std::move(argsNew));
                 }
             }
             else if(rhs->type() == "Number")
@@ -100,7 +104,7 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
                 if(number == 1)
                 {
                     argsNew.push_back(std::move(lhs->Clone()));
-                    return std::make_unique<CallExprAST>("log1p", std::move(argsNew));
+                    return makePtr<CallExprAST>("log1p", std::move(argsNew));
                 }
             }
         }
@@ -109,7 +113,7 @@ std::unique_ptr<ExprAST> logTolog1p(const std::unique_ptr<ExprAST> &expr)
 }
 
 // sqrt(expr1*expr1+expr2*expr2) ==> hypot(expr1, expr2)
-std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
+ast_ptr sqrtTohypot(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
@@ -123,8 +127,8 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
     }
     
     CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
-    std::string callee = (callExpr->getCallee());
-    std::vector<std::unique_ptr<ExprAST>> &args = callExpr->getArgs();
+    string callee = (callExpr->getCallee());
+    vector<ast_ptr> &args = callExpr->getArgs();
     if(callee == "sqrt" && args.size() == 1)
     {
         auto &arg = args.at(0); // get the parameter of the sqrt function
@@ -132,8 +136,8 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
         {
             BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(arg.get());
             char op = binOp->getOp();
-            std::unique_ptr<ExprAST> &lhs = binOp->getLHS();  // left expression
-            std::unique_ptr<ExprAST> &rhs = binOp->getRHS();  // right expression
+            ast_ptr &lhs = binOp->getLHS();  // left expression
+            ast_ptr &rhs = binOp->getRHS();  // right expression
 
             // judge if the parameter is like x*x+y*y style
             if((op == '+') && (lhs->type() == "Binary") && (rhs->type() == "Binary"))
@@ -145,17 +149,17 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
                 char opR = binOpR->getOp();  // right expression's operator
                 if((opL == '*') && (opR == '*'))
                 {
-                    std::unique_ptr<ExprAST> &lhsL = binOpL->getLHS();  // the left  expression of lhs
-                    std::unique_ptr<ExprAST> &rhsL = binOpL->getRHS();  // the right expression of lhs
-                    std::unique_ptr<ExprAST> &lhsR = binOpR->getLHS();  // the left  expression of rhs
-                    std::unique_ptr<ExprAST> &rhsR = binOpR->getRHS();  // the right expression of rhs
+                    ast_ptr &lhsL = binOpL->getLHS();  // the left  expression of lhs
+                    ast_ptr &rhsL = binOpL->getRHS();  // the right expression of lhs
+                    ast_ptr &lhsR = binOpR->getLHS();  // the left  expression of rhs
+                    ast_ptr &rhsR = binOpR->getRHS();  // the right expression of rhs
                     if(isEqual(lhsL, rhsL) && isEqual(lhsR, rhsR))
                     {
-                        std::vector<std::unique_ptr<ExprAST>> argsNew;  // store the parameters for hypot
+                        vector<ast_ptr> argsNew;  // store the parameters for hypot
                         argsNew.push_back(std::move(lhsL->Clone()));
                         argsNew.push_back(std::move(lhsR->Clone()));
 
-                        return std::make_unique<CallExprAST>("hypot", std::move(argsNew));
+                        return makePtr<CallExprAST>("hypot", std::move(argsNew));
                     }
                 }
             }
@@ -166,27 +170,27 @@ std::unique_ptr<ExprAST> sqrtTohypot(const std::unique_ptr<ExprAST> &expr)
 }
 
 // log(exp(x))⇒x OR exp(log(x))⇒x
-std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr)
+ast_ptr lex_x_Or_elx_x(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
         fprintf(stderr, "empty\n");
     }
-    const std::string exprType = expr->type();
+    const string exprType = expr->type();
 	if(exprType == "Call")
 	{
         CallExprAST *expr01 = dynamic_cast<CallExprAST *>(expr.get());
 		
-        std::string callee01 = (expr01->getCallee());
-        std::vector<std::unique_ptr<ExprAST>> &args01 = expr01->getArgs();
+        string callee01 = (expr01->getCallee());
+        vector<ast_ptr> &args01 = expr01->getArgs();
 		// log(exp(x))⇒x
         if(callee01 == "log" && args01.size() == 1)    //log(***)
         {    
-			std::unique_ptr<ExprAST> &expr02 = args01.at(0);
+			ast_ptr &expr02 = args01.at(0);
             if(expr02->type() == "Call")
             {
-				std::string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
-			    std::vector<std::unique_ptr<ExprAST>> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
+				string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
+			    vector<ast_ptr> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
 				if(callee02 == "exp" && args02.size() == 1)    //log(exp(***))
 				{
 					return (args02.at(0))->Clone();
@@ -196,11 +200,11 @@ std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr)
 		//exp(log(x))⇒x
 		if(callee01 == "exp" && args01.size() == 1)    //exp(***)
         {    
-			std::unique_ptr<ExprAST> &expr02 = args01.at(0);
+			ast_ptr &expr02 = args01.at(0);
             if(expr02->type() == "Call")
             {
-				std::string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
-			    std::vector<std::unique_ptr<ExprAST>> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
+				string callee02 = dynamic_cast<CallExprAST *>(expr02.get())->getCallee();
+			    vector<ast_ptr> &args02 = dynamic_cast<CallExprAST *>(expr02.get())->getArgs();
 				if(callee02 == "log" && args02.size() == 1)    //exp(log(***))
 				{
 					return (args02.at(0))->Clone();
@@ -212,7 +216,7 @@ std::unique_ptr<ExprAST> lex_x_Or_elx_x(const std::unique_ptr<ExprAST> &expr)
 }
 
 // sqrt(x)*sqrt(y) ==> sqrt(x*y)
-std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
+ast_ptr sqrtMult(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
@@ -223,16 +227,16 @@ std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
     {
         BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
         char op = binOp->getOp();
-        std::string opStr(1, op);
+        string opStr(1, op);
 #ifdef DEBUG
         fprintf(stderr, "op: %s\n", opStr.c_str());
 #endif
 
-        std::unique_ptr<ExprAST> &lhs = binOp->getLHS();
-        std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
 
-        const std::string exprTypeLHS = lhs->type();
-        const std::string exprTypeRHS = rhs->type();
+        const string exprTypeLHS = lhs->type();
+        const string exprTypeRHS = rhs->type();
 
         if(op == '*')
         {
@@ -241,13 +245,13 @@ std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
                 CallExprAST *callExprL = dynamic_cast<CallExprAST *>(lhs.get());
                 CallExprAST *callExprR = dynamic_cast<CallExprAST *>(rhs.get());
 
-                std::string calleeL = (callExprL->getCallee());
-                std::string calleeR = (callExprR->getCallee());
+                string calleeL = (callExprL->getCallee());
+                string calleeR = (callExprR->getCallee());
 
-                std::vector<std::unique_ptr<ExprAST>> &argsL = callExprL->getArgs();  //左表达式中函数的参数
-                std::vector<std::unique_ptr<ExprAST>> &argsR = callExprR->getArgs();  //右表达式中函数的参数
+                vector<ast_ptr> &argsL = callExprL->getArgs();  //左表达式中函数的参数
+                vector<ast_ptr> &argsR = callExprR->getArgs();  //右表达式中函数的参数
 
-                std::vector<std::unique_ptr<ExprAST>> argsNew;
+                vector<ast_ptr> argsNew;
 #ifdef DEBUG
                 fprintf(stderr, "call: %s\n", calleeL.c_str());
 #endif
@@ -261,8 +265,8 @@ std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
                         auto argsFinal =mulExpr(argL, argR);
                         argsNew.push_back(std::move(argsFinal));
                     }
-                    std::string calleeNew = "sqrt";
-                    std::unique_ptr<ExprAST> exprFinal = std::make_unique<CallExprAST>(calleeNew, std::move(argsNew));
+                    string calleeNew = "sqrt";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
                     return exprFinal;
                 }
                 else
@@ -278,7 +282,7 @@ std::unique_ptr<ExprAST> sqrtMult(const std::unique_ptr<ExprAST> &expr)
 }
 
 // sqrt(x)/sqrt(y) ==> sqrt(x/y)
-std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr)
+ast_ptr sqrtDiv(const ast_ptr &expr)
 {
     if(expr == nullptr)
     {
@@ -289,16 +293,16 @@ std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr)
     {
         BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
         char op = binOp->getOp();
-        std::string opStr(1, op);
+        string opStr(1, op);
 #ifdef DEBUG
         fprintf(stderr, "op: %s\n", opStr.c_str());
 #endif
 
-        std::unique_ptr<ExprAST> &lhs = binOp->getLHS();
-        std::unique_ptr<ExprAST> &rhs = binOp->getRHS();
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
 
-        const std::string exprTypeLHS = lhs->type();
-        const std::string exprTypeRHS = rhs->type();
+        const string exprTypeLHS = lhs->type();
+        const string exprTypeRHS = rhs->type();
 
         if(op == '/')
         {
@@ -307,13 +311,13 @@ std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr)
                 CallExprAST *callExprL = dynamic_cast<CallExprAST *>(lhs.get());
                 CallExprAST *callExprR = dynamic_cast<CallExprAST *>(rhs.get());
 
-                std::string calleeL = (callExprL->getCallee());
-                std::string calleeR = (callExprR->getCallee());
+                string calleeL = (callExprL->getCallee());
+                string calleeR = (callExprR->getCallee());
 
-                std::vector<std::unique_ptr<ExprAST>> &argsL = callExprL->getArgs();  //左表达式中函数的参数
-                std::vector<std::unique_ptr<ExprAST>> &argsR = callExprR->getArgs();  //右表达式中函数的参数
+                vector<ast_ptr> &argsL = callExprL->getArgs();  //左表达式中函数的参数
+                vector<ast_ptr> &argsR = callExprR->getArgs();  //右表达式中函数的参数
 
-                std::vector<std::unique_ptr<ExprAST>> argsNew;
+                vector<ast_ptr> argsNew;
 #ifdef DEBUG
                 fprintf(stderr, "call: %s\n", calleeL.c_str());
 #endif
@@ -327,8 +331,8 @@ std::unique_ptr<ExprAST> sqrtDiv(const std::unique_ptr<ExprAST> &expr)
                         auto argsFinal =divExpr(argL, argR);
                         argsNew.push_back(std::move(argsFinal));
                     }
-                    std::string calleeNew = "sqrt";
-                    std::unique_ptr<ExprAST> exprFinal = std::make_unique<CallExprAST>(calleeNew, std::move(argsNew));
+                    string calleeNew = "sqrt";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
                     return exprFinal;
                 }
                 else
