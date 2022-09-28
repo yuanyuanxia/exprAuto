@@ -8,6 +8,7 @@
 #include "monoInfo.hpp"
 #include "expandAST.hpp"
 #include "preprocess.hpp"
+#include "geneExpr.hpp"
 #include "polyRewrite.hpp"
 #include "mathfuncRewrite.hpp"
 #include "parserASTLY.hpp"
@@ -88,8 +89,36 @@ ast_ptr dealWithCallsKernel(const ast_ptr &expr)
     return dealWithCallsKernel(expr, callee);
 }
 
-// TODO: delete the same expr in exprs using the function 'isEqual'
+// Delete the same expr in exprs using the function 'isEqual'
 void deleteTheSame(vector<ast_ptr> &exprs)
+{
+    const size_t size = exprs.size();
+    if(size == 0)
+    {
+        fprintf(stderr, "WARNING: deleteTheSame: the input exprs is empty\n");
+        exit(1);
+    }
+    // Mark duplicate elements as shouldDelete[i] = true
+    bool *shouldDelete = new bool[size]{false};
+    for(size_t i = 0; i < size; i++) {
+        if(shouldDelete[i] == true) {
+            continue;
+        }
+        for(size_t j = i + 1; j < size; j++) {
+            if(isEqual(exprs.at(i), exprs.at(j))) {
+                shouldDelete[j] = true;
+            }
+        }
+    }
+    // Erase the duplicate elements according to array 'shouldDelete'
+    for(int i = size - 1; i >= 0; i--) {
+        if(shouldDelete[i] == true) {
+            exprs.erase(exprs.begin() + i);
+        }
+    }
+}
+
+void deleteTheSameLY(vector<ast_ptr> &exprs)
 {
     if(exprs.size() == 0)
     {
@@ -239,11 +268,17 @@ vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op)
 
 vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 {
+    static size_t callCount = 0;
+    callCount++;
+    if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: start--------\n");
+
+    // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     if(expr == nullptr)
     {
-        fprintf(stderr, "empty\n");
+        fprintf(stderr, "ERROR: empty\n");
         return {};
     }
+    // printExpr(expr, "\tmathfuncRewrite: at the beginning: ");
     ast_ptr newexpr = expr->Clone();
     vector<ast_ptr> exprsFinal;
     exprsFinal.push_back(std::move(newexpr->Clone()));
@@ -252,11 +287,18 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     {
         auto newASTs = dealWithCalls(newexpr);
         exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+
+        if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
+        if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+        callCount--;
         return exprsFinal;
     }
 
     if(expr->type() != "Binary")  // May be variable or number
     {
+        if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
+        if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+        callCount--;
         return exprsFinal;
     }
 
@@ -270,8 +312,22 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 
     newASTs = dealWithBinOp(newASTs, op);
     exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+    // if(callCount == 1)
+    // {
+    //     for(auto &exprFinal : exprsFinal)
+    //     {
+    //         vector<ast_ptr> items = extractItems(exprFinal);
+    //         vector<monoInfo> info = extractInfo(items);
+    //         vector<monoInfo> infoNew = mergePolynomial(info);
+    //         exprFinal = geneExprAST(infoNew);
+    //     }
+    // }
     deleteTheSame(exprsFinal);
 
+    // fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+    if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: exprsFinal: ");
+    if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+    callCount--;
     return exprsFinal;
 }
 
@@ -292,27 +348,42 @@ vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identi
 
 vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 {
+    fprintf(stderr, "\tpolyRewrite: start--------\n");
+
     ast_ptr middleNew = expandExprWrapper(expr);
     vector<ast_ptr> items = extractItems(middleNew);
     vector<monoInfo> info = extractInfo(items);
     vector<monoInfo> infoNew = mergePolynomial(info);
-    return createExpr(infoNew);
+    auto results = createExpr(infoNew);
+
+    fprintf(stderr, "\tpolyRewrite: end--------\n");
+    return results;
 }
 
 vector<ast_ptr> tryRewrite(ast_ptr expr)
 {
-    fprintf(stderr, "\ttryRewrite: start--------\n");
+    static size_t callCount = 0;
+    callCount++;
+    if(callCount == 1) fprintf(stderr, "\ttryRewrite: start--------\n");
 
-    auto middles = mathfuncRewrite(expr);
-
+    vector<ast_ptr> items = extractItems(expr);
+    vector<monoInfo> info = extractInfo(items);
+    vector<monoInfo> infoNew = mergePolynomial(info);
+    auto exprNew = geneExprAST(infoNew);
+    // if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");
+    auto middles = mathfuncRewrite(exprNew);
     vector<ast_ptr> results;
     for(const auto &middle : middles)
     {
         auto tmp = polyRewrite(middle);
         mineAppend(results, tmp);
     }
-    fprintf(stderr, "\ttryRewrite: end--------\n");
+    if(callCount == 1) printExprs(results, "\ttryRewrites: before delete: ");
+    deleteTheSame(results);
 
+    if(callCount == 1) printExprs(results, "\ttryRewrites: ");
+    if(callCount == 1) fprintf(stderr, "\ttryRewrite: end--------\n");
+    callCount--;
     return results;
 }
 

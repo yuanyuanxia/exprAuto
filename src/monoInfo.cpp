@@ -216,6 +216,7 @@ monoInfo extractInfoKernel(const ast_ptr &expr)
             {
                 (poly.monos).push_back(monoTmp);
             }
+            std::sort((poly.monos).begin(), (poly.monos).end());
             (funcTmp.args).push_back(poly);
         }
         functions.push_back(funcTmp);
@@ -264,7 +265,7 @@ vector<monoInfo> extractInfo(const vector<ast_ptr> &exprs)
     // print information of info
     // for (long unsigned int i = 0; i < results.size(); i++)
     // {
-    //     fprintf(stderr, "The monoInfo No.%lu: \n", i);
+    //     fprintf(stderr, "extractInfo: The monoInfo No.%lu: \n", i);
     //     (results.at(i)).showInfo();
     //     fprintf(stderr, "\n");
     // }
@@ -307,7 +308,7 @@ vector<monoInfo> mergePolynomial(const vector<monoInfo> &info)
     // print information of info
     // for (size_t i = 0; i < results.size(); i++)
     // {
-    //     fprintf(stderr, "The Monomial No.%lu: \n", i);
+    //     fprintf(stderr, "mergePolynomial: The Monomial No.%lu: \n", i);
     //     (results.at(i)).showInfo();
     //     fprintf(stderr, "\n");
     // }

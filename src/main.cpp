@@ -2,6 +2,7 @@
 #include "exprAuto.hpp"
 #include "laxerASTLY.hpp"
 #include "simplifyExpr.hpp"
+#include "color.hpp"
 
 #include <chrono>
 
@@ -21,7 +22,7 @@ int main()
     initPython();
 
     string inputStr = "";
-    fprintf(stderr, "ready> ");
+    fprintf(stderr, GREEN "ready> " RESET);
     while (getline(cin, inputStr))
     {
         auto start = std::chrono::high_resolution_clock::now();
@@ -32,7 +33,7 @@ int main()
         }
         if(inputStr.empty()) {
             fprintf(stderr, "WARNIGN: main: please input a exprssion before pressing Enter\n");
-            fprintf(stderr, "ready> ");
+            fprintf(stderr, GREEN "ready> " RESET);
             continue;
         } else if(inputStr.back() == ';') {
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
@@ -41,12 +42,12 @@ int main()
         ast_ptr expr = simplifyExpr(inputStr); // Python SymPy simplify
         printExpr(expr, "main: after SymPy's simplify, expr = ");
         vector<ast_ptr> results = exprAutoNew(expr);
-        printExprs(results, "main: after exprAutoNew: ");
+        printExprs(results, BLUE "main: after exprAutoNew: " RESET);
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_seconds = end-start;
-        cout << "elapsed time: " << elapsed_seconds.count() << "s" << endl;
-        fprintf(stderr, "ready> ");
+        cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
+        fprintf(stderr, GREEN "ready> " RESET);
     }
     endPython();
     return 0;
