@@ -3,6 +3,7 @@
 #include "laxerASTLY.hpp"
 #include "simplifyExpr.hpp"
 #include "color.hpp"
+#include "geneCode.hpp"
 
 #include <chrono>
 
@@ -39,6 +40,14 @@ int main()
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
             inputStr.pop_back(); // remove the last char ';'
         }
+        // geneOriginCode(inputStr);
+        // testError();
+        // pickTheBest();
+        // sample();
+        // drawBoundary(); // call Matlab
+        // devideInterval();
+        // rewrite();
+        // testPerformance();
         ast_ptr expr = simplifyExpr(inputStr); // Python SymPy simplify
         printExpr(expr, "main: after SymPy's simplify, expr = ");
         vector<ast_ptr> results = exprAutoNew(expr);
