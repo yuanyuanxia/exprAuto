@@ -3,7 +3,10 @@ from os import path as os_path
 
 # Simplify expr
 def parse(t_str):
-    expr = simplify(sympify(t_str, locals=support_char()))
+    expr = sympify(t_str, locals=support_char())
+    expr = simplify(expr)
+    expr = expand(expr)
+    expr = cancel(expr)
     return expr
 
 
@@ -148,7 +151,7 @@ def new_expand(expr):
                 for j in range(int(coefficient_dic[i]) - 1):  # 判断要展开几次
                     new += "*"
                     new += char
-            content_dic[i] = new
+            content_dic[i] = "(" + new + ")"
 
         # 进行替换,生成表达式
         dic_keys = list(content_dic.keys())
