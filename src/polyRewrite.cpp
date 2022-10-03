@@ -6,9 +6,12 @@
 
 using std::string;
 using std::vector;
+using std::cout;
+using std::endl;
 
 #define DEBUG_LEVEL 0
 int debugLevel = -1;
+
 
 template <typename T>
 void reverseMine(T *p, size_t size)
@@ -622,6 +625,13 @@ vector<ast_ptr> createMiddle(const string variable, const int *term, const doubl
 
 vector<ast_ptr> createExpr(const ast_ptr &exprInit)
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "createExpr: ";
+
     string variable = "z";
     int term[] = {0, 1, 2, 3, 4, 5};
     double coefficient[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
@@ -636,12 +646,10 @@ vector<ast_ptr> createExpr(const ast_ptr &exprInit)
 
     auto exprsFinal = createMiddle(variable, term, coefficient, len);
 
-    fprintf(stderr, "\texprsFinal: %ld\n", exprsFinal.size());
-    for(long unsigned int i = 0; i < exprsFinal.size(); i++)
-    {
-        fprintf(stderr, "\tpolyRewrite: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
-    }
-
+    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    printExprs(exprsFinal, prompt);
+    callCount--;
+    callLevel--;
     return exprsFinal;
 }
 
@@ -678,6 +686,13 @@ void getReady(const vector<monoInfo> &monomials, string *variablePtr, int *term,
 
 vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "createExpr: ";
+
     string variable = "z";
     int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
     double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
@@ -700,11 +715,9 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
         exprsFinal = createMiddle(variable, term, coefficient, monomials, len);
     }
 
-    fprintf(stderr, "\tcreateExpr: exprsFinal: %ld\n", exprsFinal.size());
-    for(long unsigned int i = 0; i < exprsFinal.size(); i++)
-    {
-        fprintf(stderr, "\tcreateExpr: No.%lu: %s\n", i, PrintExpression(exprsFinal[i]).c_str());
-    }
-
+    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    printExprs(exprsFinal, prompt);
+    callCount--;
+    callLevel--;
     return exprsFinal;
 }

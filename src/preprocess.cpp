@@ -13,6 +13,8 @@
 
 using std::string;
 using std::vector;
+using std::cout;
+using std::endl;
 
 ast_ptr combineFraction(const ast_ptr &numerator, const ast_ptr &denominator)
 {
@@ -346,6 +348,13 @@ ast_ptr minusRewrite(const ast_ptr &expr)
 
 ast_ptr preprocessInit(const ast_ptr &expr)
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "preprocessInit: ";
+
     ast_ptr exprNew = minusRewrite(expr);
     // ast_ptr exprNew = std::move(expr->Clone());
     // fprintf(stderr, "preprocessInit: after minusRewrite, exprNew = %s\n", PrintExpression(exprNew).c_str());
@@ -371,13 +380,21 @@ ast_ptr preprocessInit(const ast_ptr &expr)
         //     fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
         // }
         exprNew = mergeFraction(exprs2);
-        fprintf(stderr, "preprocessInit: after mergeFraction, exprNew = %s\n", PrintExpression(exprNew).c_str());
+        printExpr(exprNew, prompt + "at the last, after mergeFraction, exprNew = ");
     }
+    callCount--;
+    callLevel--;
     return exprNew;
 }
 
 ast_ptr preprocess(const ast_ptr &expr)
 {
+    static size_t callCount = 0;
+    callCount++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "preprocess: ";
+    cout << prompt << "start--------" <<endl;
     ast_ptr exprNew = preprocessInit(expr);
 
     if (isFraction(exprNew))
@@ -389,5 +406,7 @@ ast_ptr preprocess(const ast_ptr &expr)
         ast_ptr denominatorNew = preprocess(denominatorTmp);
         return combineFraction(numeratorNew, denominatorNew);
     }
+    cout << prompt << "end--------" <<endl;
+    callCount--;
     return exprNew;
 }

@@ -17,7 +17,13 @@
 using std::string;
 using std::vector;
 using std::cout;
+using std::cerr;
 using std::endl;
+
+int callLevel{-1};
+const char callLevelChar{' '};
+const char callCountChar{'>'};
+const size_t promtTimes = 2;
 
 // similiar to getExprFromVariants
 ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee)
@@ -150,6 +156,13 @@ void deleteTheSameLY(vector<ast_ptr> &exprs)
 
 vector<ast_ptr> dealWithCalls(const ast_ptr &expr)
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "dealWithCalls: ";
+    cout << prompt << "start--------" << endl;
     CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
     string callee = callExpr->getCallee();
     vector<ast_ptr> &args = callExpr->getArgs();
@@ -163,9 +176,9 @@ vector<ast_ptr> dealWithCalls(const ast_ptr &expr)
         widths.push_back(exprs.size());
     }
 
-    printExprs(variants, "dealWithCalls: before middle, ");
+    // printExprs(variants, "\t\tdealWithCalls: before middle, ");
     vector<ast_ptr> middles = combineCallArgs(variants, widths, callee);
-    printExprs(middles, "dealWithCalls: after middle, ");
+    // printExprs(middles, "\t\tdealWithCalls: after middle, ");
 
     vector<ast_ptr> allResults;
     for(const auto &middle : middles)
@@ -175,7 +188,10 @@ vector<ast_ptr> dealWithCalls(const ast_ptr &expr)
     }
 
     deleteTheSame(allResults);
-
+    printExprs(allResults, prompt + "at the end, ");
+    cout << prompt << "end--------" << endl;
+    callCount--;
+    callLevel--;
     return allResults;
 }
 
@@ -270,13 +286,17 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 {
     static size_t callCount = 0;
     callCount++;
-    if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: start--------\n");
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "mathfuncRewrite: ";
+    cout << prompt << "start--------" << endl;
 
     // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     if(expr == nullptr)
     {
-        fprintf(stderr, "ERROR: empty\n");
-        return {};
+        cerr << prompt << "ERROR: empty" << endl;
+        exit(EXIT_FAILURE);
     }
     // printExpr(expr, "\tmathfuncRewrite: at the beginning: ");
     ast_ptr newexpr = expr->Clone();
@@ -285,20 +305,23 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 
     if(newexpr->type() == "Call")
     {
+        printExpr(expr, prompt + "before dealWithCalls: newexpr = ");
         auto newASTs = dealWithCalls(newexpr);
         exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
 
         if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+        cout << prompt << "end--------" << endl;
         callCount--;
+        callLevel--;
         return exprsFinal;
     }
 
     if(expr->type() != "Binary")  // May be variable or number
     {
         if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+        cout << prompt << "end--------" << endl;
         callCount--;
+        callLevel--;
         return exprsFinal;
     }
 
@@ -325,9 +348,10 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     deleteTheSame(exprsFinal);
 
     // fprintf(stderr, "\tmathfuncRewrite: end--------\n");
-    if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: exprsFinal: ");
-    if(callCount == 1) fprintf(stderr, "\tmathfuncRewrite: end--------\n");
+    if(callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+    cout << prompt << "end--------" << endl;
     callCount--;
+    callLevel--;
     return exprsFinal;
 }
 
@@ -348,7 +372,13 @@ vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identi
 
 vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 {
-    fprintf(stderr, "\tpolyRewrite: start--------\n");
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "polyRewrite: ";
+    cout << prompt << "start--------" <<endl;
 
     ast_ptr middleNew = expandExprWrapper(expr);
     vector<ast_ptr> items = extractItems(middleNew);
@@ -356,7 +386,9 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
     vector<monoInfo> infoNew = mergePolynomial(info);
     auto results = createExpr(infoNew);
 
-    fprintf(stderr, "\tpolyRewrite: end--------\n");
+    cout << prompt << "end--------" <<endl;
+    callCount--;
+    callLevel--;
     return results;
 }
 
@@ -364,7 +396,10 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
 {
     static size_t callCount = 0;
     callCount++;
-    if(callCount == 1) fprintf(stderr, "\ttryRewrite: start--------\n");
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "tryRewrite: ";
+    cout << prompt << "start--------" <<endl;
 
     vector<ast_ptr> items = extractItems(expr);
     vector<monoInfo> info = extractInfo(items);
@@ -373,16 +408,19 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     // if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew);
     vector<ast_ptr> results;
+    size_t index = 0;
     for(const auto &middle : middles)
     {
+        cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
         auto tmp = polyRewrite(middle);
         mineAppend(results, tmp);
+        index++;
     }
-    if(callCount == 1) printExprs(results, "\ttryRewrites: before delete: ");
+    // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
     deleteTheSame(results);
 
-    if(callCount == 1) printExprs(results, "\ttryRewrites: ");
-    if(callCount == 1) fprintf(stderr, "\ttryRewrite: end--------\n");
+    if(callCount == 1) printExprs(results, prompt + "at the last: ");
+    cout << prompt << "end--------" <<endl;
     callCount--;
     return results;
 }
@@ -413,33 +451,41 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
 
 vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "exprAutoNew: ";
+    cout << prompt << "start-----------" << endl;
     if (expr == nullptr)
     {
-        fprintf(stderr, "exprAutoNew: ERROR: the input expr is nullptr!\n");
-        return {};
+        cerr << prompt << "ERROR: the input expr is nullptr!" << endl;
+        exit(EXIT_FAILURE);
     }
-    fprintf(stderr, "exprAutoNew: step1: preprocess\n");
-    fprintf(stderr, "exprAutoNew: expr = %s\n", PrintExpression(expr).c_str());
+    cout << prompt << "step1: preprocess" << endl;
+    cout << prompt << "expr = " << PrintExpression(expr) << endl;
+
     ast_ptr exprNew = preprocess(expr);
-    fprintf(stderr, "exprAutoNew: exprNew = %s\n", PrintExpression(exprNew).c_str());
+    cout << prompt << "after preprocess, exprNew = " << PrintExpression(exprNew) << endl;
 
     vector<ast_ptr> results;
-    fprintf(stderr, "exprAutoNew: step2: judge if exprNew is a fraction\n");
+    cout << prompt << "step2: judge if exprNew is a fraction" << endl;
     if (isFraction(exprNew))
     {
-        fprintf(stderr, "exprAutoNew: exprNew is a fraction, so perform step3 and step4\n");
+        cout << prompt << "exprNew is a fraction, so perform step3 and step4" << endl;
         ast_ptr numerator = getNumerator(exprNew);
         ast_ptr denominator = getDenominator(exprNew);
 
-        fprintf(stderr, "exprAutoNew: step3: perform on numerator.\n");
+        cout << prompt << "step3: perform on numerator." << endl;
         auto numerators = tryRewrite(std::move(numerator));
-        fprintf(stderr, "exprAutoNew: step3: end perform on numerator.\n");
+        cout << prompt << "step3: end perform on numerator." << endl;
         
-        fprintf(stderr, "exprAutoNew: step3: perform on denominator.\n");
+        cout << prompt << "step3: perform on denominator." << endl;
         auto denominators = tryRewrite(std::move(denominator));
-        fprintf(stderr, "exprAutoNew: step3: end perform on denominator.\n");
+        fprintf(stderr, prompt.c_str(), "step3: end perform on denominator.\n");
         
-        fprintf(stderr, "exprAutoNew: step4: combine numerator and denominator.\n");
+        cout << prompt << "step4: combine numerator and denominator." << endl;
         if(isConstant(denominators))
         {
             ast_ptr one = makePtr<NumberExprAST>(1.0);
@@ -462,11 +508,14 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     }
     else
     {
-        fprintf(stderr, "exprAuto: exprNew is not a fraction, so perform step4\n");
+        cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
         results = tryRewrite(std::move(exprNew));
     }
 
-    fprintf(stderr, "exprAuto: results size = %ld\n", results.size());
-    printExprs(results, "exprAuto: ");
+    cout << prompt << "results size = " << results.size() << endl;
+    printExprs(results, prompt);
+    cout << prompt << "end-----------" << endl;
+    callCount--;
+    callLevel--;
     return results;
 }
