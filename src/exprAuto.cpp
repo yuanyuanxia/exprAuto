@@ -13,6 +13,7 @@
 #include "mathfuncRewrite.hpp"
 #include "parserASTLY.hpp"
 #include "exprAuto.hpp"
+#include "geneCode.hpp"
 
 using std::string;
 using std::vector;
@@ -412,8 +413,17 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     for(const auto &middle : middles)
     {
         cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
-        auto tmp = polyRewrite(middle);
-        mineAppend(results, tmp);
+        vector<string> vars;
+        getVariablesFromExpr(middle, vars);
+        if(vars.size() > 1)
+        {
+            results.push_back(std::move(middle->Clone()));
+        }
+        else
+        {
+            auto tmp = polyRewrite(middle);
+            mineAppend(results, tmp);
+        }
         index++;
     }
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
