@@ -116,10 +116,22 @@ void geneCode(string exprStr, vector<string> vars)
         cout << " " << var;
     }
     cout << endl;
-    // TODO: do something to write expr into a function file
-    // ......
-    // ......
-    // ......
+    
+    std::ofstream fout;
+    fout.open("./hanshuti.c"); // 清空并写入, ios::trunc
+    fout<<"double function (";
+    // for(auto &var : vars)
+    for(int i=0;i<(vars.size()-1);i++)
+
+    {
+        fout<<"double"<<" "<<vars[i]<<",";
+    }
+    fout<<"double"<<" "<<vars[vars.size()-1];
+    fout<<") {"<<endl;
+    fout<<"\t"<<"double result = "<<exprStr<<";"<<endl;
+    fout<<"\t"<<"return result;"<<endl;
+    fout<<"}"<<endl;
+    fout.close();
 }
 
 void geneOriginCode(string exprStr)
