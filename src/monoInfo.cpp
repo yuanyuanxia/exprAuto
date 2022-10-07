@@ -1,9 +1,11 @@
 #include <algorithm>
 #include "preprocess.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 
 using std::string;
 using std::vector;
+using std::cout;
+using std::endl;
 
 // TODO: poly&poly
 // TODO: !!! Extract common factors, which can be done more finely. This is the basis for completing the simplification of (exp(x)-1)*log(x)*x
@@ -92,28 +94,40 @@ bool monoInfo::hasCommonTerm(const struct monoInfo &mono) const
 
 void monoInfo::showInfo()
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "monoInfo::showInfo: ";
+    cout << prompt << "start-----------" << endl;
+
     if(poly.monos.size() > 0) {
         for(size_t i = 0; i < poly.monos.size(); i++)
         {
-            fprintf(stderr, "\t\"special\" coefficient %lu:\n", i);
+            cout << prompt << "\"special\" coefficient " << i << endl;
             (poly.monos.at(i)).showInfo();
-            fprintf(stderr, "\n");
+            cout << endl;
         }
     }
     else
     {
-        fprintf(stderr, "\tcoefficient = %f;\n", coefficient);
+        cout << prompt << "coefficient = " << coefficient << endl;
         for (size_t i = 0; i < functions.size(); i++)
         {
             (functions.at(i)).showInfo();
         }
     }
-    // std::cout << "\tvariables size = " << variables.size() << std::endl;
-    fprintf(stderr, "\tvariables size = %lu\n", variables.size());
+    cout << prompt << "variables size = " << variables.size() << endl;
     for (size_t i = 0; i < variables.size(); i++)
     {
         (variables.at(i)).showInfo();
     }
+
+    cout << prompt << "end-----------" << endl;
+    callCount--;
+    callLevel--;
+    return ;
 }
 
 bool monoInfo::operator<(const monoInfo &mono) const
@@ -215,6 +229,9 @@ monoInfo extractInfoKernel(const ast_ptr &expr)
             for(auto monoTmp : monosTmp)
             {
                 (poly.monos).push_back(monoTmp);
+                monoFracInfo monoFracTmp;
+                monoFracTmp.numerator = monoTmp;
+                (poly.monoFracs).push_back(monoFracTmp);
             }
             std::sort((poly.monos).begin(), (poly.monos).end());
             (funcTmp.args).push_back(poly);

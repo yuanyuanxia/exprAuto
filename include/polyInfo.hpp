@@ -4,13 +4,15 @@
 #include <vector>
 #include "funcInfo.hpp"
 #include "variableInfo.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 
 struct monoInfo;
+struct monoFracInfo;
 
 struct polyInfo
 {
     std::vector<monoInfo> monos;
+    std::vector<monoFracInfo> monoFracs;
 
     void showInfo();
 

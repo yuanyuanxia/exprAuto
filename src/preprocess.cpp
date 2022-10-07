@@ -3,7 +3,7 @@
 #include <numeric>
 
 #include "basic.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 #include "expandAST.hpp"
 #include "exprAuto.hpp"
 #include "polyRewrite.hpp"

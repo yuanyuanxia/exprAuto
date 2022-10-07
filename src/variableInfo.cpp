@@ -1,11 +1,30 @@
 #include <iostream>
 #include <vector>
 
+#include "basic.hpp"
 #include "variableInfo.hpp"
 
 using std::vector;
+using std::cout;
+using std::endl;
 
-void variableInfo::showInfo() { fprintf(stderr, "\tvariableInfo: name = %s; degree = %d\n", name.c_str(), degree); }
+void variableInfo::showInfo()
+{
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "variableInfo::showInfo: ";
+    // cout << prompt << "start-----------" << endl;
+
+    cout << prompt << "variableInfo: name = " << name << "; degree = " << degree << endl;
+
+    // cout << prompt << "end-----------" << endl;
+    callCount--;
+    callLevel--;
+    return ;
+}
 
 bool variableInfo::operator<(const variableInfo &var) const
 {

@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "basic.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 #include "expandAST.hpp"
 #include "preprocess.hpp"
 #include "geneExpr.hpp"
@@ -404,6 +404,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
 
     vector<ast_ptr> items = extractItems(expr);
     vector<monoInfo> info = extractInfo(items);
+    auto hjw = extractFracInfo(items);
     vector<monoInfo> infoNew = mergePolynomial(info);
     auto exprNew = geneExprAST(infoNew);
     // if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");

@@ -1,13 +1,30 @@
+#include "monoFracInfo.hpp"
 #include "funcInfo.hpp"
-#include "monoInfo.hpp"
+
+using std::cout;
+using std::endl;
 
 void funcInfo::showInfo()
 {
-    std::cout << "\tfuncInfo: callee = " << callee.c_str() << ", args size = " << args.size() << std::endl;
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "funcInfo::showInfo: ";
+    cout << prompt << "start-----------" << endl;
+
+    // std::cout << "\tfuncInfo: callee = " << callee.c_str() << ", args size = " << args.size() << std::endl;
+    cout << prompt << "callee = " << callee << ", args size = " << args.size() << endl;
     for(size_t i = 0; i < args.size(); i++)
     {
         (args.at(i)).showInfo();
     }
+
+    cout << prompt << "end-----------" << endl;
+    callCount--;
+    callLevel--;
+    return ;
 }
 
 bool funcInfo::operator==(const funcInfo &func) const

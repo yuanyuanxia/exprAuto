@@ -1,6 +1,4 @@
-#include "basic.hpp"
 #include "polyRewrite.hpp"
-#include "monoInfo.hpp"
 #include "exprAuto.hpp"
 #include "geneExpr.hpp"
 

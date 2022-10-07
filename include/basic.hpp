@@ -16,6 +16,11 @@ using std::string;
 using std::vector;
 #define makePtr std::make_unique
 
+extern int callLevel;
+extern const char callLevelChar;
+extern const char callCountChar;
+extern const size_t promtTimes;
+
 //===----------------------------------------------------------------------===//
 // Abstract Syntax Tree (aka Parse Tree)
 //===----------------------------------------------------------------------===//

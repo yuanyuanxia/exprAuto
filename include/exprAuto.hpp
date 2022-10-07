@@ -10,11 +10,6 @@
 using std::string;
 using std::vector;
 
-extern int callLevel;
-extern const char callLevelChar;
-extern const char callCountChar;
-extern const size_t promtTimes;
-
 // similiar to getExprFromVariants
 ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee);
 

@@ -2,7 +2,7 @@
 #define _GENEEXPR
 
 #include "basic.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 
 using std::vector;
 

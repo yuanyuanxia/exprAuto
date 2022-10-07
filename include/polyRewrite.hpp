@@ -2,7 +2,7 @@
 #define _CREATEEXPR
 
 #include "basic.hpp"
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 
 using std::vector;
 using std::string;

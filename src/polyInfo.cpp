@@ -1,14 +1,30 @@
-#include "monoInfo.hpp"
+#include "monoFracInfo.hpp"
 #include "polyInfo.hpp"
 
 using std::vector;
+using std::cout;
+using std::endl;
 
 void polyInfo::showInfo()
 {
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "polyInfo::showInfo: ";
+    cout << prompt << "start-----------" << endl;
     for(size_t i = 0; i < monos.size(); ++i){
-        fprintf(stderr, "\t poly's the %luth monomial:\n", i);
-        (monos.at(i)).showInfo();
+        // fprintf(stderr, "\t poly's the %luth monomial:\n", i);
+        cout << prompt << "poly's the " << i << "th monomial:" << endl;
+        // (monos.at(i)).showInfo();
+        (monoFracs.at(i)).showInfo();
     }
+
+    cout << prompt << "end-----------" << endl;
+    callCount--;
+    callLevel--;
+    return ;
 }
 
 bool polyInfo::operator==(const polyInfo &poly) const
