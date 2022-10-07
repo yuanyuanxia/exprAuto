@@ -10,7 +10,7 @@ ast_ptr geneFunctionAST(const funcInfo &func)
     vector<ast_ptr> argASTs;
     for(const polyInfo &arg : func.args)
     {
-        ast_ptr argAST = geneExprAST(arg.monos);
+        ast_ptr argAST = geneExprAST(arg.monoFracs);
         argASTs.push_back(std::move(argAST));
     }
     return makePtr<CallExprAST>(callee, std::move(argASTs));
@@ -92,6 +92,54 @@ ast_ptr geneExprAST(const vector<monoInfo> &monos)
     for (const auto &mono: monos)
     {
         tempAST = geneMonomialAST(mono);
+        newExpr = addExpr(std::move(newExpr), std::move(tempAST));
+    }
+    // fprintf(stderr, "geneExprAST: end--------\n");
+    return newExpr;
+}
+
+ast_ptr geneFunctionASTNew(const funcInfo &func)
+{
+    string callee = func.callee;
+    vector<ast_ptr> argASTs;
+    for(const polyInfo &arg : func.args)
+    {
+        ast_ptr argAST = geneExprAST(arg.monoFracs);
+        argASTs.push_back(std::move(argAST));
+    }
+    return makePtr<CallExprAST>(callee, std::move(argASTs));
+}
+
+ast_ptr geneMonoFracAST(const monoFracInfo &monoFrac)
+{
+    const monoInfo &numerator = monoFrac.numerator;
+    const monoInfo &denominator = monoFrac.denominator;
+
+    auto numeratorAST = geneMonomialAST(numerator);
+    auto denominatorAST = geneMonomialAST(denominator);
+    ast_ptr tmpOne = makePtr<NumberExprAST>(1.0);
+    if(isEqual(denominatorAST, tmpOne))
+    {
+        return numeratorAST;
+    }
+    else
+    {
+        return divExpr(numeratorAST, denominatorAST);
+    }
+}
+
+ast_ptr geneExprAST(const vector<monoFracInfo> &monoFracs)
+{
+    // fprintf(stderr, "geneExprAST: start--------\n");
+    if (monoFracs.size() == 0)
+    {
+        fprintf(stderr, "ERROR: geneExprAST: input is NONE!\n");
+    }
+    
+    ast_ptr newExpr, tempAST;
+    for (const auto &monoFrac: monoFracs)
+    {
+        tempAST = geneMonoFracAST(monoFrac);
         newExpr = addExpr(std::move(newExpr), std::move(tempAST));
     }
     // fprintf(stderr, "geneExprAST: end--------\n");

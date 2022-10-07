@@ -383,8 +383,9 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 
     ast_ptr middleNew = expandExprWrapper(expr);
     vector<ast_ptr> items = extractItems(middleNew);
-    vector<monoInfo> info = extractInfo(items);
-    vector<monoInfo> infoNew = mergePolynomial(info);
+    // vector<monoInfo> info = extractInfo(items);
+    // vector<monoInfo> infoNew = mergePolynomial(info);
+    auto infoNew = extractFracInfo(items);
     auto results = createExpr(infoNew);
 
     cout << prompt << "end--------" <<endl;
@@ -403,11 +404,12 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     cout << prompt << "start--------" <<endl;
 
     vector<ast_ptr> items = extractItems(expr);
-    vector<monoInfo> info = extractInfo(items);
-    auto hjw = extractFracInfo(items);
-    vector<monoInfo> infoNew = mergePolynomial(info);
-    auto exprNew = geneExprAST(infoNew);
-    // if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");
+    // vector<monoInfo> info = extractInfo(items);
+    // vector<monoInfo> infoNew = mergePolynomial(info);
+    // auto exprNew = geneExprAST(infoNew);
+    auto info = extractFracInfo(items);
+    auto exprNew = geneExprAST(info);
+    if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew);
     vector<ast_ptr> results;
     size_t index = 0;
@@ -494,7 +496,7 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
         
         cout << prompt << "step3: perform on denominator." << endl;
         auto denominators = tryRewrite(std::move(denominator));
-        fprintf(stderr, prompt.c_str(), "step3: end perform on denominator.\n");
+        cout << prompt << "step3: end perform on denominator." << endl;
         
         cout << prompt << "step4: combine numerator and denominator." << endl;
         if(isConstant(denominators))

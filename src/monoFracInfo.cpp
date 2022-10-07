@@ -82,7 +82,7 @@ monoFracInfo extractFracInfoKernel(const ast_ptr &expr)
                 (poly.monoFracs).push_back(monoTmp);
                 (poly.monos).push_back(monoTmp.numerator);
             }
-            // std::sort((poly.monoFracs).begin(), (poly.monoFracs).end());
+            // std::sort((poly.monoFracs).begin(), (poly.monoFracs).end()); // TODO: implement it
             std::sort((poly.monos).begin(), (poly.monos).end());
             (funcTmp.args).push_back(poly);
         }
@@ -145,12 +145,12 @@ vector<monoFracInfo> extractFracInfo(const vector<ast_ptr> &exprs)
     }
 
     // print information of info
-    for (size_t i = 0; i < results.size(); i++)
-    {
-        cout << prompt << "The monoFracInfo No." << i << endl;
-        (results.at(i)).showInfo();
-        cout << endl;
-    }
+    // for (size_t i = 0; i < results.size(); i++)
+    // {
+    //     cout << prompt << "The monoFracInfo No." << i << endl;
+    //     (results.at(i)).showInfo();
+    //     cout << endl;
+    // }
     cout << prompt << "end-----------" << endl;
     callCount--;
     callLevel--;

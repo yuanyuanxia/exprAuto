@@ -65,7 +65,7 @@ def find_exp(expr, i):
             if expr[j] == ')':
                 flag -= 1
             j += 1
-        print("j", j)
+        # print("j", j)
         return [expr[i + 2:j + 1], j]
     else:
         j = i + 3
@@ -138,7 +138,7 @@ def new_expand(expr):
             base_dic = find_base(expr, index)
             exp_dic = find_exp(expr, index)
             temp_dict[index] = [base_dic, exp_dic]
-        print(temp_dict)
+        # print(temp_dict)
         content_dict = gene_content(temp_dict)
         # print(content_dict)
         final_expr = gene_result(expr, temp_dict, content_dict)
@@ -155,11 +155,11 @@ def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
     with open(i_filename, "r", encoding="UTF-8") as f1, \
             open(o_filename, "w", encoding="UTF-8") as f2:
         input_str = f1.read().strip()
-        print("process: input_str " + input_str)
+        # print("process: input_str " + input_str)
         out_str = str(parse(input_str))
-        print("process: out_str1 " + out_str)
+        # print("process: out_str1 " + out_str)
         out_str = new_expand(out_str)
-        print("process: out_str2 " + out_str)
+        # print("process: out_str2 " + out_str)
         f2.write(out_str)
     return 1
 
