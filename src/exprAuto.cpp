@@ -383,15 +383,34 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 
     ast_ptr middleNew = expandExprWrapper(expr);
     vector<ast_ptr> items = extractItems(middleNew);
-    // vector<monoInfo> info = extractInfo(items);
-    // vector<monoInfo> infoNew = mergePolynomial(info);
     auto infoNew = extractFracInfo(items);
-    auto results = createExpr(infoNew);
+    if(checkMonoFrac(infoNew)) // all the denominators are 1
+    {
+        vector<monoInfo> numerators;
+        for(const auto &monoFrac: infoNew)
+        {
+            numerators.push_back(monoFrac.numerator);
+        }
+        auto numeratorsFinal = mergePolynomial(numerators);
+        auto results = createExpr(numeratorsFinal);
 
-    cout << prompt << "end--------" <<endl;
-    callCount--;
-    callLevel--;
-    return results;
+        cout << prompt << "end--------" <<endl;
+        callCount--;
+        callLevel--;
+        return results;
+    }
+    else if(infoNew.size() == 1)
+    {
+        auto results = createExpr(infoNew);
+        
+        cout << prompt << "end--------" <<endl;
+        callCount--;
+        callLevel--;
+        return results;
+    }
+
+    cerr << prompt << "we can not handle this situation!" << endl;
+    exit(EXIT_FAILURE);
 }
 
 vector<ast_ptr> tryRewrite(ast_ptr expr)
@@ -404,12 +423,28 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     cout << prompt << "start--------" <<endl;
 
     vector<ast_ptr> items = extractItems(expr);
-    // vector<monoInfo> info = extractInfo(items);
-    // vector<monoInfo> infoNew = mergePolynomial(info);
-    // auto exprNew = geneExprAST(infoNew);
     auto info = extractFracInfo(items);
-    auto exprNew = geneExprAST(info);
-    if(callCount == 1) printExpr(exprNew, "\ttryRewrites: before mathfuncRewrite: ");
+    ast_ptr exprNew;
+    if(checkMonoFrac(info)) // all the denominators are 1
+    {
+        vector<monoInfo> numerators;
+        for(const auto &monoFrac: info)
+        {
+            numerators.push_back(monoFrac.numerator);
+        }
+        auto infoNew = mergePolynomial(numerators);
+        exprNew = geneExprAST(infoNew);
+    }
+    else if(info.size() == 1)
+    {
+        exprNew = geneExprAST(info);
+    }
+    else
+    {
+        cerr << prompt << "we can not handle this situation!" << endl;
+        exit(EXIT_FAILURE);
+    }
+    if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew);
     vector<ast_ptr> results;
     size_t index = 0;
@@ -445,12 +480,23 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
 
     if(numerators.at(0) != nullptr && denominators.at(0) != nullptr)
     {
-        for(long unsigned int i = 0; i < numerators.size(); i++)
+        ast_ptr tmpOne = makePtr<NumberExprAST>(1.0);
+        for(auto &denominator : denominators)
         {
-            for(long unsigned int j = 0; j < denominators.size(); j++)
+            if(isEqual(denominator, tmpOne))
             {
-                resultsTemp = divExpr(numerators.at(i), denominators.at(j));
-                results.push_back(std::move(resultsTemp));
+                for(auto &numerator : numerators)
+                {
+                    results.push_back(std::move(numerator->Clone()));
+                }
+            }
+            else
+            {
+                for(auto &numerator : numerators)
+                {
+                    resultsTemp = divExpr(numerator, denominator);
+                    results.push_back(std::move(resultsTemp));
+                }
             }
         }
         return results;

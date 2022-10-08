@@ -228,12 +228,13 @@ monoInfo extractInfoKernel(const ast_ptr &expr)
             polyInfo poly;
             for(auto monoTmp : monosTmp)
             {
-                (poly.monos).push_back(monoTmp);
+                // (poly.monos).push_back(monoTmp);
                 monoFracInfo monoFracTmp;
                 monoFracTmp.numerator = monoTmp;
                 (poly.monoFracs).push_back(monoFracTmp);
             }
-            std::sort((poly.monos).begin(), (poly.monos).end());
+            // std::sort((poly.monos).begin(), (poly.monos).end());
+            std::sort((poly.monoFracs).begin(), (poly.monoFracs).end());
             (funcTmp.args).push_back(poly);
         }
         functions.push_back(funcTmp);

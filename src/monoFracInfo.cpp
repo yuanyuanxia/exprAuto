@@ -80,10 +80,10 @@ monoFracInfo extractFracInfoKernel(const ast_ptr &expr)
             for(auto monoTmp : monosTmp)
             {
                 (poly.monoFracs).push_back(monoTmp);
-                (poly.monos).push_back(monoTmp.numerator);
+                // (poly.monos).push_back(monoTmp.numerator);
             }
-            // std::sort((poly.monoFracs).begin(), (poly.monoFracs).end()); // TODO: implement it
-            std::sort((poly.monos).begin(), (poly.monos).end());
+            std::sort((poly.monoFracs).begin(), (poly.monoFracs).end());
+            // std::sort((poly.monos).begin(), (poly.monos).end());
             (funcTmp.args).push_back(poly);
         }
         functions.push_back(funcTmp);
@@ -157,46 +157,43 @@ vector<monoFracInfo> extractFracInfo(const vector<ast_ptr> &exprs)
     return results;
 }
 
-vector<monoFracInfo> mergePolynomialFrac(const vector<monoFracInfo> &info)
+bool checkMonoFrac(const vector<monoFracInfo> &infos)
 {
-    // // fprintf(stderr, "mergePolynomialFrac: start--------\n");
-    // size_t size = info.size();
-    // bool *merged = new bool[size]{};
-    // size_t i = 0, j = 0;
-    // vector<monoFracInfo> results;
-    // while (i < info.size())
-    // {
-    //     if(merged[i])
-    //     {
-    //         i++;
-    //         continue;
-    //     }
-    //     monoFracInfo tmp = info.at(i);
-    //     merged[i] = true;
-    //     j = i + 1;
-    //     while (j < info.size())
-    //     {
-    //         monoFracInfo tmp1 = info.at(j);
-    //         // if(tmp.hasCommonTerm(tmp1))
-    //         {
-    //             tmp.combine(tmp1);
-    //             merged[j] = true;
-    //         }
-    //         j++;
-    //     }
-    //     results.push_back(tmp);
-    // }
-    // // TODO: check sort. Eg: b*d + a*b + b*b + a*a, output should be a*a + a*b + b*b + b*d, but is a*a + b*b + a*b + b*d;
-    // std::sort(results.begin(), results.end());
+    // fprintf(stderr, "checkMonoFrac: start--------\n");
+    bool flag = true;
+    for (size_t i = 0; i < infos.size(); i++)
+    {
+        const auto &info = infos.at(i);
+        const auto &denominator = info.denominator;
+        const auto &vars = denominator.variables;
+        const auto &funcs = denominator.functions;
+        const auto &poly = denominator.poly;
+        const auto &coefficient = denominator.coefficient;
+        // if denominator is not 1, just set the flag to false and then break out the loop.
+        if (coefficient != 1.0 || vars.size() != 0 || funcs.size() != 0 || poly.monos.size() != 0)
+        {
+            flag = false;
+            break;
+        }
+    }
+    // fprintf(stderr, "checkMonoFrac: end----------\n");
+    return flag;
+}
 
-    // // print information of info
-    // // for (size_t i = 0; i < results.size(); i++)
-    // // {
-    // //     fprintf(stderr, "mergePolynomialFrac: The Monomial No.%lu: \n", i);
-    // //     (results.at(i)).showInfo();
-    // //     fprintf(stderr, "\n");
-    // // }
-    // delete []merged;
-    // // fprintf(stderr, "mergePolynomialFrac: end----------\n");
-    // return results;
+bool monoFracInfo::operator<(const monoFracInfo &monoFrac) const
+{
+    const auto &numerator1 = numerator;
+    const auto &denominator1 = denominator;
+
+    const auto &numerator2 = monoFrac.numerator;
+    const auto &denominator2 = monoFrac.denominator;
+
+    if(denominator1 < denominator2) {
+        return true;
+    }
+    else if(denominator1 == denominator2 && numerator1 < numerator2)
+    {
+        return true;
+    }
+    return false;
 }

@@ -719,3 +719,30 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
     callLevel--;
     return exprsFinal;
 }
+
+vector<ast_ptr> createExpr(const vector<monoFracInfo> &monoFracs)
+{
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "createExpr: ";
+
+    vector<monoInfo> numeratorInfos;
+    vector<monoInfo> denominatorInfos;
+    for(const auto &monoFrac: monoFracs)
+    {
+        numeratorInfos.push_back(monoFrac.numerator);
+        denominatorInfos.push_back(monoFrac.denominator);
+    }
+    auto numerators = createExpr(numeratorInfos);
+    auto denominators = createExpr(denominatorInfos);
+    auto exprsFinal = createAll(numerators, denominators);
+
+    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    printExprs(exprsFinal, prompt);
+    callCount--;
+    callLevel--;
+    return exprsFinal;
+}

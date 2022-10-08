@@ -26,4 +26,6 @@ monoFracInfo extractFracInfoKernel(const ast_ptr &expr);
 
 vector<monoFracInfo> extractFracInfo(const vector<ast_ptr> &exprs);
 
+bool checkMonoFrac(const vector<monoFracInfo> &infos);
+
 #endif

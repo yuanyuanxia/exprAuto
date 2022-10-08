@@ -36,4 +36,6 @@ vector<ast_ptr> createExpr(const ast_ptr &exprInit);
 
 vector<ast_ptr> createExpr(const vector<monoInfo> &monomials);
 
+vector<ast_ptr> createExpr(const vector<monoFracInfo> &monoFracs);
+
 #endif
