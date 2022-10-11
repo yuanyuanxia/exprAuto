@@ -272,19 +272,27 @@ ast_ptr mergeFraction(const vector<ast_ptr> &exprs)
         numerators.push_back(std::move(numeratorTmp));
         denominators.push_back(std::move(denominatorTmp));
     }
-    //处理分子，进行循�?合并
-    vector<ast_ptr> numeratorcom;  //建立合并之后的分子数�?
-    for (long unsigned int i = 0; i < exprs.size(); i++) //写在�?�?里，每循�?一次重�?一�?
+    //处理分子，进行循环合并
+    vector<ast_ptr> numeratorcom;  //建立合并之后的分子数组
+    ast_ptr tmpOne = makePtr<NumberExprAST>(1.0);
+    for (long unsigned int i = 0; i < exprs.size(); i++) //写在循环里，每循环一次重置一次
     {
         ast_ptr exprTmp_i = numerators.at(i)->Clone();
         ast_ptr numeratorTmp = nullptr;
         numeratorTmp = std::move(exprTmp_i);
         for (long unsigned int j = 0; j < exprs.size(); j++)
         {
-            if (i != j) //乘以除了原本分母的分�?
+            if (i != j) //乘以除了原本分母的分母
             {
                 ast_ptr exprTmp_j = denominators.at(j)->Clone();
-                numeratorTmp = mulExpr(numeratorTmp, exprTmp_j);
+                if(isEqual(exprTmp_j, tmpOne))
+                {
+                    numeratorTmp = std::move(numeratorTmp->Clone());
+                }
+                else
+                {
+                    numeratorTmp = mulExpr(numeratorTmp, exprTmp_j);
+                }
             }
         }
         numeratorcom.push_back(std::move(numeratorTmp));
@@ -301,7 +309,7 @@ ast_ptr mergeFraction(const vector<ast_ptr> &exprs)
     if (fractionCount > 0)
     {
         ast_ptr denominatorTmp = denominators.at(0)->Clone();
-        for (long unsigned int i = 1; i < exprs.size(); i++) //�?�?把各�?的分母变成公分母
+        for (long unsigned int i = 1; i < exprs.size(); i++) //循环把各自的分母变成公分母
         {
             exprTmp = denominators.at(i)->Clone();
             denominatorTmp = mulExpr(denominatorTmp, exprTmp);

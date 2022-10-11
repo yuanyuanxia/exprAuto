@@ -11,7 +11,6 @@ struct monoFracInfo;
 
 struct polyInfo
 {
-    std::vector<monoInfo> monos;
     std::vector<monoFracInfo> monoFracs;
 
     void showInfo();

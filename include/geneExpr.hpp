@@ -14,7 +14,7 @@ ast_ptr geneExprAST(const vector<monoInfo> &monos);
 
 ast_ptr geneFunctionASTNew(const funcInfo &func);
 
-ast_ptr geneMonoFracAST(const monoFracInfo &monoFrac);
+ast_ptr geneMonomialAST(const monoFracInfo &monoFrac);
 
 ast_ptr geneExprAST(const vector<monoFracInfo> &monoFracs);
 

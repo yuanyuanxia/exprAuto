@@ -371,9 +371,9 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
     const polyInfo &poly = monomial.poly;
 
     ast_ptr polyAST = nullptr;
-    for (const auto &mono : poly.monos)
+    for (const auto &monoFrac : poly.monoFracs)
     {
-        ast_ptr monoAST = geneMonomialAST(mono);
+        ast_ptr monoAST = geneMonomialAST(monoFrac);
         polyAST = addExpr(polyAST, monoAST);
     }
     exprNew = mulExpr(exprNew, polyAST);

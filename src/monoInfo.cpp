@@ -16,26 +16,29 @@ void monoInfo::combine(const struct monoInfo tmp)
         this->coefficient += tmp.coefficient;
         return;
     }
-    else if (poly.monos.size() > 0)
+    else if (poly.monoFracs.size() > 0)
     {
-        monoInfo m1;
-        m1.variables = {};
-        m1.functions = tmp.functions;
-        m1.coefficient = tmp.coefficient;
-        poly.monos.push_back(m1);
+        monoFracInfo m1;
+        monoInfo &numerator = m1.numerator;
+        numerator.variables = {};
+        numerator.functions = tmp.functions;
+        numerator.coefficient = tmp.coefficient;
+        poly.monoFracs.push_back(m1);
         return;
     }
     else
     {
-        monoInfo m1, m2;
-        m1.variables = {};
-        m1.functions = functions;
-        m1.coefficient = coefficient;
-        m2.variables = {};
-        m2.functions = tmp.functions;
-        m2.coefficient = tmp.coefficient;
-        poly.monos.push_back(m1);
-        poly.monos.push_back(m2);
+        monoFracInfo m1, m2;
+        monoInfo &numerator1 = m1.numerator;
+        monoInfo &numerator2 = m2.numerator;
+        numerator1.variables = {};
+        numerator1.functions = functions;
+        numerator1.coefficient = coefficient;
+        numerator2.variables = {};
+        numerator2.functions = tmp.functions;
+        numerator2.coefficient = tmp.coefficient;
+        poly.monoFracs.push_back(m1);
+        poly.monoFracs.push_back(m2);
         vector <funcInfo>().swap(functions); 
         // functions.swap(vector<funcInfo>()); // another way but error
         coefficient = 1;
@@ -102,11 +105,11 @@ void monoInfo::showInfo()
     prompt += "monoInfo::showInfo: ";
     cout << prompt << "start-----------" << endl;
 
-    if(poly.monos.size() > 0) {
-        for(size_t i = 0; i < poly.monos.size(); i++)
+    if(poly.monoFracs.size() > 0) {
+        for(size_t i = 0; i < poly.monoFracs.size(); i++)
         {
             cout << prompt << "\"special\" coefficient " << i << endl;
-            (poly.monos.at(i)).showInfo();
+            (poly.monoFracs.at(i)).showInfo();
             cout << endl;
         }
     }
@@ -224,16 +227,12 @@ monoInfo extractInfoKernel(const ast_ptr &expr)
         {
             auto argAST = (callPtr->getArgs().at(i))->Clone();
             auto exprsTmp = extractItems(argAST);
-            auto monosTmp = extractInfo(exprsTmp);
+            auto monoFracsTmp = extractFracInfo(exprsTmp);
             polyInfo poly;
-            for(auto monoTmp : monosTmp)
+            for(auto monoFracTmp : monoFracsTmp)
             {
-                // (poly.monos).push_back(monoTmp);
-                monoFracInfo monoFracTmp;
-                monoFracTmp.numerator = monoTmp;
                 (poly.monoFracs).push_back(monoFracTmp);
             }
-            // std::sort((poly.monos).begin(), (poly.monos).end());
             std::sort((poly.monoFracs).begin(), (poly.monoFracs).end());
             (funcTmp.args).push_back(poly);
         }

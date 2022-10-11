@@ -21,15 +21,15 @@ ast_ptr geneMonomialAST(const monoInfo &monomial)
     const vector<variableInfo> &vars = monomial.variables;
     const vector<funcInfo> &funcs = monomial.functions;
     const polyInfo &poly = monomial.poly;
-    if (vars.size() == 0 && funcs.size() == 0 && poly.monos.size() == 0) // number
+    if (vars.size() == 0 && funcs.size() == 0 && poly.monoFracs.size() == 0) // number
     {
         return makePtr<NumberExprAST>(monomial.coefficient);
     }
-    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && (monomial.coefficient == 1) && (funcs.size() == 0) && poly.monos.size() == 0) // single variable
+    else if ((vars.size() == 1) && (vars.at(0).degree == 1) && (monomial.coefficient == 1) && (funcs.size() == 0) && poly.monoFracs.size() == 0) // single variable
     {
         return makePtr<VariableExprAST>(vars.at(0).name);
     }
-    else if (vars.size() == 0 && monomial.coefficient == 1 && funcs.size() == 1 && poly.monos.size() == 0) // single function
+    else if (vars.size() == 0 && monomial.coefficient == 1 && funcs.size() == 1 && poly.monoFracs.size() == 0) // single function
     {
         funcInfo func = funcs.at(0);
         return geneFunctionAST(func);
@@ -54,9 +54,9 @@ ast_ptr geneMonomialAST(const monoInfo &monomial)
         // set the addtional functions in the monomial.
         // NOTE: If there is poly, there is no func, and if there is func, there is no poly
         ast_ptr tempMonos = nullptr;
-        for (const auto &mono : poly.monos)
+        for (const auto &monoFrac : poly.monoFracs)
         {
-            ast_ptr tempMono = geneMonomialAST(mono);
+            auto tempMono = geneMonomialAST(monoFrac);
             tempMonos = addExpr(std::move(tempMonos), std::move(tempMono));
         }
         if (tempMonos != nullptr)
@@ -110,7 +110,7 @@ ast_ptr geneFunctionASTNew(const funcInfo &func)
     return makePtr<CallExprAST>(callee, std::move(argASTs));
 }
 
-ast_ptr geneMonoFracAST(const monoFracInfo &monoFrac)
+ast_ptr geneMonomialAST(const monoFracInfo &monoFrac)
 {
     const monoInfo &numerator = monoFrac.numerator;
     const monoInfo &denominator = monoFrac.denominator;
@@ -139,7 +139,7 @@ ast_ptr geneExprAST(const vector<monoFracInfo> &monoFracs)
     ast_ptr newExpr, tempAST;
     for (const auto &monoFrac: monoFracs)
     {
-        tempAST = geneMonoFracAST(monoFrac);
+        tempAST = geneMonomialAST(monoFrac);
         newExpr = addExpr(std::move(newExpr), std::move(tempAST));
     }
     // fprintf(stderr, "geneExprAST: end--------\n");

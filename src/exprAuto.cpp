@@ -545,19 +545,27 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
         cout << prompt << "step3: end perform on denominator." << endl;
         
         cout << prompt << "step4: combine numerator and denominator." << endl;
-        if(isConstant(denominators))
+        if(isConstant(denominators)) // only one element, and the element is constant
         {
-            ast_ptr one = makePtr<NumberExprAST>(1.0);
-            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(denominators.at(0).get());
-            ast_ptr denominatorTmp = makePtr<NumberExprAST>(numberPtr->getNumber());
-            auto coefficient = divExpr(one, denominatorTmp);
-
-            for(const auto& numerator : numerators)
+            if(isConstant(numerators))
             {
-                auto tmp1 = mulExpr(coefficient, numerator);
-                auto tmp2 = divExpr(numerator, denominatorTmp);
-                results.push_back(std::move(tmp1));
-                results.push_back(std::move(tmp2));
+                auto tmp = divExpr(numerators.at(0), denominators.at(0));
+                results.push_back(std::move(tmp));
+            }
+            else
+            {
+                ast_ptr one = makePtr<NumberExprAST>(1.0);
+                NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(denominators.at(0).get());
+                ast_ptr denominatorTmp = makePtr<NumberExprAST>(numberPtr->getNumber());
+                auto coefficient = divExpr(one, denominatorTmp);
+
+                for(const auto& numerator : numerators)
+                {
+                    auto tmp1 = mulExpr(coefficient, numerator);
+                    auto tmp2 = divExpr(numerator, denominatorTmp);
+                    results.push_back(std::move(tmp1));
+                    results.push_back(std::move(tmp2));
+                }
             }
         }
         else

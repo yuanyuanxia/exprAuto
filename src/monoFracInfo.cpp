@@ -80,10 +80,8 @@ monoFracInfo extractFracInfoKernel(const ast_ptr &expr)
             for(auto monoTmp : monosTmp)
             {
                 (poly.monoFracs).push_back(monoTmp);
-                // (poly.monos).push_back(monoTmp.numerator);
             }
             std::sort((poly.monoFracs).begin(), (poly.monoFracs).end());
-            // std::sort((poly.monos).begin(), (poly.monos).end());
             (funcTmp.args).push_back(poly);
         }
         functions.push_back(funcTmp);
@@ -170,7 +168,7 @@ bool checkMonoFrac(const vector<monoFracInfo> &infos)
         const auto &poly = denominator.poly;
         const auto &coefficient = denominator.coefficient;
         // if denominator is not 1, just set the flag to false and then break out the loop.
-        if (coefficient != 1.0 || vars.size() != 0 || funcs.size() != 0 || poly.monos.size() != 0)
+        if (coefficient != 1.0 || vars.size() != 0 || funcs.size() != 0 || poly.monoFracs.size() != 0)
         {
             flag = false;
             break;
@@ -196,4 +194,24 @@ bool monoFracInfo::operator<(const monoFracInfo &monoFrac) const
         return true;
     }
     return false;
+}
+
+bool monoFracInfo::operator==(const monoFracInfo &monoFrac) const
+{
+    const auto &numerator1 = numerator;
+    const auto &denominator1 = denominator;
+
+    const auto &numerator2 = monoFrac.numerator;
+    const auto &denominator2 = monoFrac.denominator;
+
+    if(denominator1 == denominator2 && numerator1 == numerator2)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool monoFracInfo::operator!=(const monoFracInfo &monoFrac) const
+{
+    return !(*this == monoFrac);
 }
