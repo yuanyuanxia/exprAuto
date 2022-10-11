@@ -190,6 +190,25 @@ monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2)
     return monoFinal;
 }
 
+monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2, const char &op)
+{
+    monoInfo monoFinal;
+    auto &poly = monoFinal.poly;
+    auto &monoFracs = poly.monoFracs;
+    if(op != '+')
+    {
+        cout << "ERROR: mergeMonomial: op is wrong! " << op << endl;
+    }
+    monoFracInfo monoFrac1;
+    monoFracInfo monoFrac2;
+    monoFrac1.numerator = mono1;
+    monoFrac2.numerator = mono2;
+    monoFracs.push_back(monoFrac1);
+    monoFracs.push_back(monoFrac2);
+
+    return monoFinal;
+}
+
 monoInfo extractInfoKernel(const ast_ptr &expr)
 {
     // fprintf(stderr, "extractInfoKernel: at the begin: expr = %s\n", PrintExpression(expr).c_str());
@@ -255,6 +274,16 @@ monoInfo extractInfoKernel(const ast_ptr &expr)
         monoInfo monoTmp2 = extractInfoKernel(rhs);
 
         monoFinal = mergeMonomial(monoTmp1, monoTmp2);
+    }
+    else if (op == '+')
+    {
+        // fprintf(stderr, "extractInfoKernel: expr op is '+'\n");
+        ast_ptr &lhs = binOpPtr->getLHS();
+        monoInfo monoTmp1 = extractInfoKernel(lhs);
+        ast_ptr &rhs = binOpPtr->getRHS();
+        monoInfo monoTmp2 = extractInfoKernel(rhs);
+
+        monoFinal = mergeMonomial(monoTmp1, monoTmp2, '+');
     }
     else
     {

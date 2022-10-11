@@ -37,6 +37,8 @@ struct monoInfo
 
 monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2);
 
+monoInfo mergeMonomial(const monoInfo &mono1, const monoInfo &mono2, const char &op);
+
 monoInfo extractInfoKernel(const ast_ptr &expr);
 
 vector<monoInfo> extractInfo(const vector<ast_ptr> &exprs);
