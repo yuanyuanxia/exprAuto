@@ -14,6 +14,7 @@
 #include "parserASTLY.hpp"
 #include "exprAuto.hpp"
 #include "geneCode.hpp"
+#include "simplifyExpr.hpp"
 
 using std::string;
 using std::vector;
@@ -526,6 +527,8 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     cout << prompt << "expr = " << PrintExpression(expr) << endl;
 
     ast_ptr exprNew = preprocess(expr);
+    exprNew = simplifyExpr(exprNew);
+    exprNew = minusRewrite(exprNew);
     cout << prompt << "after preprocess, exprNew = " << PrintExpression(exprNew) << endl;
 
     vector<ast_ptr> results;
