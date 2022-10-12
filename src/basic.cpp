@@ -1,5 +1,10 @@
 #include "basic.hpp"
 
+#include <sstream>
+#include <iomanip>
+
+#define DOUBLE_PRECISION 17
+
 using std::string;
 using std::vector;
 
@@ -237,8 +242,10 @@ string PrintExpression(const ast_ptr &expr)
 #ifdef DEBUG
         fprintf(stderr, "number: %f\n", number);
 #endif
-
-        return std::to_string(number);
+        std::stringstream ss;
+        ss << std::setprecision(DOUBLE_PRECISION) << number;
+        return ss.str(); // better than to_string: 1 outputs as 1, 1.23456789 outputs as 1.23456789
+        // return std::to_string(number); // really not a good choice: 1 outputs as 1.000000, 1.23456789 outputs as 1.234567
     }
     else if(expr->type() == "Variable")
     {
