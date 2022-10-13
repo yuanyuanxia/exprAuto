@@ -11,9 +11,11 @@
 #include <typeinfo>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 using std::string;
 using std::vector;
+using std::ofstream;
 #define makePtr std::make_unique
 
 extern int callLevel;
@@ -216,6 +218,10 @@ void printExpr(const ast_ptr &expr, string prefix = "", int index = -1);
 void printExprs(const vector<ast_ptr> &exprs, string prefix = "");
 
 void printAST(const ast_ptr &expr);
+
+string getMpfrParameterNumber(const ast_ptr &expr, size_t &mpfr_variabless);
+
+string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std::map<string, string> &map, ofstream &ofs, string &variable_tmp);
 
 // } // end anonymous namespace
 

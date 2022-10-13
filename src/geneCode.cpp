@@ -6,6 +6,11 @@
 
 using std::cout;
 using std::endl;
+using std::ofstream;
+using std::ios;
+using std::to_string;
+using std::string;
+using std::ios_base;
 
 // 0.000287413s
 vector<string> getVariablesFromExpr(const ast_ptr &expr)
@@ -121,7 +126,7 @@ void geneCode(string exprStr, vector<string> vars)
     fout.open("./hanshuti.c"); // 清空并写入, ios::trunc
     fout<<"double function (";
     // for(auto &var : vars)
-    for(int i=0;i<(vars.size()-1);i++)
+    for(size_t i=0;i<(vars.size()-1);i++)
 
     {
         fout<<"double"<<" "<<vars[i]<<",";
@@ -154,7 +159,38 @@ void geneDaisyCode(string exprStr)
     cout << exprStr << endl;
 }
 
-void geneMpfrCode(string exprStr)
+void geneMpfrCode(const string &exprStr)
 {
-    cout << exprStr << endl;
+    std::map<string, string> mpfr_map = {
+        {"+", "mpfr_add"},
+        {"-", "mpfr_sub"},
+        {"*", "mpfr_mul"},
+        {"/", "mpfr_div"},
+        {"exp", "mpfr_exp"},
+        {"pow", "mpfr_pow"},
+        {"sqrt", "mpfr_sqrt"},
+        {"sin", "mpfr_sin"},
+        {"log", "mpfr_log"},
+        {"cos", "mpfr_cos"},
+        {"atan", "mpfr_atan"},
+        {"tan", "mpfr_tan"}
+    };
+    ofstream file_clean("./mpfrcode.c", ios_base::out);
+    ofstream ofs("./mpfrcode.c", ios::app);
+    size_t mpfr_variables = 0;
+    string variable_tmp = "";
+    std::unique_ptr<ExprAST> exprAst = ParseExpressionFromString(exprStr);
+    getMpfrParameterNumber(exprAst, mpfr_variables);
+    ofs << "#include <stdio.h>\n" << "#include <gmp.h>\n" << "#include <math.h>\n" << "#include <mpfr.h>\n" << "int main() {\n"
+        << "\tmpfr_t ";
+    for (size_t i = 0; i < mpfr_variables; ++i) {
+        if (i != mpfr_variables - 1) ofs << "mp" + to_string(i + 1) + ",";
+        else ofs << "mp" + to_string(i + 1) + ";\n";
+    }
+    for (size_t i = 0; i < mpfr_variables; ++i) {
+        ofs << "\tmpfr_init2(mp" + to_string(i + 1) + ", 128);\n";
+    }
+    mpfr_variables = 0;
+    mpfrCodeGenerator(exprAst, mpfr_variables, mpfr_map, ofs, variable_tmp);
+    ofs << "\treturn 0;\n" << "}";
 }

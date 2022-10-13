@@ -11,7 +11,11 @@ using std::cout;
 using std::endl;
 using std::string;
 using std::vector;
-
+using std::cout;
+using std::endl;
+using std::to_string;
+using std::ofstream;
+using std::ios;
 //===----------------------------------------------------------------------===//
 // basic operation
 //===----------------------------------------------------------------------===//
@@ -490,4 +494,136 @@ void printAST(const ast_ptr &expr)
     {
         cout << treePic << endl;
     }
+}
+
+string getMpfrParameterNumber(const ast_ptr &expr, size_t &mpfr_variables) {
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "this is a nullptr.\n");
+    }
+    string exprStr = "";
+    if(expr->type() == "Number")
+    {
+        ++mpfr_variables;
+        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
+        double number = (numberExpr->getNumber());
+        return std::to_string(number);
+    }
+    else if(expr->type() == "Variable")
+    {
+        VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
+        string variable = (variableExpr->getVariable());
+        ++mpfr_variables;
+        return variable;
+    }
+    else if(expr->type() == "Call")
+    {
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+        string callee = (callExpr->getCallee());
+        vector<ast_ptr> &args = callExpr->getArgs();
+        vector<string> argsStr;
+        for(long unsigned int i = 0; i < args.size(); ++i)
+        {
+            string strTmp = getMpfrParameterNumber(args.at(i), mpfr_variables);  // ast_ptr& exprTmp = args.at(i);
+            argsStr.push_back(strTmp);
+        }
+        ++mpfr_variables;
+        callee += "(";
+        for(long unsigned int i = 0; i < argsStr.size() - 1; ++i)
+        {
+            callee += argsStr.at(i) + ", ";
+        }
+        callee += argsStr.back() + ")";
+        return callee;
+    }
+    else if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+        ast_ptr &lhs = binOp->getLHS();
+        string lhsStr = getMpfrParameterNumber(lhs, mpfr_variables);
+        ast_ptr &rhs = binOp->getRHS();
+        string rhsStr = getMpfrParameterNumber(rhs, mpfr_variables);
+        ++mpfr_variables;
+        exprStr += "(" + lhsStr + " " + opStr + " " + rhsStr + ")";
+    }
+    else
+    {
+        exprStr = "unknown expression";
+    }
+    return exprStr;
+}
+
+string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std::map<string, string> &map, ofstream &ofs, string &variable_tmp) {
+    string number_str, variable_str, call_str, binary_str, l, r;
+    if (expr == nullptr) {
+        fprintf(stderr, "this is a nullptr.\n");
+    }
+    string exprStr = "";
+    if (expr->type() == "Number") {
+        ++mpfr_variables;
+        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
+        double number = (numberExpr->getNumber());
+        number_str = "mpfr_set_d(mp" + to_string(mpfr_variables) + ", " + to_string(number) + ", MPFR_RNDN);";
+        // cout << number_str << endl;
+        ofs << "\t" << number_str << endl;
+        return "mp" + to_string(mpfr_variables);
+    } else if (expr->type() == "Variable") {
+        VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
+        string variable = (variableExpr->getVariable());
+        if (variable_tmp != variable) {
+            variable_tmp = variable;
+            ofs << "\tdouble " << variable_tmp << ";" << endl;
+        }
+        // ofs << "\tdouble " << variable << ";" << endl;
+        ++mpfr_variables;
+        variable_str = "mpfr_set_d(mp" + to_string(mpfr_variables) + ", " + variable + ", MPFR_RNDN);";
+        // cout << variable_str << endl;
+        ofs << "\t" << variable_str << endl;
+        return "mp" + to_string(mpfr_variables);
+    } else if (expr->type() == "Call") {
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+        string callee = (callExpr->getCallee());
+        vector<ast_ptr> &args = callExpr->getArgs();
+        vector<string> argsStr;
+        for (long unsigned int i = 0; i < args.size(); ++i) {
+            string strTmp = mpfrCodeGenerator(args.at(i), mpfr_variables, map, ofs, variable_tmp);
+            argsStr.push_back(strTmp);
+        }
+        ++mpfr_variables;
+        auto it = map.find(callee);
+        call_str = it->second;
+        string callee_str;
+        if (call_str == "mpfr_pow") {
+            string str1 = argsStr.at(0), str2 = argsStr.at(1);
+            callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", " + str2 + ", MPFR_RNDN);";
+        } else {
+            string str1 = argsStr.at(0);
+            callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", MPFR_RNDN);";
+        }
+        // cout << callee_str << endl;
+        ofs << "\t" << callee_str << endl;
+        return "mp" + to_string(mpfr_variables);
+    } else if (expr->type() == "Binary") {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+        auto it = map.find(opStr);
+        string map_str = it->second;
+        ast_ptr &lhs = binOp->getLHS();
+        string lhsStr = mpfrCodeGenerator(lhs, mpfr_variables, map, ofs, variable_tmp);
+        l = lhsStr;
+        ast_ptr &rhs = binOp->getRHS();
+        string rhsStr = mpfrCodeGenerator(rhs, mpfr_variables, map, ofs, variable_tmp);
+        r = rhsStr;
+        ++mpfr_variables;
+        binary_str = map_str + "(mp" + to_string(mpfr_variables) + ", " + l + ", " + r + ", MPFR_RNDN);";
+        // cout << binary_str << endl;
+        ofs << "\t" << binary_str << endl;
+        return "mp" + to_string(mpfr_variables);
+    } else {
+        exprStr = "unknown expression";
+    }
+    return exprStr;
 }

@@ -15,6 +15,6 @@ void geneHerbieCode(string exprStr);
 
 void geneDaisyCode(string exprStr);
 
-void geneMpfrCode(string exprStr);
+void geneMpfrCode(const string &exprStr);
 
 #endif
