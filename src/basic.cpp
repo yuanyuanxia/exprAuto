@@ -2,9 +2,13 @@
 
 #include <sstream>
 #include <iomanip>
+#include <string>
 
 #define DOUBLE_PRECISION 17
 
+using std::cerr;
+using std::cout;
+using std::endl;
 using std::string;
 using std::vector;
 
@@ -350,5 +354,140 @@ void printExprs(const vector<ast_ptr> &exprs, string prefix)
     {
         auto &expr = exprs.at(i);
         fprintf(stderr, "%sNo.%ld: %s\n", prefix.c_str(), i, PrintExpression(expr).c_str());
+    }
+}
+
+const char blankChar(' ');
+const string blankStr(2, blankChar);
+
+void updateStr(string &str, const int posit, const int rightest)
+{
+    if(posit > rightest)
+    {
+        string tmpStr(posit - rightest, blankChar);
+        str.append(tmpStr);
+    }
+}
+
+int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePics, vector<int> &rightests)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: printASTKernel: this is a nullptr.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (treePics.size() != rightests.size())
+    {
+        cerr << "ERROR: printASTKernel: size not equal" << endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    static size_t level = -1;
+    level++;
+    if (treePics.size() < level + 1) // lhs
+    {
+        if (treePics.size() != level)
+        {
+            cerr << "ERROR: printASTKernel: size small" << endl;
+            exit(EXIT_FAILURE);
+        }
+        string tmpStr(posit, blankChar);
+        int tmpSize = tmpStr.size();
+        treePics.push_back(tmpStr);
+        rightests.push_back(tmpSize);
+    }
+
+    auto &currentPic = treePics.at(level);
+    int rightest = currentPic.size(); // int rightest = rightests.at(level); // NOTE: can not change 'auto rightest' to 'auto &rightest' !
+    const string exprType = expr->type();
+    if(exprType == "Number")
+    {
+        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
+        double number = (numberExpr->getNumber());
+
+        updateStr(currentPic, posit, rightest);
+
+        std::stringstream ss;
+        ss << std::setprecision(DOUBLE_PRECISION) << number;
+        currentPic.append(ss.str());
+        currentPic.append(blankStr);
+        rightest = currentPic.size();
+    }
+    else if(exprType == "Variable")
+    {
+        VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
+        string variable = (variableExpr->getVariable());
+
+        updateStr(currentPic, posit, rightest);
+
+        currentPic.append(variable);
+        currentPic.append(blankStr);
+        rightest = currentPic.size();
+    }
+    else if(exprType == "Call")
+    {
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+        string callee = (callExpr->getCallee());
+        vector<ast_ptr> &args = callExpr->getArgs();
+
+        updateStr(currentPic, posit, rightest);
+
+        currentPic.append(callee + "()");
+        currentPic.append(blankStr);
+        rightest = currentPic.size();
+
+        if(args.size() == 0)
+        {
+            cerr << "ERROR: printASTKernel: func has no args" << endl;
+            exit(EXIT_FAILURE);
+        }
+        int childRightest = std::max(0, posit);
+        for(auto &arg : args)
+        {
+            childRightest = printASTKernel(arg, childRightest, treePics, rightests);
+        }
+        rightest = std::max(rightest, childRightest);
+    }
+    else if(exprType == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
+
+        updateStr(currentPic, posit, rightest);
+        currentPic.append(opStr);
+        currentPic.append(blankStr);
+        
+        int childRightest = std::max(0, posit);
+        childRightest = printASTKernel(lhs, childRightest, treePics, rightests);        
+        childRightest = printASTKernel(rhs, childRightest, treePics, rightests);
+
+        rightest = currentPic.size();
+        rightest = std::max(rightest, childRightest);
+        
+        // TODO: draw lines
+        // auto positL = drawLeftLine(posit, currentPic);
+        // auto positR = drawRightLine(posit, rightest, currentPic);
+    }
+    else
+    {
+        cerr << "ERROR: printASTKernel: unknown expression" << endl;
+        exit(EXIT_FAILURE);
+    }
+    rightests.at(level) = rightest;
+    level--;
+    return rightest;
+}
+
+void printAST(const ast_ptr &expr)
+{
+    vector<string> treePics;
+    vector<int> rightests;
+    printASTKernel(expr, 0, treePics, rightests);
+    for (auto &treePic : treePics)
+    {
+        cout << treePic << endl;
     }
 }

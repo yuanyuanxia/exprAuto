@@ -215,6 +215,8 @@ void printExpr(const ast_ptr &expr, string prefix = "", int index = -1);
 
 void printExprs(const vector<ast_ptr> &exprs, string prefix = "");
 
+void printAST(const ast_ptr &expr);
+
 // } // end anonymous namespace
 
 #endif
