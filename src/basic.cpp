@@ -352,12 +352,16 @@ void printExpr(const ast_ptr &expr, string prefix, int index)
         fprintf(stderr, "%sNo.%d: %s\n", prefix.c_str(), index, PrintExpression(expr).c_str());
 }
 
-void printExprs(const vector<ast_ptr> &exprs, string prefix)
+void printExprs(const vector<ast_ptr> &exprs, string prefix, bool showTree)
 {
     for(size_t i = 0; i < exprs.size(); i++)
     {
         auto &expr = exprs.at(i);
         fprintf(stderr, "%sNo.%ld: %s\n", prefix.c_str(), i, PrintExpression(expr).c_str());
+        if(showTree)
+        {
+            printAST(expr);
+        }
     }
 }
 
@@ -493,6 +497,17 @@ void printAST(const ast_ptr &expr)
     for (auto &treePic : treePics)
     {
         cout << treePic << endl;
+    }
+}
+
+void printAST(const ast_ptr &expr, string &result)
+{
+    vector<string> treePics;
+    vector<int> rightests;
+    printASTKernel(expr, 0, treePics, rightests);
+    for (auto &treePic : treePics)
+    {
+        result.append(treePic + "\n");
     }
 }
 
