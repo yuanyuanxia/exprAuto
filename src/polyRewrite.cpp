@@ -365,19 +365,32 @@ ast_ptr createBA(const string variable, const int *term, const double *coefficie
 ast_ptr createSingle(const string variable, const int term, const double coefficient, const monoInfo &monomial, ast_ptr &expr)
 {
     ast_ptr exprNew = nullptr;
-    exprNew = makePtr<NumberExprAST>(coefficient);
-
-    const vector<funcInfo> &functions = monomial.functions;
-    const polyInfo &poly = monomial.poly;
-
+    if(coefficient != 1)
+    {
+        exprNew = makePtr<NumberExprAST>(coefficient);
+    }
+    
     ast_ptr polyAST = nullptr;
-    for (const auto &monoFrac : poly.monoFracs)
+    const auto &poly = monomial.poly;
+    const auto &monoFracs = poly.monoFracs;
+    for (const auto &monoFrac : monoFracs)
     {
         ast_ptr monoAST = geneMonomialAST(monoFrac);
         polyAST = addExpr(polyAST, monoAST);
     }
-    exprNew = mulExpr(exprNew, polyAST);
+    if (polyAST != nullptr)
+    {
+        if(coefficient == 1)
+        {
+            exprNew = std::move(polyAST);
+        }
+        else
+        {
+            exprNew = mulExpr(exprNew, polyAST);
+        }
+    }
 
+    const vector<funcInfo> &functions = monomial.functions;
     for (const auto &func : functions)
     {
         ast_ptr funcAST = geneFunctionAST(func);
@@ -390,6 +403,10 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
         exprNew = mulExpr(exprNew, rhs);
     }
 
+    if(exprNew == nullptr && coefficient == 1)
+    {
+        exprNew = makePtr<NumberExprAST>(coefficient);
+    }
     return addExpr(expr, exprNew);
 }
 
