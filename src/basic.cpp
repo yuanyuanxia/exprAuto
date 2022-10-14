@@ -390,11 +390,11 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         exit(EXIT_FAILURE);
     }
     
-    static size_t level = -1;
+    static int level = -1;
     level++;
-    if (treePics.size() < level + 1) // lhs
+    if (int(treePics.size()) < level + 1) // lhs
     {
-        if (treePics.size() != level)
+        if (int(treePics.size()) != level)
         {
             cerr << "ERROR: printASTKernel: size small" << endl;
             exit(EXIT_FAILURE);
@@ -405,7 +405,7 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         rightests.push_back(tmpSize);
     }
 
-    auto &currentPic = treePics.at(level);
+    auto currentPic = treePics.at(level);
     int rightest = currentPic.size(); // int rightest = rightests.at(level); // NOTE: can not change 'auto rightest' to 'auto &rightest' !
     const string exprType = expr->type();
     if(exprType == "Number")
@@ -485,6 +485,7 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         exit(EXIT_FAILURE);
     }
     rightests.at(level) = rightest;
+    treePics.at(level) = currentPic;
     level--;
     return rightest;
 }
