@@ -5,6 +5,7 @@
 #include "color.hpp"
 #include "geneCode.hpp"
 
+#include <fstream>
 #include <chrono>
 
 using std::string;
@@ -22,6 +23,9 @@ int main()
     installOperatorsForStr();
     initPython();
 
+    // tmp
+    std::ofstream fout;
+    fout.open("./tmpResult.txt");    
     string inputStr = "";
     fprintf(stderr, GREEN "ready> " RESET);
     while (getline(cin, inputStr))
@@ -51,13 +55,26 @@ int main()
         ast_ptr expr = simplifyExpr(inputStr); // Python SymPy simplify
         printExpr(expr, "main: after SymPy's simplify, expr = ");
         vector<ast_ptr> results = exprAutoNew(expr);
-        printExprs(results, BLUE "main: after exprAutoNew: " RESET);
+        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false);
+        for(size_t i = 0; i < results.size(); i++)
+        {
+            auto &result = results.at(i);
+            string treeStr;
+            printAST(result, treeStr);
+            fout << "No." << i << ": " << PrintExpression(result) << endl;
+            fout << treeStr << endl;
+        }
+        fout << endl;
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_seconds = end-start;
         cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }
+
+    // tmp end
+    fout.close();
+
     endPython();
     return 0;
 }
