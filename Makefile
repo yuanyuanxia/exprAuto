@@ -4,7 +4,7 @@ CC = gcc
 CPP = g++
 INCLUDE = -Iinclude -I/usr/include/python3.8
 # LIBS=  -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 # may need -L to assign the Python lobrary path
-LIBS=  -lpython3.8
+LIBS = -lpython3.8
 ECHO = printf
 
 # $(info $(CFLAGS) )
@@ -17,7 +17,7 @@ EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:
 default: dirs \
 	bin/exprAuto.exe
 dirs:
-	mkdir -p bin objs
+	@mkdir -p bin objs
 
 .PHONY: dirs
 
@@ -29,6 +29,14 @@ objs/src_%.cpp.o: src/%.cpp
 	@$(ECHO) "\033[1;32mBuilding $@ \n\033[0m"
 	$(CPP) -o $@ -c $< $(CFLAGS) $(INCLUDE)
 
+objs/src_%.cpp.d: src/%.cpp
+# $(info include ruler about $* )
+	@set -e; rm -f $@; $(CPP) -MM $< $(INCLUDE) > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,objs/src_\1.cpp.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$;
+
+-include $(EXPRAUTO_ALL_SRCS_OBJS:.o=.d)
+
 .PHONY: clean
 clean:
-	rm -f objs/*.o bin/*.exe *.o *.exe
+	rm -f objs/*.d objs/*.o bin/*.exe

@@ -98,6 +98,7 @@ ast_ptr geneExprAST(const vector<monoInfo> &monos)
     return newExpr;
 }
 
+// TODO: useless, should probably remove
 ast_ptr geneFunctionASTNew(const funcInfo &func)
 {
     string callee = func.callee;
