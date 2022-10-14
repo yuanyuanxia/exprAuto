@@ -394,11 +394,16 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         }
         auto numeratorsFinal = mergePolynomial(numerators);
         auto results = createExpr(numeratorsFinal);
-
+        vector<ast_ptr> resultsNew;
+        for(auto &result : results)
+        {
+            auto tmp = fmaRewrite(result);
+            mineAppend(resultsNew, tmp);
+        }
         cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
-        return results;
+        return resultsNew;
     }
     else if(infoNew.size() == 1)
     {

@@ -8,6 +8,9 @@
 
 using std::string;
 using std::vector;
+using std::cout;
+using std::cerr;
+using std::endl;
 
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
@@ -345,4 +348,209 @@ ast_ptr sqrtDiv(const ast_ptr &expr)
         return expr->Clone();
     }
     return expr->Clone();
+}
+
+// x*y+a, y*x+a, a+x*y, a+y*x => fma(x,y,a), x*y+a*b, y*x+a*b, x*y+b*a, y*x+a*b,  => fma(x,y,a*b) or fma(a,b,x*y)
+// NOTE: if no match, the origin input expr will also be returned.
+vector<ast_ptr> toFma(const ast_ptr &expr)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "toFma's input is nullptr!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (expr->type() != "Binary")
+    {
+        fprintf(stderr, "toFma's input type is not Binary!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "toFma: ";
+    // cout << prompt << "start-------- " << PrintExpression(expr) << " " << endl;
+
+    vector<ast_ptr> results;
+    results.push_back(std::move(expr->Clone()));
+    ast_ptr newExpr = expr->Clone();
+
+    BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(newExpr.get());
+    char op = binOp->getOp();
+    ast_ptr &lhs = binOp->getLHS();
+    ast_ptr &rhs = binOp->getRHS();
+
+    if (op == '+')
+    {
+        auto lhsType = lhs->type();
+        auto rhsType = rhs->type();
+        if (lhsType == "Binary" && rhsType != "Binary")
+        {
+            BinaryExprAST *binOpLhs = dynamic_cast<BinaryExprAST *>(lhs.get());
+            char opL = binOpLhs->getOp();
+            if (opL == '*')
+            {
+                ast_ptr &lhsL = binOpLhs->getLHS();
+                ast_ptr &rhsL = binOpLhs->getRHS();
+
+                vector<ast_ptr> argsNew;
+                argsNew.push_back(std::move(lhsL));
+                argsNew.push_back(std::move(rhsL));
+                argsNew.push_back(std::move(rhs));
+                string calleeNew = "fma";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+            }
+        }
+        else if (lhsType != "Binary" && rhsType == "Binary")
+        {
+            BinaryExprAST *binOpRhs = dynamic_cast<BinaryExprAST *>(rhs.get());
+            char opR = binOpRhs->getOp();
+            if (opR == '*')
+            {
+                ast_ptr &lhsR = binOpRhs->getLHS();
+                ast_ptr &rhsR = binOpRhs->getRHS();
+
+                vector<ast_ptr> argsNew;
+                argsNew.push_back(std::move(lhsR));
+                argsNew.push_back(std::move(rhsR));
+                argsNew.push_back(std::move(lhs));
+                string calleeNew = "fma";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+            }
+        }
+        else if (lhsType == "Binary" && rhsType == "Binary")
+        {
+            BinaryExprAST *binOpLhs = dynamic_cast<BinaryExprAST *>(lhs.get());
+            char opL = binOpLhs->getOp();
+            BinaryExprAST *binOpRhs = dynamic_cast<BinaryExprAST *>(rhs.get());
+            char opR = binOpRhs->getOp();
+            if (opL == '*' && opR != '*')
+            {
+                ast_ptr &lhsL = binOpLhs->getLHS();
+                ast_ptr &rhsL = binOpLhs->getRHS();
+
+                vector<ast_ptr> argsNew;
+                argsNew.push_back(std::move(lhsL));
+                argsNew.push_back(std::move(rhsL));
+                argsNew.push_back(std::move(rhs));
+                string calleeNew = "fma";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+            }
+            else if (opL != '*' && opR == '*')
+            {
+                ast_ptr &lhsR = binOpRhs->getLHS();
+                ast_ptr &rhsR = binOpRhs->getRHS();
+
+                vector<ast_ptr> argsNew;
+                argsNew.push_back(std::move(lhsR));
+                argsNew.push_back(std::move(rhsR));
+                argsNew.push_back(std::move(lhs));
+                string calleeNew = "fma";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+            }
+            else if (opL == '*' && opR == '*')
+            {
+                ast_ptr &lhsL = binOpLhs->getLHS();
+                ast_ptr &rhsL = binOpLhs->getRHS();
+                ast_ptr &lhsR = binOpRhs->getLHS();
+                ast_ptr &rhsR = binOpRhs->getRHS();
+
+                vector<ast_ptr> argsNew;
+                argsNew.push_back(std::move(lhsL->Clone()));
+                argsNew.push_back(std::move(rhsL->Clone()));
+                argsNew.push_back(std::move(rhs->Clone()));
+                string calleeNew = "fma";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+
+                argsNew.clear();
+                argsNew.push_back(std::move(lhsR));
+                argsNew.push_back(std::move(rhsR));
+                argsNew.push_back(std::move(lhs));
+                exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                results.push_back(std::move(exprFinal));
+            }
+        }
+    }
+    
+    // printExprs(results, prompt + "results: ");
+    // cout << prompt << "end--------" << endl;
+    callCount--;
+    callLevel--;
+    return results;
+}
+
+vector<ast_ptr> fmaRewriteKernel(vector<ast_ptr> &exprs, const char &op)
+{
+    if (exprs.size() == 0)
+    {
+        fprintf(stderr, "ERROR: fmaRewriteKernel: the input exprs is empty\n");
+        exit(EXIT_FAILURE);
+    }
+    if (op != '+' && op != '-' && op != '*' && op != '/')
+    {
+        fprintf(stderr, "ERROR: fmaRewriteKernel: the input op %c is illegal\n", op);
+        exit(EXIT_FAILURE);
+    }
+    vector<ast_ptr> results;
+    for (const auto &expr : exprs)
+    {
+        auto tmp = toFma(expr);
+        mineAppend(results, tmp);
+    }
+    return results;
+}
+
+vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
+{
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "fmaRewrite: ";
+    if (callCount == 1) cout << prompt << "start--------" << endl;
+
+    if (expr == nullptr)
+    {
+        cerr << prompt << "ERROR: expr is nullptr" << endl;
+        exit(EXIT_FAILURE);
+    }
+    // printExpr(expr, "\tfmaRewrite: at the beginning: ");
+
+    if (expr->type() != "Binary")  // May be call, variable or number
+    {
+        vector<ast_ptr> exprsFinal;
+        exprsFinal.push_back(std::move(expr->Clone()));
+        if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+        if (callCount == 1) cout << prompt << "end--------" << endl;
+        callCount--;
+        callLevel--;
+        return exprsFinal;
+    }
+
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOpPtr->getOp();
+    auto &lhs = binOpPtr->getLHS();
+    auto &rhs = binOpPtr->getRHS();
+    auto lhsNewASTs = fmaRewrite(lhs);
+    auto rhsNewASTs = fmaRewrite(rhs);
+    auto newASTs = createAllBinary(lhsNewASTs, rhsNewASTs, op);
+
+    auto exprsFinal = fmaRewriteKernel(newASTs, op);
+    
+    deleteTheSame(exprsFinal);
+
+    if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+    if (callCount == 1) cout << prompt << "end--------" << endl;
+    callCount--;
+    callLevel--;
+    return exprsFinal;
 }
