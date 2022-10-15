@@ -397,6 +397,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         vector<ast_ptr> resultsNew;
         for(auto &result : results)
         {
+            resultsNew.push_back(result->Clone()); // the key to control the rewrite results
             auto tmp = fmaRewrite(result);
             mineAppend(resultsNew, tmp);
         }

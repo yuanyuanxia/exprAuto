@@ -375,7 +375,7 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
     // cout << prompt << "start-------- " << PrintExpression(expr) << " " << endl;
 
     vector<ast_ptr> results;
-    results.push_back(std::move(expr->Clone()));
+    // results.push_back(std::move(expr->Clone()));  // the key to control the rewrite results
     ast_ptr newExpr = expr->Clone();
 
     BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(newExpr.get());
@@ -480,6 +480,10 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
         }
     }
     
+    // the key to control the rewrite results
+    if(results.size() == 0) {
+        results.push_back(std::move(expr->Clone()));
+    }
     // printExprs(results, prompt + "results: ");
     // cout << prompt << "end--------" << endl;
     callCount--;
