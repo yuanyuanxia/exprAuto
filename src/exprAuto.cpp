@@ -460,7 +460,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
         vector<string> vars;
         getVariablesFromExpr(middle, vars);
-        if(vars.size() > 1)
+        /*if(vars.size() > 1)
         {
             results.push_back(std::move(middle->Clone()));
         }
@@ -468,7 +468,9 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         {
             auto tmp = polyRewrite(middle);
             mineAppend(results, tmp);
-        }
+        }*/
+	auto tmp = polyRewrite(middle);
+        mineAppend(results, tmp);
         index++;
     }
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");

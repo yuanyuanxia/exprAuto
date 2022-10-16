@@ -1,6 +1,7 @@
 #include "polyRewrite.hpp"
 #include "exprAuto.hpp"
 #include "geneExpr.hpp"
+#include "geneCode.hpp"
 
 using std::string;
 using std::vector;
@@ -403,6 +404,18 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
         exprNew = mulExpr(exprNew, rhs);
     }
 
+    //ly_begin
+     for(int i = 0;i < monomial.variables.size() ;i++){
+         if(monomial.variables.at(i).name != variable){
+             ast_ptr other = makePtr<VariableExprAST>(monomial.variables.at(i).name);
+             for(int j = 1; j < monomial.variables.at(i).degree; j++){
+                 ast_ptr rhs = makePtr<VariableExprAST>(monomial.variables.at(i).name);
+                 other = mulExpr(other, rhs);
+             }
+             exprNew = mulExpr(exprNew, other);
+         }
+     }
+    //ly_end
     if(exprNew == nullptr && coefficient == 1)
     {
         exprNew = makePtr<NumberExprAST>(coefficient);
@@ -668,10 +681,8 @@ vector<ast_ptr> createExpr(const ast_ptr &exprInit)
     return exprsFinal;
 }
 
-void getReady(const vector<monoInfo> &monomials, string *variablePtr, int *term, double *coefficient, size_t *lenPtr)
+void getReady(const vector<monoInfo> &monomials, string variable, int *term, double *coefficient, size_t *lenPtr)
 {
-    bool variableFlags = true;
-    *variablePtr = "novariable";
     *lenPtr = monomials.size();
     for (size_t i = 0; i < *lenPtr; i++)
     {
@@ -681,21 +692,13 @@ void getReady(const vector<monoInfo> &monomials, string *variablePtr, int *term,
             term[i] = 0;
             coefficient[i] = monomial.coefficient;
         }
-        else if(monomial.variables.size() == 1)
-        {
-            term[i] = monomial.variables.at(0).degree;
-            coefficient[i] = monomial.coefficient;
-            if(variableFlags)
-            {
-                *variablePtr = monomial.variables.at(0).name;
-                variableFlags = false;
+        for (int j = 0;j < monomial.variables.size();j++){
+            if(variable.compare(monomial.variables.at(j).name) == 0){
+                term[i] = monomial.variables.at(j).degree;
+                break;
             }
         }
-        else
-        {
-            fprintf(stderr, "ERROR: we can not support multi variables!\n");
-            exit(1);
-        }
+        coefficient[i] = monomial.coefficient;
     }
 }
 
@@ -709,11 +712,10 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
     prompt += "createExpr: ";
 
     string variable = "z";
-    int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
-    double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
     size_t len = 1;
     vector<ast_ptr> exprsFinal;
-    getReady(monomials, &variable, term, coefficient, &len);
+    vector<ast_ptr> exprsFinalTMP;
+    len = monomials.size();
 
     // for(size_t i = 0; i < len; i++)
     // {
@@ -727,7 +729,23 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
     }
     else
     {
-        exprsFinal = createMiddle(variable, term, coefficient, monomials, len);
+        vector<string> vars;
+        auto tmp = geneExprAST(monomials);
+        getVariablesFromExpr(tmp, vars);
+        int flag = 0;    // the key to control the rewrite results. 'flag == 0' is much,'flag == 1' is little.
+        for(int i = 0; i < vars.size();i++){
+            int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
+            double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+            variable = vars.at(i);
+            getReady(monomials, variable, term, coefficient, &len);
+            exprsFinalTMP = createMiddle(variable, term, coefficient, monomials, len);
+            if(i > 0 && flag == 1){
+                vector<ast_ptr>::iterator k = exprsFinalTMP.begin();
+                exprsFinalTMP.erase(k);
+            }
+            mineAppend(exprsFinal,exprsFinalTMP);
+            exprsFinalTMP.clear();
+        }
     }
 
     cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
