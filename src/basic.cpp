@@ -4,8 +4,6 @@
 #include <iomanip>
 #include <string>
 
-#define DOUBLE_PRECISION 17
-
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -226,7 +224,7 @@ void mineAppend(vector<ast_ptr> &dest, vector<ast_ptr> &origin)
 // print information
 //===----------------------------------------------------------------------===//
 
-string PrintExpression(const ast_ptr &expr)
+string PrintExpression(const ast_ptr &expr, const size_t PRECISION)
 {
     if(expr == nullptr)
     {
@@ -251,7 +249,7 @@ string PrintExpression(const ast_ptr &expr)
         fprintf(stderr, "number: %f\n", number);
 #endif
         std::stringstream ss;
-        ss << std::setprecision(DOUBLE_PRECISION) << number;
+        ss << std::setprecision(PRECISION) << number;
         return ss.str(); // better than to_string: 1 outputs as 1, 1.23456789 outputs as 1.23456789
         // return std::to_string(number); // really not a good choice: 1 outputs as 1.000000, 1.23456789 outputs as 1.234567
     }
@@ -277,7 +275,7 @@ string PrintExpression(const ast_ptr &expr)
         vector<string> argsStr;
         for(long unsigned int i = 0; i < args.size(); ++i)
         {
-            string strTmp = PrintExpression(args.at(i));  // ast_ptr& exprTmp = args.at(i);
+            string strTmp = PrintExpression(args.at(i), PRECISION);  // ast_ptr& exprTmp = args.at(i);
             argsStr.push_back(strTmp);
         }
         callee += "(";
@@ -299,9 +297,9 @@ string PrintExpression(const ast_ptr &expr)
 #endif
 
         ast_ptr &lhs = binOp->getLHS();
-        string lhsStr = PrintExpression(lhs);
+        string lhsStr = PrintExpression(lhs, PRECISION);
         ast_ptr &rhs = binOp->getRHS();
-        string rhsStr = PrintExpression(rhs);
+        string rhsStr = PrintExpression(rhs, PRECISION);
 
         exprStr += "(" + lhsStr + " " + opStr + " " + rhsStr + ")";
     }
@@ -344,20 +342,20 @@ void PrintFunction(std::unique_ptr<FunctionAST> &fun)
     }
 }
 
-void printExpr(const ast_ptr &expr, string prefix, int index)
+void printExpr(const ast_ptr &expr, string prefix, const size_t PRECISION, int index)
 {
     if(index == -1)
-        fprintf(stderr, "%s%s\n", prefix.c_str(), PrintExpression(expr).c_str());
+        fprintf(stderr, "%s%s\n", prefix.c_str(), PrintExpression(expr, PRECISION).c_str());
     else
-        fprintf(stderr, "%sNo.%d: %s\n", prefix.c_str(), index, PrintExpression(expr).c_str());
+        fprintf(stderr, "%sNo.%d: %s\n", prefix.c_str(), index, PrintExpression(expr, PRECISION).c_str());
 }
 
-void printExprs(const vector<ast_ptr> &exprs, string prefix, bool showTree)
+void printExprs(const vector<ast_ptr> &exprs, string prefix, bool showTree, const size_t PRECISION)
 {
     for(size_t i = 0; i < exprs.size(); i++)
     {
         auto &expr = exprs.at(i);
-        fprintf(stderr, "%sNo.%ld: %s\n", prefix.c_str(), i, PrintExpression(expr).c_str());
+        fprintf(stderr, "%sNo.%ld: %s\n", prefix.c_str(), i, PrintExpression(expr, PRECISION).c_str());
         if(showTree)
         {
             printAST(expr);
@@ -377,7 +375,7 @@ void updateStr(string &str, const int posit, const int rightest)
     }
 }
 
-int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePics, vector<int> &rightests)
+int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePics, vector<int> &rightests, const size_t PRECISION = DOUBLE_PRECISION)
 {
     if (expr == nullptr)
     {
@@ -416,7 +414,7 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         updateStr(currentPic, posit, rightest);
 
         std::stringstream ss;
-        ss << std::setprecision(DOUBLE_PRECISION) << number;
+        ss << std::setprecision(PRECISION) << number;
         currentPic.append(ss.str());
         currentPic.append(blankStr);
         rightest = currentPic.size();
@@ -452,7 +450,7 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         int childRightest = std::max(0, posit);
         for(auto &arg : args)
         {
-            childRightest = printASTKernel(arg, childRightest, treePics, rightests);
+            childRightest = printASTKernel(arg, childRightest, treePics, rightests, PRECISION);
         }
         rightest = std::max(rightest, childRightest);
     }
@@ -469,8 +467,8 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
         currentPic.append(blankStr);
         
         int childRightest = std::max(0, posit);
-        childRightest = printASTKernel(lhs, childRightest, treePics, rightests);        
-        childRightest = printASTKernel(rhs, childRightest, treePics, rightests);
+        childRightest = printASTKernel(lhs, childRightest, treePics, rightests, PRECISION);        
+        childRightest = printASTKernel(rhs, childRightest, treePics, rightests, PRECISION);
 
         rightest = currentPic.size();
         rightest = std::max(rightest, childRightest);
@@ -490,22 +488,22 @@ int printASTKernel(const ast_ptr &expr, const int posit, vector<string> &treePic
     return rightest;
 }
 
-void printAST(const ast_ptr &expr)
+void printAST(const ast_ptr &expr, const size_t PRECISION)
 {
     vector<string> treePics;
     vector<int> rightests;
-    printASTKernel(expr, 0, treePics, rightests);
+    printASTKernel(expr, 0, treePics, rightests, PRECISION);
     for (auto &treePic : treePics)
     {
-        cout << treePic << endl;
+        cout << std::setprecision(PRECISION) << treePic << endl;
     }
 }
 
-void printAST(const ast_ptr &expr, string &result)
+void printAST(const ast_ptr &expr, string &result, const size_t PRECISION)
 {
     vector<string> treePics;
     vector<int> rightests;
-    printASTKernel(expr, 0, treePics, rightests);
+    printASTKernel(expr, 0, treePics, rightests, PRECISION);
     for (auto &treePic : treePics)
     {
         result.append(treePic + "\n");

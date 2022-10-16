@@ -7,13 +7,14 @@
 
 #include <fstream>
 #include <chrono>
+#include <iomanip>
 
 using std::string;
 using std::vector;
 using std::cin;
 using std::cout;
 using std::endl;
-
+#define MAIN_PRECISION 6
 //===----------------------------------------------------------------------===//
 // Main driver code.
 //===----------------------------------------------------------------------===//
@@ -53,15 +54,15 @@ int main()
         // rewrite();
         // testPerformance();
         ast_ptr expr = simplifyExpr(inputStr); // Python SymPy simplify
-        printExpr(expr, "main: after SymPy's simplify, expr = ");
+        printExpr(expr, "main: after SymPy's simplify, expr = ", MAIN_PRECISION);
         vector<ast_ptr> results = exprAutoNew(expr);
-        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false);
+        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, MAIN_PRECISION);
         for(size_t i = 0; i < results.size(); i++)
         {
             auto &result = results.at(i);
             string treeStr;
-            printAST(result, treeStr);
-            fout << "No." << i << ": " << PrintExpression(result) << endl;
+            printAST(result, treeStr, MAIN_PRECISION);
+            fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
             fout << treeStr << endl;
         }
         fout << endl;

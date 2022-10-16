@@ -17,6 +17,9 @@ using std::string;
 using std::vector;
 using std::ofstream;
 #define makePtr std::make_unique
+#ifndef DOUBLE_PRECISION
+#define DOUBLE_PRECISION 17
+#endif
 
 extern int callLevel;
 extern const char callLevelChar;
@@ -209,17 +212,17 @@ void mineAppend(vector<ast_ptr> &dest, vector<ast_ptr> &origin);
 // print information
 //===----------------------------------------------------------------------===//
 
-string PrintExpression(const std::unique_ptr<ExprAST> &expr);
+string PrintExpression(const std::unique_ptr<ExprAST> &expr, const size_t PRECISION = DOUBLE_PRECISION);
 
 void PrintFunction(std::unique_ptr<FunctionAST> &fun);
 
-void printExpr(const ast_ptr &expr, string prefix = "", int index = -1);
+void printExpr(const ast_ptr &expr, string prefix = "", const size_t PRECISION = DOUBLE_PRECISION, int index = -1);
 
-void printExprs(const vector<ast_ptr> &exprs, string prefix = "", bool showTree = false);
+void printExprs(const vector<ast_ptr> &exprs, string prefix = "", bool showTree = false, const size_t PRECISION = DOUBLE_PRECISION);
 
-void printAST(const ast_ptr &expr);
+void printAST(const ast_ptr &expr, const size_t PRECISION = DOUBLE_PRECISION);
 
-void printAST(const ast_ptr &expr, string &result);
+void printAST(const ast_ptr &expr, string &result, const size_t PRECISION = DOUBLE_PRECISION);
 
 string getMpfrParameterNumber(const ast_ptr &expr, size_t &mpfr_variabless);
 
