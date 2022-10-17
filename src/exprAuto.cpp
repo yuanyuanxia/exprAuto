@@ -420,6 +420,35 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
     exit(EXIT_FAILURE);
 }
 
+void sortNewIn(ast_ptr &expr){
+    if(expr->type()!="Binary"){
+        return;
+    }
+    int flag = 0;
+    BinaryExprAST* tmp = dynamic_cast<BinaryExprAST *>(expr.get());
+    if(tmp->getLHS()->type() != "Variable"){
+        sortNewIn(tmp->getLHS());
+        flag++;
+    }
+    if(tmp->getRHS()->type() != "Variable"){
+        sortNewIn(tmp->getRHS());
+        flag++;
+    }
+
+    if((tmp->getOp() == '+' || tmp->getOp() == '*') && flag == 0){
+        auto &l = (tmp->getLHS());
+        auto &r = (tmp->getRHS());
+        VariableExprAST* L = dynamic_cast<VariableExprAST *>(l.get());
+        VariableExprAST* R = dynamic_cast<VariableExprAST *>(r.get());
+        ast_ptr ll = l->Clone();
+        ast_ptr rr = r->Clone();
+        if(L->getVariable() > R->getVariable()){
+            tmp->setLHS(rr);
+            tmp->setRHS(ll);
+        }
+    }
+}
+
 vector<ast_ptr> tryRewrite(ast_ptr expr)
 {
     static size_t callCount = 0;
@@ -474,6 +503,10 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         index++;
     }
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
+    for(int i = 0 ;i < (int)results.size();i++){
+        ast_ptr &a = results.at(i);
+        sortNewIn(a);
+    }
     deleteTheSame(results);
 
     if(callCount == 1) printExprs(results, prompt + "at the last: ");
