@@ -405,7 +405,7 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
     }
 
     //ly_begin
-     for(int i = 0;i < monomial.variables.size() ;i++){
+     for(int i = 0;i < (int)monomial.variables.size() ;i++){
          if(monomial.variables.at(i).name != variable){
              ast_ptr other = makePtr<VariableExprAST>(monomial.variables.at(i).name);
              for(int j = 1; j < monomial.variables.at(i).degree; j++){
@@ -692,7 +692,7 @@ void getReady(const vector<monoInfo> &monomials, string variable, int *term, dou
             term[i] = 0;
             coefficient[i] = monomial.coefficient;
         }
-        for (int j = 0;j < monomial.variables.size();j++){
+        for (int j = 0;j < (int)monomial.variables.size();j++){
             if(variable.compare(monomial.variables.at(j).name) == 0){
                 term[i] = monomial.variables.at(j).degree;
                 break;
@@ -733,7 +733,7 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
         auto tmp = geneExprAST(monomials);
         getVariablesFromExpr(tmp, vars);
         int flag = 0;    // the key to control the rewrite results. 'flag == 0' is much,'flag == 1' is little.
-        for(int i = 0; i < vars.size();i++){
+        for(int i = 0; i < (int)vars.size();i++){
             int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
             double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
             variable = vars.at(i);

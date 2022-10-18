@@ -372,6 +372,92 @@ vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identi
     return orders;
 }
 
+void sortExprAST(string &min ,string &max ,ast_ptr &expr){
+	if (expr->type() == "Number") {
+        min = "minNumber@";
+        max = "minNumber@";
+        return;
+    }
+    if (expr->type() == "Variable") {
+        VariableExprAST* tmp = dynamic_cast<VariableExprAST *>(expr.get());
+        min = tmp->getVariable();
+        max = tmp->getVariable();
+        return;
+    }
+    if (expr->type() == "Call") {
+        min = "maxCall@";
+        max = "maxCall@";
+        return;
+    }
+    BinaryExprAST* tmp = dynamic_cast<BinaryExprAST *>(expr.get());
+    auto &l = (tmp->getLHS());
+    auto &r = (tmp->getRHS());
+    string Lmin,Lmax;
+    string Rmin,Rmax;
+    sortExprAST(min ,max ,l);
+    Lmin = min;
+    Lmax = max;
+    sortExprAST(min ,max ,r);
+    Rmin = min;
+    Rmax = max;
+    ast_ptr ll = l->Clone();
+    ast_ptr rr = r->Clone();
+    if(tmp->getOp() == '+' || tmp->getOp() == '*') { 
+        
+        //左子树是操作符为'-'或'+'的二元表达式或者是函数
+        if (Lmax == "max-or/@" || Lmax == "maxCall@"){
+            tmp->setLHS(rr);    //交换左右子树
+            tmp->setRHS(ll);
+            min = Rmin;
+            max = Lmax;
+            return;
+        }
+        //右子树是操作符为'-'或'+'的二元表达式或者是函数
+        if (Rmax == "max-or/@" || Rmax == "maxCall@"){
+            min = Lmin;
+            max = Rmax;
+            return;
+        }
+        //右子树是数字节点
+        if (Rmin == "minNumber@"){
+            tmp->setLHS(rr);    //交换左右子树
+            tmp->setRHS(ll);
+            min = "minNumber@";
+            max = Lmax;
+            return;
+        }
+        //左子树是数字节点
+        if(Lmin == "minNumber@"){
+            min = Lmin;
+            max = Rmax;
+            return;
+        }
+
+
+        //此时两边左右子树分别为两个variable节点
+        if (Lmin > Rmin){
+            tmp->setLHS(rr);
+            tmp->setRHS(ll);
+            min = Rmin;
+            max = (Lmax > Rmax) ? Lmax : Rmax;
+            return;
+        }else{
+            min = Lmin;
+            max = (Lmax > Rmax) ? Lmax : Rmax;
+            return;
+        }
+    }else{
+        min = "max-or/@";
+        max = "max-or/@";
+        return;
+    }
+}
+void sortExpr(ast_ptr &expr){
+    string min;
+    string max;
+    sortExprAST(min ,max ,expr);
+}
+
 vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 {
     static size_t callCount = 0;
@@ -394,7 +480,11 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         }
         auto numeratorsFinal = mergePolynomial(numerators);
         auto results = createExpr(numeratorsFinal);
-        vector<ast_ptr> resultsNew;
+        for(int i = 0 ;i < (int)results.size();i++){
+            ast_ptr &a = results.at(i);
+            sortExpr(a);
+        }
+	vector<ast_ptr> resultsNew;
         for(auto &result : results)
         {
             resultsNew.push_back(result->Clone()); // the key to control the rewrite results
@@ -418,35 +508,6 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 
     cerr << prompt << "we can not handle this situation!" << endl;
     exit(EXIT_FAILURE);
-}
-
-void sortNewIn(ast_ptr &expr){
-    if(expr->type()!="Binary"){
-        return;
-    }
-    int flag = 0;
-    BinaryExprAST* tmp = dynamic_cast<BinaryExprAST *>(expr.get());
-    if(tmp->getLHS()->type() != "Variable"){
-        sortNewIn(tmp->getLHS());
-        flag++;
-    }
-    if(tmp->getRHS()->type() != "Variable"){
-        sortNewIn(tmp->getRHS());
-        flag++;
-    }
-
-    if((tmp->getOp() == '+' || tmp->getOp() == '*') && flag == 0){
-        auto &l = (tmp->getLHS());
-        auto &r = (tmp->getRHS());
-        VariableExprAST* L = dynamic_cast<VariableExprAST *>(l.get());
-        VariableExprAST* R = dynamic_cast<VariableExprAST *>(r.get());
-        ast_ptr ll = l->Clone();
-        ast_ptr rr = r->Clone();
-        if(L->getVariable() > R->getVariable()){
-            tmp->setLHS(rr);
-            tmp->setRHS(ll);
-        }
-    }
 }
 
 vector<ast_ptr> tryRewrite(ast_ptr expr)
@@ -503,10 +564,6 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         index++;
     }
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
-    for(int i = 0 ;i < (int)results.size();i++){
-        ast_ptr &a = results.at(i);
-        sortNewIn(a);
-    }
     deleteTheSame(results);
 
     if(callCount == 1) printExprs(results, prompt + "at the last: ");
