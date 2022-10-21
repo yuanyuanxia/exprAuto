@@ -385,6 +385,7 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
 
     if (op == '+')
     {
+        ast_ptr tmpNegOne = makePtr<NumberExprAST>(-1.0);
         auto lhsType = lhs->type();
         auto rhsType = rhs->type();
         if (lhsType == "Binary" && rhsType != "Binary")
@@ -396,13 +397,16 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsL = binOpLhs->getLHS();
                 ast_ptr &rhsL = binOpLhs->getRHS();
 
-                vector<ast_ptr> argsNew;
-                argsNew.push_back(std::move(lhsL));
-                argsNew.push_back(std::move(rhsL));
-                argsNew.push_back(std::move(rhs));
-                string calleeNew = "fma";
-                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                {
+                    vector<ast_ptr> argsNew;
+                    argsNew.push_back(std::move(lhsL));
+                    argsNew.push_back(std::move(rhsL));
+                    argsNew.push_back(std::move(rhs));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
+                } 
             }
         }
         else if (lhsType != "Binary" && rhsType == "Binary")
@@ -414,13 +418,16 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsR = binOpRhs->getLHS();
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
-                vector<ast_ptr> argsNew;
-                argsNew.push_back(std::move(lhsR));
-                argsNew.push_back(std::move(rhsR));
-                argsNew.push_back(std::move(lhs));
-                string calleeNew = "fma";
-                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                {
+                    vector<ast_ptr> argsNew;
+                    argsNew.push_back(std::move(lhsR));
+                    argsNew.push_back(std::move(rhsR));
+                    argsNew.push_back(std::move(lhs));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
+                }
             }
         }
         else if (lhsType == "Binary" && rhsType == "Binary")
@@ -434,26 +441,32 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsL = binOpLhs->getLHS();
                 ast_ptr &rhsL = binOpLhs->getRHS();
 
-                vector<ast_ptr> argsNew;
-                argsNew.push_back(std::move(lhsL));
-                argsNew.push_back(std::move(rhsL));
-                argsNew.push_back(std::move(rhs));
-                string calleeNew = "fma";
-                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                {
+                    vector<ast_ptr> argsNew;
+                    argsNew.push_back(std::move(lhsL));
+                    argsNew.push_back(std::move(rhsL));
+                    argsNew.push_back(std::move(rhs));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
+                }
             }
             else if (opL != '*' && opR == '*')
             {
                 ast_ptr &lhsR = binOpRhs->getLHS();
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
-                vector<ast_ptr> argsNew;
-                argsNew.push_back(std::move(lhsR));
-                argsNew.push_back(std::move(rhsR));
-                argsNew.push_back(std::move(lhs));
-                string calleeNew = "fma";
-                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                {
+                    vector<ast_ptr> argsNew;
+                    argsNew.push_back(std::move(lhsR));
+                    argsNew.push_back(std::move(rhsR));
+                    argsNew.push_back(std::move(lhs));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
+                }
             }
             else if (opL == '*' && opR == '*')
             {
@@ -463,19 +476,27 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
                 vector<ast_ptr> argsNew;
-                argsNew.push_back(std::move(lhsL->Clone()));
-                argsNew.push_back(std::move(rhsL->Clone()));
-                argsNew.push_back(std::move(rhs->Clone()));
-                string calleeNew = "fma";
-                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                {
+                    argsNew.push_back(std::move(lhsL->Clone()));
+                    argsNew.push_back(std::move(rhsL->Clone()));
+                    argsNew.push_back(std::move(rhs->Clone()));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
 
-                argsNew.clear();
-                argsNew.push_back(std::move(lhsR));
-                argsNew.push_back(std::move(rhsR));
-                argsNew.push_back(std::move(lhs));
-                exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-                results.push_back(std::move(exprFinal));
+                    argsNew.clear();
+                }
+
+                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                {
+                    argsNew.push_back(std::move(lhsR));
+                    argsNew.push_back(std::move(rhsR));
+                    argsNew.push_back(std::move(lhs));
+                    string calleeNew = "fma";
+                    ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                    results.push_back(std::move(exprFinal));
+                }
             }
         }
     }
