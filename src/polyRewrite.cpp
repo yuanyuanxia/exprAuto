@@ -764,11 +764,13 @@ vector<monoInfo> sortMonomials(string variable ,const vector<monoInfo> &monomial
     vector<monoInfo> secondary;
     int j = 0;
     int good = 0;
-    while(!findVarFromMonoinfo(variable ,monomials.at(j++))){
-        good++;
+    for(int i =0;i<(int)monomials.size();i++){
+        if(!findVarFromMonoinfo(variable ,monomials.at(j++)))
+            good++;
     }
+    
     j = 0;
-    while(j!=good){
+    while(j < good){
         primary.push_back(monomials.at(j++));
     }
 
