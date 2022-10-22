@@ -2,6 +2,8 @@
 #include "exprAuto.hpp"
 #include "geneExpr.hpp"
 #include "geneCode.hpp"
+#include <cmath>
+#include <math.h>
 
 using std::string;
 using std::vector;
@@ -365,12 +367,60 @@ ast_ptr createBA(const string variable, const int *term, const double *coefficie
 
 ast_ptr createSingle(const string variable, const int term, const double coefficient, const monoInfo &monomial, ast_ptr &expr)
 {
+    double num = coefficient;
+    double r;
+    do{
+        r = fmod(num,2.0);
+        num /= 2;
+    } while(r==0 &&num > 0);
     ast_ptr exprNew = nullptr;
-    if(coefficient != 1)
+    ast_ptr specialNum = nullptr;
+    if(coefficient == 1 || coefficient == -1 || num == 0)
     {
+        specialNum = makePtr<NumberExprAST>(coefficient);
+    }else{
         exprNew = makePtr<NumberExprAST>(coefficient);
     }
+
+    if(term > 0){
+        ast_ptr var = makePtr<VariableExprAST>(variable);
+        for(int i = 1; i < term; i++)
+        {
+            ast_ptr rhs = makePtr<VariableExprAST>(variable);
+            var = mulExpr(var, rhs);
+        }
+        if(exprNew == nullptr){
+            exprNew = std::move(var);
+        }else{
+            exprNew = mulExpr(exprNew, var);
+        }
+    }
     
+    if((int)monomial.variables.size() > 0){
+        ast_ptr otherVar = nullptr;
+        for(int i = 0;i < (int)monomial.variables.size() ;i++){
+            if(monomial.variables.at(i).name != variable){
+                ast_ptr other = makePtr<VariableExprAST>(monomial.variables.at(i).name);
+                for(int j = 1; j < monomial.variables.at(i).degree; j++){
+                    ast_ptr rhs = makePtr<VariableExprAST>(monomial.variables.at(i).name);
+                    other = mulExpr(other, rhs);
+                }
+                if(otherVar == nullptr){
+                    otherVar = std::move(other);
+                }else{
+                    otherVar = mulExpr(otherVar, other);
+                }
+            }
+        }
+        if(otherVar != nullptr){
+            if(exprNew == nullptr){
+                exprNew = std::move(otherVar);
+            }else{
+                exprNew = mulExpr(exprNew, otherVar);
+            }
+        }
+    }
+
     ast_ptr polyAST = nullptr;
     const auto &poly = monomial.poly;
     const auto &monoFracs = poly.monoFracs;
@@ -381,7 +431,7 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
     }
     if (polyAST != nullptr)
     {
-        if(coefficient == 1)
+        if(exprNew == nullptr)
         {
             exprNew = std::move(polyAST);
         }
@@ -392,33 +442,29 @@ ast_ptr createSingle(const string variable, const int term, const double coeffic
     }
 
     const vector<funcInfo> &functions = monomial.functions;
-    for (const auto &func : functions)
-    {
-        ast_ptr funcAST = geneFunctionAST(func);
-        exprNew = mulExpr(exprNew, funcAST);
+    if((int)functions.size()>0){
+        auto firstfunc = functions.at(0);
+        ast_ptr func = geneFunctionAST(firstfunc);
+        for (int i = 1;i<(int)functions.size();i++)
+        {
+            const auto &fun = functions.at(i);
+            ast_ptr funcAST = geneFunctionAST(fun);
+            func = mulExpr(func, funcAST);
+        }
+        if(exprNew == nullptr){
+            exprNew = std::move(func);
+        }else{
+            exprNew = mulExpr(exprNew, func);
+        }
     }
 
-    for(int i = 0; i < term; i++)
-    {
-        ast_ptr rhs = makePtr<VariableExprAST>(variable);
-        exprNew = mulExpr(exprNew, rhs);
-    }
-
-    //ly_begin
-     for(int i = 0;i < (int)monomial.variables.size() ;i++){
-         if(monomial.variables.at(i).name != variable){
-             ast_ptr other = makePtr<VariableExprAST>(monomial.variables.at(i).name);
-             for(int j = 1; j < monomial.variables.at(i).degree; j++){
-                 ast_ptr rhs = makePtr<VariableExprAST>(monomial.variables.at(i).name);
-                 other = mulExpr(other, rhs);
-             }
-             exprNew = mulExpr(exprNew, other);
-         }
-     }
-    //ly_end
-    if(exprNew == nullptr && coefficient == 1)
-    {
-        exprNew = makePtr<NumberExprAST>(coefficient);
+    if(specialNum != nullptr){
+        if(exprNew != nullptr){
+            if(coefficient != 1)
+                exprNew = mulExpr(specialNum, exprNew);
+        }else{
+            exprNew = std::move(specialNum);
+        }
     }
     return addExpr(expr, exprNew);
 }
@@ -447,7 +493,6 @@ ast_ptr createContinuedMul(const string variable, const int commonDegree)
         auto rhs = makePtr<VariableExprAST>(variable);
         expr = makePtr<BinaryExprAST>('*', std::move(expr), std::move(rhs));
     }
-
     return expr;
 }
 
@@ -582,7 +627,6 @@ vector<ast_ptr> createMiddle(const string variable, const int *term, const doubl
     exprsFinal.push_back(std::move(exprOrigin));
 
     int *termNew = (int *)malloc(sizeof(int) * len);
-
     if(debugLevel < DEBUG_LEVEL)
         fprintf(stderr, "Debug level %d: createMiddle: before for, exprsFinal.size() = %lu\n", debugLevel, exprsFinal.size());
 
@@ -609,7 +653,6 @@ vector<ast_ptr> createMiddle(const string variable, const int *term, const doubl
                 fprintf(stderr, "Debug level %d: start = %d, end = %d, len = %d\n", debugLevel, start, end, len);
 
             // exprsTmp := exprBeforeI + common * exprMiddles + exprAfterK
-            
             vector<monoInfo> monomialsNew;
             monomialsNew.insert(monomialsNew.end(), monomials.begin(), monomials.begin() + start);
             auto exprBeforeI = createBA(variable, term, coefficient, monomialsNew, start);
@@ -702,6 +745,39 @@ void getReady(const vector<monoInfo> &monomials, string variable, int *term, dou
     }
 }
 
+bool findVarFromMonoinfo(string variable ,monoInfo target){
+    for(int i = 0;i < (int)target.variables.size();i++){
+        if(variable == target.variables.at(i).name){
+            return true;
+        }
+    }
+    return false;
+}
+
+vector<monoInfo> sortMonomials(string variable ,const vector<monoInfo> &monomials){
+    vector<monoInfo> primary;
+    vector<monoInfo> secondary;
+    int j = 0;
+    int good = 0;
+    while(!findVarFromMonoinfo(variable ,monomials.at(j++))){
+        good++;
+    }
+    j = 0;
+    while(j!=good){
+        primary.push_back(monomials.at(j++));
+    }
+
+    for (int i = good;i<(int)monomials.size();i++){
+        if(findVarFromMonoinfo(variable ,monomials.at(i))){
+            primary.push_back(monomials.at(i));
+        }else{
+            secondary.push_back(monomials.at(i));
+        }
+    }
+    primary.insert(primary.end(),secondary.begin(),secondary.end());
+    return primary;
+}
+
 vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
 {
     static size_t callCount = 0;
@@ -716,7 +792,7 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
     vector<ast_ptr> exprsFinal;
     vector<ast_ptr> exprsFinalTMP;
     len = monomials.size();
-
+ 
     // for(size_t i = 0; i < len; i++)
     // {
     //     fprintf(stderr, "createExpr: %lu: %d, %f\n", i, term[i], coefficient[i]);
@@ -737,8 +813,11 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
             int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
             double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
             variable = vars.at(i);
-            getReady(monomials, variable, term, coefficient, &len);
-            exprsFinalTMP = createMiddle(variable, term, coefficient, monomials, len);
+
+            vector<monoInfo> sortAftermonomials = sortMonomials(variable,monomials);
+            getReady(sortAftermonomials, variable, term, coefficient, &len);
+            exprsFinalTMP = createMiddle(variable, term, coefficient, sortAftermonomials, len);
+
             if(i > 0 && flag == 1){
                 vector<ast_ptr>::iterator k = exprsFinalTMP.begin();
                 exprsFinalTMP.erase(k);
@@ -747,7 +826,6 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
             exprsFinalTMP.clear();
         }
     }
-
     cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
     printExprs(exprsFinal, prompt);
     callCount--;
