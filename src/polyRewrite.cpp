@@ -367,15 +367,20 @@ ast_ptr createBA(const string variable, const int *term, const double *coefficie
 
 ast_ptr createSingle(const string variable, const int term, const double coefficient, const monoInfo &monomial, ast_ptr &expr)
 {
-    double num = coefficient;
+    
     double r;
+    double num = coefficient;
+    if(num < 0){
+        num *= -1;
+    }
     do{
         r = fmod(num,2.0);
         num /= 2;
-    } while(r==0 &&num > 0);
+    } while(r==0);
+    
     ast_ptr exprNew = nullptr;
     ast_ptr specialNum = nullptr;
-    if(coefficient == 1 || coefficient == -1 || num == 0)
+    if(coefficient == 1 || coefficient == -1 || num == 0.5)
     {
         specialNum = makePtr<NumberExprAST>(coefficient);
     }else{
@@ -808,17 +813,22 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
         vector<string> vars;
         auto tmp = geneExprAST(monomials);
         getVariablesFromExpr(tmp, vars);
-        int flag = 0;    // the key to control the rewrite results. 'flag == 0' is much,'flag == 1' is little.
+        bool hasCommutativeLaw = true;    // the key to control the rewrite results.
+                                           // if consider commutative law,hasCommutativeLaw is true,and the result is more.
+        bool isFullyCofactor = true;    // the key to control the rewrite results.IsFullyCofactor is true,the result is more.
         for(int i = 0; i < (int)vars.size();i++){
             int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
             double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
             variable = vars.at(i);
-
-            vector<monoInfo> sortAftermonomials = sortMonomials(variable,monomials);
-            getReady(sortAftermonomials, variable, term, coefficient, &len);
-            exprsFinalTMP = createMiddle(variable, term, coefficient, sortAftermonomials, len);
-
-            if(i > 0 && flag == 1){
+            if(isFullyCofactor){
+                vector<monoInfo> sortAftermonomials = sortMonomials(variable,monomials);
+                getReady(sortAftermonomials, variable, term, coefficient, &len);
+                exprsFinalTMP = createMiddle(variable, term, coefficient, sortAftermonomials, len);
+            }else{
+                getReady(monomials, variable, term, coefficient, &len);
+                exprsFinalTMP = createMiddle(variable, term, coefficient, monomials, len);
+            }
+            if(i > 0 && !hasCommutativeLaw){
                 vector<ast_ptr>::iterator k = exprsFinalTMP.begin();
                 exprsFinalTMP.erase(k);
             }
