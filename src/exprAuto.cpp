@@ -3,6 +3,7 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <sstream>
 
 #include "basic.hpp"
 #include "monoFracInfo.hpp"
@@ -372,21 +373,29 @@ vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identi
     return orders;
 }
 
-void sortExprAST(string &min ,string &max ,ast_ptr &expr){
+void sortExprAST(string &min ,string &max ,string &v,ast_ptr &expr){
+    //参数v用来表示子树向父节点传递的信息
 	if (expr->type() == "Number") {
         min = "minNumber@";
         max = "minNumber@";
+        NumberExprAST* tmp = dynamic_cast<NumberExprAST *>(expr.get());
+        ostringstream out;
+	    out << tmp->getNumber();
+        v = out.str();    //传递数字本身
         return;
     }
     if (expr->type() == "Variable") {
         VariableExprAST* tmp = dynamic_cast<VariableExprAST *>(expr.get());
         min = tmp->getVariable();
         max = tmp->getVariable();
+        v = tmp->getVariable();    //传递变量
         return;
     }
     if (expr->type() == "Call") {
         min = "maxCall@";
         max = "maxCall@";
+        //CallExprAST* tmp = dynamic_cast<CallExprAST *>(expr.get());
+        v = PrintExpression(expr);    //传递函数表达式字符串
         return;
     }
     BinaryExprAST* tmp = dynamic_cast<BinaryExprAST *>(expr.get());
@@ -394,68 +403,187 @@ void sortExprAST(string &min ,string &max ,ast_ptr &expr){
     auto &r = (tmp->getRHS());
     string Lmin,Lmax;
     string Rmin,Rmax;
-    sortExprAST(min ,max ,l);
+    string Lv,Rv;    //接收子树传递过来的信息
+    sortExprAST(min ,max ,v, l);
     Lmin = min;
     Lmax = max;
-    sortExprAST(min ,max ,r);
+    Lv = v;
+    sortExprAST(min ,max ,v, r);
     Rmin = min;
     Rmax = max;
+    Rv = v;
+    double Lnum,Rnum;
+
     ast_ptr ll = l->Clone();
     ast_ptr rr = r->Clone();
-    if(tmp->getOp() == '+' || tmp->getOp() == '*') { 
-        
-        //左子树是操作符为'-'或'+'的二元表达式或者是函数
-        if (Lmax == "max-or/@" || Lmax == "maxCall@"){
-            tmp->setLHS(rr);    //交换左右子树
-            tmp->setRHS(ll);
-            min = Rmin;
-            max = Lmax;
-            return;
-        }
-        //右子树是操作符为'-'或'+'的二元表达式或者是函数
-        if (Rmax == "max-or/@" || Rmax == "maxCall@"){
-            min = Lmin;
-            max = Rmax;
-            return;
-        }
-        //右子树是数字节点
-        if (Rmin == "minNumber@"){
-            tmp->setLHS(rr);    //交换左右子树
-            tmp->setRHS(ll);
-            min = "minNumber@";
-            max = Lmax;
-            return;
-        }
-        //左子树是数字节点
-        if(Lmin == "minNumber@"){
-            min = Lmin;
-            max = Rmax;
-            return;
-        }
 
+    //L、R代表左右子树类型
+    int L,R;
+    if(Lmin.compare("max-or/@") == 0)    L = 1;    //binary_"-or/"
+    else if(Lmin.compare("maxCall@") == 0)    L = 3;     //callee
+    else if(Lmin.compare("minNumber@") == 0)    L = 5;    //number
+    else    L = 7;    //variable
 
-        //此时两边左右子树分别为两个variable节点
-        if (Lmin > Rmin){
-            tmp->setLHS(rr);
-            tmp->setRHS(ll);
-            min = Rmin;
-            max = (Lmax > Rmax) ? Lmax : Rmax;
-            return;
-        }else{
-            min = Lmin;
-            max = (Lmax > Rmax) ? Lmax : Rmax;
-            return;
+    if(Rmin.compare("max-or/@") == 0)    R = -2;
+    else if(Rmin.compare("maxCall@") == 0)    R = -4;
+    else if(Rmin.compare("minNumber@") == 0)    R = -7;
+    else    R = -9;
+
+    int lr = L*R;
+
+    if(lr == -35){
+        //当左右子树最小值都是数字时
+        stringstream sl(Lv);
+        stringstream sr(Rv);
+        sl>>Lnum;
+        sr>>Rnum;
+    }
+
+    if(tmp->getOp() == '+' || tmp->getOp() == '*') {
+        switch (lr){
+            case -2:    //1*-2
+                if(Lv.compare(Rv) > 0 ){
+                    tmp->setLHS(rr);    //交换左右子树
+                    tmp->setRHS(ll);
+                    min = "max-or/@";
+                    max = "max-or/@";
+                    v = Rv;
+                    break;
+                }else{
+                    min = "maxcall@";
+                    max = "maxcall@";
+                    v = Lv;
+                    break;
+                }
+                break;
+            case -4:    //1*-4
+                min = "max-or/@";
+                max = "maxcall";
+                v = Lv;
+                break;
+            case -7:    //1*-7
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = "minNumber@";
+                max = "max-or/@";
+                v = Rv;
+                break;
+            case -9:    //1*-9
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = Rmin;
+                max = "max-or/@";
+                v = Rv;
+                break;
+            case -6:    //3*-2
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = "max-or/@";
+                max = "maxCall@";
+                v = Rv;
+                break;
+            case -12:    //3*-4
+                if(Lv.compare(Rv) > 0 ){
+                    tmp->setLHS(rr);    //交换左右子树
+                    tmp->setRHS(ll);
+                    min = "maxcall@";
+                    max = "maxcall@";
+                    v = Rv;
+                    break;
+                }else{
+                    min = "maxcall@";
+                    max = "maxcall@";
+                    v = Lv;
+                    break;
+                }
+            case -21:    //3*-7
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = "minNumber@";
+                max = "maxcall@";
+                v = Rv;
+                break;
+            case -27:    //3*-9
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = Rmin;
+                max = "maxcall@";
+                v = Rv;
+                break;
+            case -10:    //5*-2
+                min = "minNumber@";
+                max = "max-or/@";
+                v = Lv;
+                break;
+            case -20:    //5*-4
+                min = "minNumber@";
+                max = "maxcall@";
+                v = Lv;
+                break;
+            case -35:    //5*-7
+                if(Lnum>Rnum){
+                    tmp->setLHS(rr);    //交换左右子树
+                    tmp->setRHS(ll);
+                    min = "minNumber@";
+                    max = "minNumber@";
+                    v = Rv;
+                    break;
+                }else{
+                    min = "minNumber@";
+                    max = "minNumber@";
+                    v = Lv;
+                    break;
+                }
+            case -45:    //5*-9
+                min = "minNumber@";
+                max = Rmin;
+                v = Lv;
+                break;
+            case -14:    //7*-2
+                min = Lmin;
+                max = "max-or/@";
+                v = Lv;
+                break;
+            case -28:    //7*-4
+                min = Lmin;
+                max = "maxcall@";
+                v = Lv;
+                break;
+            case -49:    //7*-7
+                tmp->setLHS(rr);    //交换左右子树
+                tmp->setRHS(ll);
+                min = "minNumber@";
+                max = Lmin;
+                v = Rv;
+                break;
+            case -63:    //7*-9
+                if (Lmin > Rmin){
+                    tmp->setLHS(rr);
+                    tmp->setRHS(ll);
+                    min = Rmin;
+                    max = (Lmax > Rmax) ? Lmax : Rmax;
+                    v = Rv;
+                    return;
+                }else{
+                    min = Lmin;
+                    max = (Lmax > Rmax) ? Lmax : Rmax;
+                    v = Lv;
+                    return;
+                }
+                break;
         }
     }else{
         min = "max-or/@";
         max = "max-or/@";
+        v = PrintExpression(expr);
         return;
     }
 }
 void sortExpr(ast_ptr &expr){
     string min;
     string max;
-    sortExprAST(min ,max ,expr);
+    string v;
+    sortExprAST(min ,max ,v ,expr);
 }
 
 vector<ast_ptr> polyRewrite(const ast_ptr &expr)
@@ -484,17 +612,17 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
             ast_ptr &a = results.at(i);
             sortExpr(a);
         }
-	vector<ast_ptr> resultsNew;
-        for(auto &result : results)
-        {
-            resultsNew.push_back(result->Clone()); // the key to control the rewrite results
-            auto tmp = fmaRewrite(result);
-            mineAppend(resultsNew, tmp);
-        }
+	// vector<ast_ptr> resultsNew;
+    //     for(auto &result : results)
+    //     {
+    //         resultsNew.push_back(result->Clone()); // the key to control the rewrite results
+    //         auto tmp = fmaRewrite(result);
+    //         mineAppend(resultsNew, tmp);
+    //     }
         cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
-        return resultsNew;
+        return results;
     }
     else if(infoNew.size() == 1)
     {
