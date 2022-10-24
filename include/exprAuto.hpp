@@ -10,6 +10,9 @@
 using std::string;
 using std::vector;
 
+// conbine the constants in expr
+void combineConstant(ast_ptr &expr);
+
 // similiar to getExprFromVariants
 ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee);
 
@@ -36,6 +39,8 @@ vector<ast_ptr> dealWithCalls(const ast_ptr &expr);
 vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr);
 
 vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identifier);
+
+void sortExpr(ast_ptr &expr);
 
 vector<ast_ptr> tryRewrite(ast_ptr expr);
 

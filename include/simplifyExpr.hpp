@@ -13,4 +13,6 @@ void initPython();
 
 void endPython();
 
+ast_ptr simplifyExprFromStr(const string &exprStr);
+
 #endif

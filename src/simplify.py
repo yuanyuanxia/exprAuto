@@ -17,6 +17,7 @@ def parse(t_str):
     expr = simplify(expr)
     expr = expand(expr)
     expr = cancel(expr)
+    expr = together(expr)
     return expr
 
 
@@ -163,3 +164,11 @@ def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
         f2.write(out_str)
     return 1
 
+
+def processStr(exprStr = "1 + x"):
+    # print("processStr: exprStr " + exprStr)
+    out_str = str(parse(exprStr))
+    # print("processStr: out_str1 " + out_str)
+    out_str = new_expand(out_str)
+    # print("processStr: out_str2 " + out_str)
+    return out_str

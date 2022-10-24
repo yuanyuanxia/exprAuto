@@ -95,9 +95,49 @@ ast_ptr simplifyExpr(const string &exprStr)
     return ParseExpressionFromString();
 }
 
+ast_ptr simplifyExprFromStr(const string &exprStr)
+{
+    // Call a python script named simplify.py
+    // 1. transfer the exprStr by c++&python interface;
+    // 2. simplify the expression by sympy;
+    // 3. return the simplify result
+    
+    // Initialize variables
+    PyObject *pModule = nullptr;
+    PyObject *pFunc = nullptr;
+
+    // Call simplify.py
+    pModule = PyImport_ImportModule("simplify");
+    if (!pModule)
+    {
+        std::cout << "pModule is nullptr" << std::endl;
+    }
+
+    // Call the process function in the simplify.py
+    pFunc = PyObject_GetAttrString(pModule, "processStr");
+    if (!pFunc)
+    {
+        std::cout << "pFunc is nullptr" << std::endl;
+    }
+
+    char *exprChar;
+    exprChar = (char *)calloc(exprStr.length(), sizeof(char));
+    strcpy(exprChar, exprStr.c_str());
+    PyObject *pArgs = PyTuple_New(1);
+    PyTuple_SetItem(pArgs, 0, Py_BuildValue("s", exprChar));
+    PyObject *pReturn = PyEval_CallObject(pFunc, pArgs);
+    
+    char *resultChar;
+    PyArg_Parse(pReturn, "s", &resultChar);
+    string result = resultChar;
+    // std::cout << "return result is " << result << std::endl;
+
+    return ParseExpressionFromString(result);
+}
+
 ast_ptr simplifyExpr(const ast_ptr &expr)
 {
     string exprStr = PrintExpression(expr);
 
-    return simplifyExpr(exprStr);
+    return simplifyExprFromStr(exprStr);
 }

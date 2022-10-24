@@ -1,6 +1,7 @@
 #include "basic.hpp"
 #include "exprAuto.hpp"
 #include "laxerASTLY.hpp"
+#include "parserASTLY.hpp"
 #include "simplifyExpr.hpp"
 #include "color.hpp"
 #include "geneCode.hpp"
@@ -15,6 +16,9 @@ using std::cin;
 using std::cout;
 using std::endl;
 #define MAIN_PRECISION 6
+#ifndef DOUBLE_PRECISION
+#define DOUBLE_PRECISION 17
+#endif
 //===----------------------------------------------------------------------===//
 // Main driver code.
 //===----------------------------------------------------------------------===//
@@ -53,17 +57,39 @@ int main()
         // devideInterval();
         // rewrite();
         // testPerformance();
-        ast_ptr expr = simplifyExpr(inputStr); // Python SymPy simplify
-        printExpr(expr, "main: after SymPy's simplify, expr = ", MAIN_PRECISION);
-        vector<ast_ptr> results = exprAutoNew(expr);
-        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, MAIN_PRECISION);
+        ast_ptr expr = ParseExpressionFromString(inputStr);
+        combineConstant(expr);
+        sortExpr(expr);
+        printExpr(expr, "main: after parse, expr = ", DOUBLE_PRECISION);
+        ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
+        combineConstant(expr1);
+        sortExpr(expr1);
+        printExpr(expr1, "main: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
+        vector<ast_ptr> results;
+        if(isEqual(expr, expr1))
+        {
+            results = exprAutoNew(expr);
+        }
+        else
+        {
+            results = exprAutoNew(expr);
+            vector<ast_ptr> results1 = exprAutoNew(expr1);
+            mineAppend(results, results1);
+        }
+        for(auto& result : results)
+        {
+            sortExpr(result);
+        }
+        deleteTheSame(results);
+        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
         for(size_t i = 0; i < results.size(); i++)
         {
             auto &result = results.at(i);
-            string treeStr;
-            printAST(result, treeStr, MAIN_PRECISION);
+            // string treeStr;
+            // printAST(result, treeStr, MAIN_PRECISION);
             fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
-            fout << treeStr << endl;
+            // fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
+            // fout << treeStr << endl;
         }
         fout << endl;
 

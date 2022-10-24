@@ -272,9 +272,36 @@ ast_ptr mergeFraction(const vector<ast_ptr> &exprs)
         numerators.push_back(std::move(numeratorTmp));
         denominators.push_back(std::move(denominatorTmp));
     }
+    ast_ptr tmpOne = makePtr<NumberExprAST>(1.0);
+    // add by hjw 1023, judge if denominators are the same
+    bool sameFlag{false};
+    for(size_t i = 1; i < denominators.size(); i++)
+    {
+        if (!isEqual(denominators.at(i), denominators.at(i - 1)))
+        {
+            sameFlag = false;
+            break;
+        }
+        sameFlag = true;
+    }
+    if(sameFlag)
+    {
+        ast_ptr numeratorTmp;
+        for(auto &numerator : numerators)
+        {
+            numeratorTmp = addExpr(numeratorTmp, numerator);
+        }
+        if(isEqual(tmpOne, denominators.at(0)))
+        {
+            return numeratorTmp;
+        }
+        else
+        {
+            return divExpr(numeratorTmp, denominators.at(0));
+        }
+    }
     //处理分子，进行循环合并
     vector<ast_ptr> numeratorcom;  //建立合并之后的分子数组
-    ast_ptr tmpOne = makePtr<NumberExprAST>(1.0);
     for (long unsigned int i = 0; i < exprs.size(); i++) //写在循环里，每循环一次重置一次
     {
         ast_ptr exprTmp_i = numerators.at(i)->Clone();
@@ -364,6 +391,7 @@ ast_ptr preprocessInit(const ast_ptr &expr)
     prompt += "preprocessInit: ";
 
     ast_ptr exprNew = minusRewrite(expr);
+    combineConstant(exprNew);
     // ast_ptr exprNew = std::move(expr->Clone());
     // fprintf(stderr, "preprocessInit: after minusRewrite, exprNew = %s\n", PrintExpression(exprNew).c_str());
     if (isFraction(expr))
@@ -382,11 +410,11 @@ ast_ptr preprocessInit(const ast_ptr &expr)
             // fprintf(stderr, "\tpreprocessInit: after extractItems: No.%lu: %s\n", i, PrintExpression(exprs1[i]).c_str());
         // }
         vector<ast_ptr> exprs2 = moveDiv(exprs1);
-        // fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
-        // for (size_t i = 0; i < exprs2.size(); i++)
-        // {
-        //     fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
-        // }
+        fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
+        for (size_t i = 0; i < exprs2.size(); i++)
+        {
+            fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
+        }
         exprNew = mergeFraction(exprs2);
         printExpr(exprNew, prompt + "at the last, after mergeFraction, exprNew = ");
     }

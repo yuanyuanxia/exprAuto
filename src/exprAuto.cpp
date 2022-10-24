@@ -28,6 +28,184 @@ const char callLevelChar{' '};
 const char callCountChar{'>'};
 const size_t promtTimes = 2;
 
+// conbine the constants in expr
+void combineConstant(ast_ptr &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: combineConstant: the input expression is nullptr!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(expr->type() == "Call")
+    {
+        CallExprAST *exprTmp = dynamic_cast<CallExprAST *>(expr.get());
+		
+        auto &args = exprTmp->getArgs();
+        for(size_t i = 0; i < args.size(); ++i)
+        {
+            combineConstant(args.at(i));
+        }
+        return;
+    }
+
+    if(expr->type() != "Binary")
+    {
+        return;
+    }
+
+    BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOp->getOp();
+
+    ast_ptr &lhs = binOp->getLHS();
+    ast_ptr &rhs = binOp->getRHS();
+
+    combineConstant(lhs);
+    combineConstant(rhs);
+
+    if((lhs->type() == "Number") && (rhs->type() != "Number"))
+    {
+        NumberExprAST *numberPtrL = dynamic_cast<NumberExprAST *>(lhs.get());
+        auto numberL = numberPtrL->getNumber();
+        if(numberL == 0)
+        {
+            if(op == '+')
+            {
+                expr = std::move(rhs);
+            }
+            else if (op == '-')
+            {
+                lhs = makePtr<NumberExprAST>(-1);
+                binOp->setOp('*'); 
+            }
+            else if (op == '*')
+            {
+                expr = makePtr<NumberExprAST>(0);
+            }
+            else if (op == '/')
+            {
+                expr = makePtr<NumberExprAST>(0);
+            }
+            else
+            {
+                fprintf(stderr, "\tERROR: combineConstant: expr contains '%c'\n", op);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if (numberL == 1)
+        {
+            if(op == '+')
+            {
+                ;
+            }
+            else if (op == '-')
+            {
+                ; 
+            }
+            else if (op == '*')
+            {
+                expr = std::move(rhs);
+            }
+            else if (op == '/')
+            {
+                ;
+            }
+            else
+            {
+                fprintf(stderr, "\tERROR: combineConstant: expr contains '%c'\n", op);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    else if((lhs->type() != "Number") && (rhs->type() == "Number"))
+    {
+        NumberExprAST *numberPtrR = dynamic_cast<NumberExprAST *>(rhs.get());
+        auto numberR = numberPtrR->getNumber();
+        if(numberR == 0)
+        {
+            if(op == '+')
+            {
+                expr = std::move(lhs);
+            }
+            else if (op == '-')
+            {
+                expr = std::move(lhs);
+            }
+            else if (op == '*')
+            {
+                expr = makePtr<NumberExprAST>(0);
+            }
+            else if (op == '/')
+            {
+                fprintf(stderr, "\tERROR: combineConstant: denominator is zero!\n");
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                fprintf(stderr, "\tERROR: combineConstant: expr contains '%c'\n", op);
+                exit(EXIT_FAILURE);
+            }
+        }
+        else if (numberR == 1)
+        {
+            if(op == '+')
+            {
+                ;
+            }
+            else if (op == '-')
+            {
+                ; 
+            }
+            else if (op == '*')
+            {
+                expr = std::move(lhs);
+            }
+            else if (op == '/')
+            {
+                expr = std::move(lhs);
+            }
+            else
+            {
+                fprintf(stderr, "\tERROR: combineConstant: expr contains '%c'\n", op);
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+    else if((lhs->type() == "Number") && (rhs->type() == "Number"))
+    {
+        NumberExprAST *numberPtrL = dynamic_cast<NumberExprAST *>(lhs.get());
+        NumberExprAST *numberPtrR = dynamic_cast<NumberExprAST *>(rhs.get());
+        auto numberL = numberPtrL->getNumber();
+        auto numberR = numberPtrR->getNumber();
+        if(op == '+')
+        {
+            auto result = numberL + numberR;
+            expr = makePtr<NumberExprAST>(result);
+        }
+        else if (op == '-')
+        {
+            auto result = numberL - numberR;
+            expr = makePtr<NumberExprAST>(result);
+        }
+        else if (op == '*')
+        {
+            auto result = numberL * numberR;
+            expr = makePtr<NumberExprAST>(result);
+        }
+        else if (op == '/')
+        {
+            auto result = numberL / numberR;
+            expr = makePtr<NumberExprAST>(result);
+        }
+        else
+        {
+            fprintf(stderr, "\tERROR: combineConstant: expr contains '%c'\n", op);
+            exit(EXIT_FAILURE);
+        }
+    }
+    
+}
+
 // similiar to getExprFromVariants
 ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee)
 {
@@ -612,13 +790,13 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
             ast_ptr &a = results.at(i);
             sortExpr(a);
         }
-	// vector<ast_ptr> resultsNew;
-    //     for(auto &result : results)
-    //     {
-    //         resultsNew.push_back(result->Clone()); // the key to control the rewrite results
-    //         auto tmp = fmaRewrite(result);
-    //         mineAppend(resultsNew, tmp);
-    //     }
+        // vector<ast_ptr> resultsNew;
+        //     for(auto &result : results)
+        //     {
+        //         resultsNew.push_back(result->Clone()); // the key to control the rewrite results
+        //         auto tmp = fmaRewrite(result);
+        //         mineAppend(resultsNew, tmp);
+        //     }
         cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
@@ -659,6 +837,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         }
         auto infoNew = mergePolynomial(numerators);
         exprNew = geneExprAST(infoNew);
+        combineConstant(exprNew);
     }
     else if(info.size() == 1)
     {
@@ -678,20 +857,26 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
         vector<string> vars;
         getVariablesFromExpr(middle, vars);
-        /*if(vars.size() > 1)
-        {
-            results.push_back(std::move(middle->Clone()));
-        }
-        else
-        {
-            auto tmp = polyRewrite(middle);
-            mineAppend(results, tmp);
-        }*/
-	auto tmp = polyRewrite(middle);
+        // if(vars.size() > 1)
+        // {
+        //     results.push_back(std::move(middle->Clone()));
+        // }
+        // else
+        // {
+        //     auto tmp = polyRewrite(middle);
+        //     mineAppend(results, tmp);
+        // }
+        auto tmp = polyRewrite(middle);
         mineAppend(results, tmp);
         index++;
     }
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
+    for(int i = 0 ;i < (int)results.size();i++){
+        ast_ptr &a = results.at(i);
+        // cout << "JJJ" << PrintExpression(a) << endl;
+        sortExpr(a);
+        // cout << "WWW" << PrintExpression(a) << endl;
+    }
     deleteTheSame(results);
 
     if(callCount == 1) printExprs(results, prompt + "at the last: ");
@@ -753,8 +938,9 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     cout << prompt << "expr = " << PrintExpression(expr) << endl;
 
     ast_ptr exprNew = preprocess(expr);
-    exprNew = simplifyExpr(exprNew);
+    // exprNew = simplifyExpr(exprNew);
     exprNew = minusRewrite(exprNew);
+    combineConstant(exprNew);
     cout << prompt << "after preprocess, exprNew = " << PrintExpression(exprNew) << endl;
 
     vector<ast_ptr> results;
