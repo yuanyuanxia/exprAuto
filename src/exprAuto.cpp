@@ -570,9 +570,13 @@ void sortExprAST(string &min ,string &max ,string &v,ast_ptr &expr){
         return;
     }
     if (expr->type() == "Call") {
+        CallExprAST* tmp = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = tmp->getArgs();
+        for(auto &arg : args){
+            sortExprAST(min ,max ,v ,arg);    //对其参数排序
+        }
         min = "maxCall@";
         max = "maxCall@";
-        //CallExprAST* tmp = dynamic_cast<CallExprAST *>(expr.get());
         v = PrintExpression(expr);    //传递函数表达式字符串
         return;
     }
