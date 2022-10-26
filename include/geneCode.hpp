@@ -17,9 +17,9 @@ vector<string> getVariablesFromExpr(const ast_ptr &expr);
 
 bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars);
 
-void geneCode(string exprStr, vector<string> vars);
+void geneCode(string exprStr, vector<string> vars, string uniqueLabel,string tail);
 
-void geneOriginCode(string exprStr);
+void geneOriginCode(string exprStr, string uniqueLabel,string tail);
 
 void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[], float u[]);
 

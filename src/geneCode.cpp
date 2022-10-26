@@ -6,38 +6,39 @@
 
 using std::cout;
 using std::endl;
-using std::ofstream;
 using std::ios;
-using std::to_string;
-using std::string;
 using std::ios_base;
+using std::ofstream;
+using std::string;
+using std::to_string;
 
 // 0.000287413s
 vector<string> getVariablesFromExpr(const ast_ptr &expr)
 {
-    if(expr == nullptr)
+    if (expr == nullptr)
     {
         fprintf(stderr, "ERROR: getVariablesFromExpr: the input is nullptr");
         exit(EXIT_FAILURE);
     }
     auto type = expr->type();
-    if(type == "Number")
+    if (type == "Number")
     {
         return {};
     }
-    else if(type == "Variable")
+    else if (type == "Variable")
     {
         VariableExprAST *varPtr = dynamic_cast<VariableExprAST *>(expr.get());
         auto var = varPtr->getVariable();
         vector<string> vars{var};
         return vars;
     }
-    else if(type == "Call")
+    else if (type == "Call")
     {
         CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
         auto &args = callPtr->getArgs();
         vector<string> vars;
-        for(auto &arg : args) {
+        for (auto &arg : args)
+        {
             auto varsTmp = getVariablesFromExpr(arg);
             vars.insert(vars.end(), varsTmp.begin(), varsTmp.end());
         }
@@ -45,7 +46,7 @@ vector<string> getVariablesFromExpr(const ast_ptr &expr)
         vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
         return vars;
     }
-    if(type != "Binary")
+    if (type != "Binary")
     {
         fprintf(stderr, "ERROR: getVariablesFromExpr: type %s is wrong\n", type.c_str());
         exit(EXIT_FAILURE);
@@ -56,8 +57,8 @@ vector<string> getVariablesFromExpr(const ast_ptr &expr)
     auto varsL = getVariablesFromExpr(lhs);
     auto varsR = getVariablesFromExpr(rhs);
     vector<string> vars;
-    vars.insert(vars.end(),varsL.begin(),varsL.end());
-    vars.insert(vars.end(),varsR.begin(),varsR.end());
+    vars.insert(vars.end(), varsL.begin(), varsL.end());
+    vars.insert(vars.end(), varsR.begin(), varsR.end());
     std::sort(vars.begin(), vars.end());
     vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
     return vars;
@@ -66,29 +67,30 @@ vector<string> getVariablesFromExpr(const ast_ptr &expr)
 // this version is more faster. 0.000232973s
 bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
 {
-    if(expr == nullptr)
+    if (expr == nullptr)
     {
         fprintf(stderr, "ERROR: getVariablesFromExpr: the input is nullptr\n");
         exit(EXIT_FAILURE);
     }
     auto type = expr->type();
-    if(type == "Number")
+    if (type == "Number")
     {
         return true;
     }
-    else if(type == "Variable")
+    else if (type == "Variable")
     {
         VariableExprAST *varPtr = dynamic_cast<VariableExprAST *>(expr.get());
         auto var = varPtr->getVariable();
         vars.push_back(var);
         return true;
     }
-    else if(type == "Call")
+    else if (type == "Call")
     {
         CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
         auto &args = callPtr->getArgs();
-        for(auto &arg : args) {
-            if(!getVariablesFromExpr(arg, vars))
+        for (auto &arg : args)
+        {
+            if (!getVariablesFromExpr(arg, vars))
             {
                 fprintf(stderr, "ERROR: getVariablesFromExpr: run failed\n");
                 exit(EXIT_FAILURE);
@@ -96,7 +98,7 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
         }
         return true;
     }
-    if(type != "Binary")
+    if (type != "Binary")
     {
         fprintf(stderr, "ERROR: getVariablesFromExpr: type %s is wrong\n", type.c_str());
         exit(EXIT_FAILURE);
@@ -111,68 +113,53 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
     return true;
 }
 
-void geneCode(string exprStr, vector<string> vars)
+void geneCode(string exprStr, vector<string> vars, string uniqueLabel, string tail)
 {
     // just print input info
     cout << "expression    : " << exprStr << endl;
     cout << "variables list:";
-    for(auto &var : vars)
+    for (auto &var : vars)
     {
         cout << " " << var;
     }
     cout << endl;
-    
+
     std::ofstream fout;
-    fout.open("./hanshuti.c"); // 清空并写入, ios::trunc
-    fout<<"double function (";
+    // expr_uniquelabel_origin.c
+    string fileName = "expr_" + uniqueLabel + "_" + tail + ".c";
+    fout.open(fileName); // 清空并写入, ios::trunc
+    fout << "double function (";
     // for(auto &var : vars)
-    for(size_t i=0;i<(vars.size()-1);i++)
+    for (size_t i = 0; i < (vars.size() - 1); i++)
 
     {
-        fout<<"double"<<" "<<vars[i]<<",";
+        fout << "double"
+             << " " << vars[i] << ",";
     }
-    fout<<"double"<<" "<<vars[vars.size()-1];
-    fout<<") {"<<endl;
-    fout<<"\t"<<"double result = "<<exprStr<<";"<<endl;
-    fout<<"\t"<<"return result;"<<endl;
-    fout<<"}"<<endl;
+    fout << "double"
+         << " " << vars[vars.size() - 1];
+    fout << ") {" << endl;
+    fout << "\t"
+         << "double result = " << exprStr << ";" << endl;
+    fout << "\t"
+         << "return result;" << endl;
+    fout << "}" << endl;
     fout.close();
 }
 
-void geneOriginCode(string exprStr)
+void geneOriginCode(string exprStr, string uniqueLabel, string tail)
 {
+    // cout << "begin to gene origin code" << endl;
     auto originExpr = ParseExpressionFromString(exprStr);
-    
-    // another way: auto vars = getVariablesFromExpr(originExpr);
+
     vector<string> vars;
     getVariablesFromExpr(originExpr, vars);
-    geneCode(exprStr, vars);
+    geneCode(exprStr, vars, uniqueLabel, tail);
 }
 
-void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[], float u[])
+void geneHerbieCode(string exprStr)
 {
-    std::ofstream fout;
-    fout.open("./herbie.info"); 
-    fout << "(FPCore" << endl;
-    fout << "(";
-    for(size_t i = 0; i < (cs.size()-1); i++)//输出参数
-    {
-        fout<<cs[i]<<" ";
-    }
-    fout << cs[cs.size()-1]; 
-    fout << ")" << endl;
-    fout << ":name" << endl;//输出表达式名字
-    fout << "\"" << exprname << "\"" << endl;
-    fout << ":pre" << endl;
-    fout << "(and ";
-    for(size_t j = 0; j < (cs.size()-1); j++)//输出范围
-    {
-        fout << "\t(<= " << v[j] << " " << cs[j] << " " << u[j] << ")" << endl;
-    }
-    fout << "\t" << "(<= " << v[cs.size()-1] << " " << cs[cs.size()-1] << " " << u[cs.size()-1] << "))" << endl;
-    fout << "(" << endl;
-    fout << exprstr << ")" << endl;
-    fout.close();
+    cout << exprStr << endl;
 }
 
 void geneDaisyCode(string exprStr)
@@ -194,24 +181,32 @@ void geneMpfrCode(const string &exprStr)
         {"log", "mpfr_log"},
         {"cos", "mpfr_cos"},
         {"atan", "mpfr_atan"},
-        {"tan", "mpfr_tan"}
-    };
+        {"tan", "mpfr_tan"}};
     ofstream file_clean("./mpfrcode.c", ios_base::out);
     ofstream ofs("./mpfrcode.c", ios::app);
     size_t mpfr_variables = 0;
     string variable_tmp = "";
     std::unique_ptr<ExprAST> exprAst = ParseExpressionFromString(exprStr);
     getMpfrParameterNumber(exprAst, mpfr_variables);
-    ofs << "#include <stdio.h>\n" << "#include <gmp.h>\n" << "#include <math.h>\n" << "#include <mpfr.h>\n" << "int main() {\n"
+    ofs << "#include <stdio.h>\n"
+        << "#include <gmp.h>\n"
+        << "#include <math.h>\n"
+        << "#include <mpfr.h>\n"
+        << "int main() {\n"
         << "\tmpfr_t ";
-    for (size_t i = 0; i < mpfr_variables; ++i) {
-        if (i != mpfr_variables - 1) ofs << "mp" + to_string(i + 1) + ",";
-        else ofs << "mp" + to_string(i + 1) + ";\n";
+    for (size_t i = 0; i < mpfr_variables; ++i)
+    {
+        if (i != mpfr_variables - 1)
+            ofs << "mp" + to_string(i + 1) + ",";
+        else
+            ofs << "mp" + to_string(i + 1) + ";\n";
     }
-    for (size_t i = 0; i < mpfr_variables; ++i) {
+    for (size_t i = 0; i < mpfr_variables; ++i)
+    {
         ofs << "\tmpfr_init2(mp" + to_string(i + 1) + ", 128);\n";
     }
     mpfr_variables = 0;
     mpfrCodeGenerator(exprAst, mpfr_variables, mpfr_map, ofs, variable_tmp);
-    ofs << "\treturn 0;\n" << "}";
+    ofs << "\treturn 0;\n"
+        << "}";
 }

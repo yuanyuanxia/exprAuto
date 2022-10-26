@@ -5,6 +5,8 @@
 #include "simplifyExpr.hpp"
 #include "color.hpp"
 #include "geneCode.hpp"
+#include "tools.hpp"
+
 
 #include <fstream>
 #include <chrono>
@@ -65,14 +67,23 @@ int main()
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
             inputStr.pop_back(); // remove the last char ';'
         }
-        // geneOriginCode(inputStr);
-        // testError();
-        // pickTheBest();
-        // sample();
-        // drawBoundary(); // call Matlab
-        // devideInterval();
-        // rewrite();
-        // testPerformance();
+
+        auto uniqueLabel = getUniqueLabel();
+        cout << "uniqueLabel:" << uniqueLabel << endl;
+
+        geneOriginCode(inputStr, uniqueLabel,"origin");
+
+        testError(uniqueLabel, 0, 1, 100);
+        geneBoundaryData(inputStr, uniqueLabel);
+        geneIntervalData(inputStr, uniqueLabel);
+        vector<exprInfo> exprInfoVector;
+        std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl;
+        exprInfoVector = rewrite(inputStr, uniqueLabel);
+        std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl;
+        geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
+
+
+
         ast_ptr expr = ParseExpressionFromString(inputStr);
         combineConstant(expr);
         sortExpr(expr);
