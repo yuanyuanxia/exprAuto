@@ -410,11 +410,11 @@ ast_ptr preprocessInit(const ast_ptr &expr)
             // fprintf(stderr, "\tpreprocessInit: after extractItems: No.%lu: %s\n", i, PrintExpression(exprs1[i]).c_str());
         // }
         vector<ast_ptr> exprs2 = moveDiv(exprs1);
-        fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
-        for (size_t i = 0; i < exprs2.size(); i++)
-        {
-            fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
-        }
+        // fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
+        // for (size_t i = 0; i < exprs2.size(); i++)
+        // {
+        //     fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
+        // }
         exprNew = mergeFraction(exprs2);
         printExpr(exprNew, prompt + "at the last, after mergeFraction, exprNew = ");
     }

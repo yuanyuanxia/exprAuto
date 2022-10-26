@@ -471,7 +471,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "mathfuncRewrite: ";
-    cout << prompt << "start--------" << endl;
+    if(callCount == 1) cout << prompt << "start--------" << endl;
 
     // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     if(expr == nullptr)
@@ -491,7 +491,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
         exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
 
         if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        cout << prompt << "end--------" << endl;
+        if(callCount == 1) cout << prompt << "end--------" << endl;
         callCount--;
         callLevel--;
         return exprsFinal;
@@ -500,7 +500,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     if(expr->type() != "Binary")  // May be variable or number
     {
         if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        cout << prompt << "end--------" << endl;
+        if(callCount == 1) cout << prompt << "end--------" << endl;
         callCount--;
         callLevel--;
         return exprsFinal;
@@ -530,7 +530,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 
     // fprintf(stderr, "\tmathfuncRewrite: end--------\n");
     if(callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
-    cout << prompt << "end--------" << endl;
+    if(callCount == 1) cout << prompt << "end--------" << endl;
     callCount--;
     callLevel--;
     return exprsFinal;
@@ -558,7 +558,7 @@ void sortExprAST(string &min ,string &max ,string &v,ast_ptr &expr){
         max = "minNumber@";
         NumberExprAST* tmp = dynamic_cast<NumberExprAST *>(expr.get());
         ostringstream out;
-	    out << tmp->getNumber();
+        out << tmp->getNumber();
         v = out.str();    //传递数字本身
         return;
     }

@@ -68,11 +68,14 @@ int main()
         vector<ast_ptr> results;
         if(isEqual(expr, expr1))
         {
+            cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
             results = exprAutoNew(expr);
         }
         else
         {
+            cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
             results = exprAutoNew(expr);
+            cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
             vector<ast_ptr> results1 = exprAutoNew(expr1);
             mineAppend(results, results1);
         }
@@ -81,6 +84,7 @@ int main()
             sortExpr(result);
         }
         deleteTheSame(results);
+        cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
         printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
         for(size_t i = 0; i < results.size(); i++)
         {

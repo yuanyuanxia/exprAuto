@@ -9,6 +9,7 @@
 
 using std::string;
 
+// useless
 void simplifyInit(const string &exprStr)
 {
     // Get the path of pythonBefore.txt
@@ -28,6 +29,7 @@ void simplifyInit(const string &exprStr)
     fout.close();
 }
 
+// useless
 void initPython()
 {
     // Initialize Python interface
@@ -46,6 +48,7 @@ void initPython()
     PyRun_SimpleString("sys_path.append(path)");
 }
 
+// useless
 void handlePython()
 {
     // Initialize variables
@@ -79,6 +82,7 @@ void endPython()
     Py_Finalize();
 }
 
+// useless, simplify is replaced by simplifyExprFromStr
 ast_ptr simplifyExpr(const string &exprStr)
 {
     // Write expr string into pythonBefore.txt

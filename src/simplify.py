@@ -11,14 +11,19 @@ def support_char():
     # Returns a dictionary of extended characters for use by the locals function in simplif()
     return ns
 
-
 def parse(t_str):
-    expr = sympify(t_str, locals=support_char())
+    # print("parse", t_str)
+    expr = sympify(t_str, locals=support_char(), evaluate=False)
+    # print("sympify", sstr(expr, min=-11, full_prec=False))
     expr = simplify(expr)
+    # print("simplify", expr)
     expr = expand(expr)
+    # print("expand", expr)
     expr = cancel(expr)
+    # print("cancel", expr)
     expr = together(expr)
-    return expr
+    # print("together", expr)
+    return sstr(expr, min=-11)
 
 
 
@@ -147,7 +152,7 @@ def new_expand(expr):
 
     return expr
 
-
+# useless
 def process(i_filename="pythonBefore.txt", o_filename="pythonAfter.txt"):
     pyfile_path = os_path.dirname(globals()["__file__"])
     # print("process: pyfile_path " + pyfile_path)

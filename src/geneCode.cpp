@@ -155,7 +155,7 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[
     fout.open("./herbie.info"); 
     fout << "(FPCore" << endl;
     fout << "(";
-    for(int i = 0; i<(cs.size()-1); i++)//输出参数
+    for(size_t i = 0; i < (cs.size()-1); i++)//输出参数
     {
         fout<<cs[i]<<" ";
     }
@@ -165,7 +165,7 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[
     fout << "\"" << exprname << "\"" << endl;
     fout << ":pre" << endl;
     fout << "(and ";
-    for(int j = 0; j < (cs.size()-1); j++)//输出范围
+    for(size_t j = 0; j < (cs.size()-1); j++)//输出范围
     {
         fout << "\t(<= " << v[j] << " " << cs[j] << " " << u[j] << ")" << endl;
     }
