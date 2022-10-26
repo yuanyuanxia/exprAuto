@@ -5,8 +5,19 @@
 #include "variableInfo.hpp"
 
 using std::vector;
+using std::string;
 using std::cout;
 using std::endl;
+
+string variableInfo::printStr() const
+{
+    string result;
+    for(int i = 0; i < degree; i++)
+    {
+        result.append(name);
+    }
+    return result;
+}
 
 void variableInfo::showInfo()
 {

@@ -133,26 +133,26 @@ void monoInfo::showInfo()
     return ;
 }
 
+// variable, function, poly (TODO), coefficient
 bool monoInfo::operator<(const monoInfo &mono) const
 {
     const vector<variableInfo> &vars1 = variables;
     const vector<variableInfo> &vars2 = mono.variables;
-    size_t size1 = vars1.size();
-    size_t size2 = vars2.size();
-    size_t size = std::min(size1, size2);
 
-    for (size_t i = 0; i < size; i++)
+    // variable sort
+    string vars1Str;
+    for(const auto &v : vars1)
     {
-        if (vars1.at(i) < vars2.at(i))
-        {
-            return true;
-        }
+        auto tmp = v.printStr();
+        vars1Str.append(tmp);
     }
-    if (size1 < size2)
+    string vars2Str;
+    for(const auto &v : vars2)
     {
-        return true;
+        auto tmp = v.printStr();
+        vars2Str.append(tmp);
     }
-    return false;
+    return (vars1Str < vars2Str);
 }
 
 bool monoInfo::operator==(const monoInfo &mono) const
@@ -348,7 +348,7 @@ vector<monoInfo> mergePolynomial(const vector<monoInfo> &info)
         }
         results.push_back(tmp);
     }
-    // TODO: check sort. Eg: b*d + a*b + b*b + a*a, output should be a*a + a*b + b*b + b*d, but is a*a + b*b + a*b + b*d;
+    // TODO: enhance sort. Now just sort variables.
     std::sort(results.begin(), results.end());
 
     // print information of info
