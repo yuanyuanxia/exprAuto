@@ -117,14 +117,49 @@ ast_ptr expandExpr(const ast_ptr &expr)
 
                     return exprFinal;
                 }
-                else if((opL == '/') && (opR != '/'))// TODO: opL or opR is /
+                else if((opL == '+') && (opR != '+')) // opL is '+' and opR is not '+'
                 {
+                    ast_ptr &lhsL = binOpL->getLHS();
+                    ast_ptr &rhsL = binOpL->getRHS();
 
+                    ast_ptr lhsLNew = expandExpr(lhsL);
+                    ast_ptr rhsLNew = expandExpr(rhsL);
+                    ast_ptr rhsNew = expandExpr(rhs);
+                    auto rhsNewCopy = rhsNew->Clone();
+
+                    ast_ptr lhsTmp = makePtr<BinaryExprAST>('*', std::move(lhsLNew), std::move(rhsNew));
+                    ast_ptr lhsFinal = expandExpr(lhsTmp);
+                    ast_ptr rhsTmp = makePtr<BinaryExprAST>('*', std::move(rhsLNew), std::move(rhsNewCopy));
+                    ast_ptr rhsFinal = expandExpr(rhsTmp);
+                    ast_ptr exprFinal = makePtr<BinaryExprAST>('+', std::move(lhsFinal), std::move(rhsFinal));
+
+                    return exprFinal;
                 }
-                else if((opL != '/') && (opR == '/'))// TODO: opL or opR is /
+                else if((opL != '+') && (opR == '+'))// TODO: opL or opR is /
                 {
+                    ast_ptr &lhsR = binOpR->getLHS();
+                    ast_ptr &rhsR = binOpR->getRHS();
 
+                    ast_ptr lhsNew = expandExpr(lhs);
+                    auto lhsNewCopy = lhsNew->Clone();
+                    ast_ptr lhsRNew = expandExpr(lhsR);
+                    ast_ptr rhsRNew = expandExpr(rhsR);
+
+                    ast_ptr lhsTmp = makePtr<BinaryExprAST>('*', std::move(lhsNew), std::move(lhsRNew));
+                    ast_ptr lhsFinal = expandExpr(lhsTmp);
+                    ast_ptr rhsTmp = makePtr<BinaryExprAST>('*', std::move(lhsNewCopy), std::move(rhsRNew));
+                    ast_ptr rhsFinal = expandExpr(rhsTmp);
+                    ast_ptr exprFinal = makePtr<BinaryExprAST>('+', std::move(lhsFinal), std::move(rhsFinal));
+                    return exprFinal;
                 }
+                // else if((opL == '/') && (opR != '/'))// TODO: opL or opR is /
+                // {
+
+                // }
+                // else if((opL != '/') && (opR == '/'))// TODO: opL or opR is /
+                // {
+
+                // }
             }
             else if(exprTypeLHS == "Binary")  // LHS = "Binary" && RHS != "Binary" && opL = "+"
             {
