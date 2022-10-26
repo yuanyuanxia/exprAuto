@@ -28,13 +28,29 @@ int main()
     installOperatorsForStr();
     initPython();
 
-    // tmp
+    // tmp files for input and output.
+    ifstream infile;
+	infile.open("tmpInput.txt", ios::in);
+	if (!infile.is_open())
+	{
+		cout << "open tmpInput.txt failed";
+		exit(EXIT_FAILURE);
+	}
     std::ofstream fout;
-    fout.open("./tmpResult.txt");    
+    fout.open("./tmpResult.txt");
+    if (!fout.is_open())
+	{
+		cout << "open tmpResult.txt failed";
+		exit(EXIT_FAILURE);
+	} 
     string inputStr = "";
+    int getlineCount = 0;
     fprintf(stderr, GREEN "ready> " RESET);
-    while (getline(cin, inputStr))
+    // while (getline(infile, inputStr)) // read line from file's input
+    while (getline(cin, inputStr)) // read line from keyboard input
     {
+        getlineCount++;
+        if(getlineCount == 35 || getlineCount == 36 || getlineCount < 0) continue;
         auto start = std::chrono::high_resolution_clock::now();
 
         if(inputStr == "exit;" || inputStr == "quit;" || inputStr == "exit" || inputStr == "quit") {
@@ -86,6 +102,7 @@ int main()
         deleteTheSame(results);
         cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
         printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
+        fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
         for(size_t i = 0; i < results.size(); i++)
         {
             auto &result = results.at(i);

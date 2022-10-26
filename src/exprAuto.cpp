@@ -794,17 +794,17 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
             ast_ptr &a = results.at(i);
             sortExpr(a);
         }
-        // vector<ast_ptr> resultsNew;
-        //     for(auto &result : results)
-        //     {
-        //         resultsNew.push_back(result->Clone()); // the key to control the rewrite results
-        //         auto tmp = fmaRewrite(result);
-        //         mineAppend(resultsNew, tmp);
-        //     }
+        vector<ast_ptr> resultsNew;
+        for(auto &result : results)
+        {
+            resultsNew.push_back(result->Clone()); // the key to control the rewrite results
+            auto tmp = fmaRewrite(result);
+            mineAppend(resultsNew, tmp);
+        }
         cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
-        return results;
+        return resultsNew;
     }
     else if(infoNew.size() == 1)
     {
