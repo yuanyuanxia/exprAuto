@@ -350,7 +350,47 @@ ast_ptr sqrtDiv(const ast_ptr &expr)
     return expr->Clone();
 }
 
+bool isSpecialNumber(const ast_ptr &expr)
+{
+    auto type = expr->type();
+    if(type != "Number")
+        return false;
+    NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(expr.get());
+    double number = numberPtr->getNumber();
+
+    // deal with exception. TODO: complete the exception handling
+    if(number == 0)
+    {
+        fprintf(stderr, "ERROR: isSpecialNumber: the input expr is 0!\n");
+        exit(EXIT_FAILURE);
+    }
+    // 1/2, 1/4, 1/8, 1, 2, 4, 8, ... are special numbers.
+    unsigned long int numberInt;
+    numberInt = *(unsigned long int *)(&number);
+    const unsigned long int mantissaMask = 0x000fffffffffffffUL;
+    unsigned long int tmp = numberInt & mantissaMask;
+    if(tmp == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+    // old way
+    // int numberInt = number;
+    // // judge if integer
+    // if(number != (double)numberInt) return false;
+    // // get the absolute value of numberInt
+    // numberInt = abs(numberInt);
+    // // judge if 1, 2, 4, 8, ...
+    // if((numberInt & (numberInt - 1)) == 0) return true; // NOTE: if number is 0, then the result is also true!!!
+    // else return false;
+}
+
 // x*y+a, y*x+a, a+x*y, a+y*x => fma(x,y,a), x*y+a*b, y*x+a*b, x*y+b*a, y*x+a*b,  => fma(x,y,a*b) or fma(a,b,x*y)
+// not consider 2, 4, 8 and so on...
 // NOTE: if no match, the origin input expr will also be returned.
 vector<ast_ptr> toFma(const ast_ptr &expr)
 {
@@ -385,7 +425,7 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
 
     if (op == '+')
     {
-        ast_ptr tmpNegOne = makePtr<NumberExprAST>(-1.0);
+        // ast_ptr tmpNegOne = makePtr<NumberExprAST>(-1.0);
         auto lhsType = lhs->type();
         auto rhsType = rhs->type();
         if (lhsType == "Binary" && rhsType != "Binary")
@@ -396,8 +436,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
             {
                 ast_ptr &lhsL = binOpLhs->getLHS();
                 ast_ptr &rhsL = binOpLhs->getRHS();
-
-                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                if(!isSpecialNumber(lhsL) && !isSpecialNumber(rhsL))
+                // if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
                 {
                     vector<ast_ptr> argsNew;
                     argsNew.push_back(std::move(lhsL));
@@ -418,7 +458,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsR = binOpRhs->getLHS();
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
-                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                if(!isSpecialNumber(lhsR) && !isSpecialNumber(rhsR))
+                // if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
                 {
                     vector<ast_ptr> argsNew;
                     argsNew.push_back(std::move(lhsR));
@@ -441,7 +482,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsL = binOpLhs->getLHS();
                 ast_ptr &rhsL = binOpLhs->getRHS();
 
-                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                if(!isSpecialNumber(lhsL) && !isSpecialNumber(rhsL))
+                // if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
                 {
                     vector<ast_ptr> argsNew;
                     argsNew.push_back(std::move(lhsL));
@@ -457,7 +499,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &lhsR = binOpRhs->getLHS();
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
-                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                if(!isSpecialNumber(lhsR) && !isSpecialNumber(rhsR))
+                // if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
                 {
                     vector<ast_ptr> argsNew;
                     argsNew.push_back(std::move(lhsR));
@@ -476,7 +519,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                 ast_ptr &rhsR = binOpRhs->getRHS();
 
                 vector<ast_ptr> argsNew;
-                if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
+                if(!isSpecialNumber(lhsL) && !isSpecialNumber(rhsL))
+                // if(!isEqual(lhsL, tmpNegOne) && !isEqual(rhsL, tmpNegOne))
                 {
                     argsNew.push_back(std::move(lhsL->Clone()));
                     argsNew.push_back(std::move(rhsL->Clone()));
@@ -488,7 +532,8 @@ vector<ast_ptr> toFma(const ast_ptr &expr)
                     argsNew.clear();
                 }
 
-                if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
+                if(!isSpecialNumber(lhsR) && !isSpecialNumber(rhsR))
+                // if(!isEqual(lhsR, tmpNegOne) && !isEqual(rhsR, tmpNegOne))
                 {
                     argsNew.push_back(std::move(lhsR));
                     argsNew.push_back(std::move(rhsR));
