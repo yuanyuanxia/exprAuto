@@ -13,7 +13,7 @@ struct polyInfo
 {
     std::vector<monoFracInfo> monoFracs;
 
-    void showInfo();
+    void showInfo() const;
 
     bool operator<(const polyInfo &poly) const;
 

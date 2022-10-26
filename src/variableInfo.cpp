@@ -19,7 +19,7 @@ string variableInfo::printStr() const
     return result;
 }
 
-void variableInfo::showInfo()
+void variableInfo::showInfo() const
 {
     static size_t callCount = 0;
     callCount++;

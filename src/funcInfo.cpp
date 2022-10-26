@@ -4,7 +4,7 @@
 using std::cout;
 using std::endl;
 
-void funcInfo::showInfo()
+void funcInfo::showInfo() const
 {
     static size_t callCount = 0;
     callCount++;

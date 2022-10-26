@@ -12,7 +12,7 @@ struct funcInfo
     std::string callee;
     std::vector<polyInfo> args;
 
-    void showInfo();
+    void showInfo() const;
 
     bool operator==(const funcInfo &func) const;
 

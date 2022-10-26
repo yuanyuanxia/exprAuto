@@ -95,7 +95,7 @@ bool monoInfo::hasCommonTerm(const struct monoInfo &mono) const
     return true;
 }
 
-void monoInfo::showInfo()
+void monoInfo::showInfo() const
 {
     static size_t callCount = 0;
     callCount++;

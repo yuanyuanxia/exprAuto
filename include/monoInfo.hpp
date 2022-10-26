@@ -26,7 +26,7 @@ struct monoInfo
 
     bool hasCommonTerm(const struct monoInfo &mono) const;
 
-    void showInfo();
+    void showInfo() const;
 
     bool operator<(const monoInfo &mono) const;
 

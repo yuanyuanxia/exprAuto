@@ -13,7 +13,7 @@ struct monoFracInfo
 
     void combine(const struct monoFracInfo tmp);
 
-    void showInfo();
+    void showInfo() const;
 
     bool operator<(const monoFracInfo &fraction) const;
 

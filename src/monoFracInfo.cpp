@@ -10,7 +10,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-void monoFracInfo::showInfo()
+void monoFracInfo::showInfo() const
 {
     static size_t callCount = 0;
     callCount++;
@@ -19,8 +19,6 @@ void monoFracInfo::showInfo()
     prompt.append(callCount, callCountChar);
     prompt += "monoFracInfo::showInfo: ";
     cout << prompt << "start-----------" << endl;
-    monoInfo &numerator = this->numerator;
-    monoInfo &denominator = this->denominator;
 
     cout << prompt << "numerator: " << endl;
     numerator.showInfo();

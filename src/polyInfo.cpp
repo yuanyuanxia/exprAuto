@@ -5,7 +5,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-void polyInfo::showInfo()
+void polyInfo::showInfo() const
 {
     static size_t callCount = 0;
     callCount++;

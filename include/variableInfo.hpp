@@ -11,7 +11,7 @@ struct variableInfo
     std::string name;
     int degree;
 
-    void showInfo();
+    void showInfo() const;
 
     bool operator<(const variableInfo &var) const;
 
