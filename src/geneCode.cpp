@@ -115,14 +115,14 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
 
 string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLabel, string tail)
 {
-    // just print input info
-    cout << "expression    : " << exprStr << endl;
-    cout << "variables list:";
-    for (auto &var : vars)
-    {
-        cout << " " << var;
-    }
-    cout << endl;
+    // print input info
+    // cout << "expression    : " << exprStr << endl;
+    // cout << "variables list:";
+    // for (auto &var : vars)
+    // {
+    //     cout << " " << var;
+    // }
+    // cout << endl;
 
     std::ofstream fout;
     // expr_uniquelabel_origin.c

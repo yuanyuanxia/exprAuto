@@ -20,48 +20,48 @@ using std::string;
 using std::to_string;
 
 //获取唯一标识符(时间戳)
-std::string getUniqueLabel()
+string getUniqueLabel()
 {
     time_t currentTime = time(NULL);
     char chCurrentTime[256];
     strftime(chCurrentTime, sizeof(chCurrentTime), "%Y%m%d%H%M%S", localtime(&currentTime));
-    std::string uniqueLabel = chCurrentTime;
+    string uniqueLabel = chCurrentTime;
     return uniqueLabel;
 }
 
-// test error
 // TODO: set the return value as a exprInfo object
+// test error
 void testError(string uniqueLabel, string suffix, double start, double end, int scale)
 {
-    std::string scriptName = "./detectErrorOne.sh";
+    string scriptName = "./detectErrorOne.sh";
     char command[200] = {0};
-    std::string file = scriptName + " ";
+    string file = scriptName + " ";
     strcpy(command, file.c_str());
 
     // parameter1
-    std::string parameter1 = uniqueLabel;
+    string parameter1 = uniqueLabel;
     parameter1 = parameter1 + " ";
     strcat(command, parameter1.c_str());
 
     // parameter1.1
-    std::string parameter11 = suffix + " ";
+    string parameter11 = suffix + " ";
     strcat(command, parameter11.c_str());
 
     // parameter2
-    std::string parameter2 = std::to_string(start);
+    string parameter2 = std::to_string(start);
     parameter2 = parameter2 + " ";
     strcat(command, parameter2.c_str());
 
     // parameter3
-    std::string parameter3 = std::to_string(end);
+    string parameter3 = std::to_string(end);
     parameter3 = parameter3 + " ";
     strcat(command, parameter3.c_str());
 
-    std::string parameter4 = std::to_string(scale);
+    string parameter4 = std::to_string(scale);
     parameter4 = parameter4 + " ";
     strcat(command, parameter4.c_str());
 
-    std::cout << "command:" << command << std::endl;
+    cout << "command: " << command << endl;
     system(command);
 }
 
@@ -84,7 +84,7 @@ void testError(string uniqueLabel, string suffix, double x0Start, double x0End, 
 
     string params = param1 + param2 + param3 + param4 + param5 + param6 + param7 + param8;
     strcat(command, params.c_str());
-    std::cout << "command: " << command << std::endl;
+    cout << "command: " << command << endl;
     system(command);
 }
 
@@ -110,14 +110,27 @@ void testError(string uniqueLabel, string suffix, double x0Start, double x0End, 
 
     string params = param1 + param2 + param3 + param4 + param5 + param6 + param7 + param8 + param9 + param10 + param11;
     strcat(command, params.c_str());
-    std::cout << "command: " << command << std::endl;
+    cout << "command: " << command << endl;
     system(command);
 }
 
-//生成边界数据
-void geneBoundaryData(std::string exprStr, std::string uniqueLabel)
+// TODO: implement
+// call matlab to generate the boundaryData to file
+void geneBoundaryData(string exprStr, string uniqueLabel)
 {
-    std::string filename = "expr_" + uniqueLabel + "_boudary.txt";
+    string filename = "expr_" + uniqueLabel + "_boudary.txt";
+    std::ofstream ofs;
+    ofs.open(filename, std::ios::out);
+    ofs << "123" << std::endl;
+    ofs.close();
+    std::cout << "generate boundaryData file:" << filename << std::endl;
+}
+
+// TODO: improve
+// generate the interval info to file
+void geneIntervalData(string exprStr, string uniqueLabel)
+{
+    string filename = "expr_" + uniqueLabel + "_interval.txt";
     std::ofstream ofs;
     ofs.open(filename, std::ios::out);
     ofs << "123" << std::endl;
@@ -126,78 +139,66 @@ void geneBoundaryData(std::string exprStr, std::string uniqueLabel)
 }
 
 //生成区间数据
-void geneIntervalData(std::string exprStr, std::string uniqueLabel)
+vector<vector<double>> getIntervalData(string filename)
 {
-    std::string filename = "expr_" + uniqueLabel + "_interval.txt";
-    std::ofstream ofs;
-    ofs.open(filename, std::ios::out);
-    ofs << "123" << std::endl;
-    ofs.close();
-    std::cout << "generate boundaryData file:" << filename << std::endl;
-}
-
-//生成区间数据
-std::vector<std::vector<double>> getIntervalData(std::string filename)
-{
-    std::vector<std::vector<double>> intervalData;
+    vector<vector<double>> intervalData;
     std::ifstream ifs;
-    filename = "./intervalData.txt";
     ifs.open(filename, std::ios::in);
     if (!ifs.is_open())
     {
-        std::cout << "open intervalData.txt fail" << std::endl;
-        return intervalData;
+        std::cout << "ERROR: getIntervalData: fail to open " << filename << std::endl;
+        exit(EXIT_FAILURE);
     }
 
-    std::string buf;
-    //[1,2] 对每行数据进行处理
+    string buf;
     while (getline(ifs, buf))
     {
-        std::cout << buf << std::endl;
-        std::vector<double> interval;
-        int pos = buf.find(',');
-        double start, end;
-        int len = buf.length();
-        start = atof(buf.substr(1, pos - 1).c_str());
-        end = atof(buf.substr(pos + 1, len - pos - 2).c_str());
-        std::cout << "start:" << start << std::endl;
-        std::cout << "end:" << end << std::endl;
-        interval.push_back(start);
-        interval.push_back(end);
-        intervalData.push_back(interval);
+        vector<double> lineData;
+        // cout << buf << endl;
+        int flag = 1;
+        vector<int> index;
+        for (size_t i = 0; i < buf.length(); i++)
+        {
+            if (buf[i] == ' ')
+            {
+                flag += 1;
+                index.push_back(i);
+            }
+        }
+        for (size_t i = 0; i < index.size(); i++)
+        {
+            if (i == 0)
+            {
+                string data = buf.substr(0, index.at(i));
+                lineData.push_back(atof(data.c_str()));
+            }
+            else
+            {
+                int n = index.at(i) - index.at(i - 1) - 1;
+                string data = buf.substr(index.at(i - 1) + 1, n);
+                lineData.push_back(atof(data.c_str()));
+            }
+        }
+        int pos = index.back() + 1;
+        int n = buf.length() - 1 - index.at(index.size() - 1);
+        string last = buf.substr(pos, n);
+        lineData.push_back(atof(last.c_str()));
+        intervalData.push_back(lineData);
     }
     ifs.close();
     return intervalData;
 }
 
-//调用exprAuto进行表达式重写
+// call exprAuto to rewrite the input expression
 vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
 {
     string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
 
-    vector<vector<double>> intervalData;
-    // auto intervalData = getIntervalData(filename);
-    vector<double> intervalTmp{-4.5, -0.3, 0.4, 0.9, 3.8, 7.8};
-    intervalData.push_back(intervalTmp);
-    // X0: [-3.07246,  -1.65432] [-1.35614,  -0.854668]
-    // X1: [0.4,  0.9]
-    // X2: [4.28352,  4.33717] [4.69062,  4.83126] [4.92649,  7.79219]
-    // vector<double> intervalTmp1{-3.07246, -1.65432, 0.4, 0.9, 4.28352, 4.33717};
-    // intervalData.push_back(intervalTmp1);
-    // vector<double> intervalTmp2{-3.07246, -1.65432, 0.4, 0.9, 4.69062, 4.83126};
-    // intervalData.push_back(intervalTmp2);
-    // vector<double> intervalTmp3{-3.07246, -1.65432, 0.4, 0.9, 4.92649, 7.79219};
-    // intervalData.push_back(intervalTmp3);
-    // vector<double> intervalTmp4{-1.35614, -0.854668, 0.4, 0.9, 4.28352, 4.33717};
-    // intervalData.push_back(intervalTmp4);
-    // vector<double> intervalTmp5{-1.35614, -0.854668, 0.4, 0.9, 4.69062, 4.83126};
-    // intervalData.push_back(intervalTmp5);
-    // vector<double> intervalTmp6{-1.35614, -0.854668, 0.4, 0.9, 4.92649, 7.79219};
-    // intervalData.push_back(intervalTmp6);
+    auto intervalData = getIntervalData(filename);
 
     auto tempExpr = ParseExpressionFromString(exprStr);
 
-    std::vector<exprInfo> exprInfoVector;
+    vector<exprInfo> exprInfoVector;
 
     // for (int i = 0; i < intervalData.size(); i++)
     for (auto &intervalTmp : intervalData)
@@ -253,8 +254,9 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     return exprInfoVector;
 }
 
-//生成.c文件
-void geneFinalCode(std::string exprStr, std::string uniqueLabel, std::vector<exprInfo> exprInfoVector)
+// TODO: improve
+// generate final code
+void geneFinalCode(string exprStr, string uniqueLabel, std::vector<exprInfo> exprInfoVector)
 {
     cout << "\n&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
 
@@ -268,7 +270,7 @@ void geneFinalCode(std::string exprStr, std::string uniqueLabel, std::vector<exp
     }
 
     // generate code to file
-    std::string fileName = "expr_" + uniqueLabel + "_final.c";
+    string fileName = "expr_" + uniqueLabel + "_final.c";
     std::ofstream fout;
     fout.open(fileName.c_str());
     fout << "double func(double x){" << std::endl;
