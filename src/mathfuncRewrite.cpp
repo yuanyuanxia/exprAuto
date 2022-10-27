@@ -586,7 +586,7 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "fmaRewrite: ";
-    if (callCount == 1) cout << prompt << "start--------" << endl;
+    // if (callCount == 1) cout << prompt << "start--------" << endl;
 
     if (expr == nullptr)
     {
@@ -618,8 +618,8 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
     
     deleteTheSame(exprsFinal);
 
-    if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
-    if (callCount == 1) cout << prompt << "end--------" << endl;
+    // if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+    // if (callCount == 1) cout << prompt << "end--------" << endl;
     callCount--;
     callLevel--;
     return exprsFinal;

@@ -17,7 +17,7 @@ EXPRAUTO_ALL_SRCS_OBJS = $(addprefix objs/, $(subst /,_,$(EXPRAUTO_ALL_SRCS_CPP:
 default: dirs \
 	bin/exprAuto.exe
 dirs:
-	@mkdir -p bin objs
+	@mkdir -p bin objs outputs
 
 .PHONY: dirs
 

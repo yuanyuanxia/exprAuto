@@ -45,14 +45,17 @@ int main()
 		cout << "open tmpResult.txt failed";
 		exit(EXIT_FAILURE);
 	} 
-    string inputStr = "";
     int getlineCount = 0;
+
     fprintf(stderr, GREEN "ready> " RESET);
+    string inputStr = "";
     // while (getline(infile, inputStr)) // read line from file's input
     while (getline(cin, inputStr)) // read line from keyboard input
     {
+        // only rewrite
         getlineCount++;
         if(getlineCount == 35 || getlineCount == 36 || getlineCount < 0) continue;
+
         auto start = std::chrono::high_resolution_clock::now();
 
         if(inputStr == "exit;" || inputStr == "quit;" || inputStr == "exit" || inputStr == "quit") {
@@ -68,70 +71,57 @@ int main()
             inputStr.pop_back(); // remove the last char ';'
         }
 
+        { // the whole process
         auto uniqueLabel = getUniqueLabel();
-        cout << "uniqueLabel:" << uniqueLabel << endl;
+        cout << "uniqueLabel: " << uniqueLabel << endl;
 
-        geneOriginCode(inputStr, uniqueLabel,"origin");
+        auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
+        // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
+        // auto funcNameDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
+        auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, "mpfr");
 
-        testError(uniqueLabel, 0, 1, 100);
-        geneBoundaryData(inputStr, uniqueLabel);
-        geneIntervalData(inputStr, uniqueLabel);
-        vector<exprInfo> exprInfoVector;
-        std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl;
-        exprInfoVector = rewrite(inputStr, uniqueLabel);
-        std::cout << "=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl;
+        // TODO: pick the best from origin, herbie, daisy
+        // pickTheBest(uniqueLabel, 0, 1, 100);
+        // testError(uniqueLabel, "origin", 0, 1, 100); // for 1 param
+        // testError(uniqueLabel, "origin", 0, 1, 0, 1, 100, 100); // for 2 params
+        testError(uniqueLabel, "origin", 0, 1, 0, 1, 0, 1, 100, 100, 100); // for 3 params
+
+        // geneBoundaryData(inputStr, uniqueLabel); // matlab
+
+        // geneIntervalData(inputStr, uniqueLabel);
+
+        cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+        auto exprInfoVector = rewrite(inputStr, uniqueLabel);
+        cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
+        } // the whole process end
 
-
-
-        ast_ptr expr = ParseExpressionFromString(inputStr);
-        combineConstant(expr);
-        sortExpr(expr);
-        printExpr(expr, "main: after parse, expr = ", DOUBLE_PRECISION);
-        ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
-        combineConstant(expr1);
-        sortExpr(expr1);
-        printExpr(expr1, "main: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
-        vector<ast_ptr> results;
-        if(isEqual(expr, expr1))
-        {
-            cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
-            results = exprAutoNew(expr);
-        }
-        else
-        {
-            cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
-            results = exprAutoNew(expr);
-            cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
-            vector<ast_ptr> results1 = exprAutoNew(expr1);
-            mineAppend(results, results1);
-        }
-        for(auto& result : results)
-        {
-            sortExpr(result);
-        }
-        deleteTheSame(results);
-        cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
-        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
-        fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
-        for(size_t i = 0; i < results.size(); i++)
-        {
-            auto &result = results.at(i);
-            // string treeStr;
-            // printAST(result, treeStr, MAIN_PRECISION);
-            fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
-            // fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
-            // fout << treeStr << endl;
-        }
-        fout << endl;
+        { // only rewrite
+        // auto results = exprAutoWrapper(inputStr);
+        
+        // cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
+        // printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
+        // fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
+        // for(size_t i = 0; i < results.size(); i++)
+        // {
+        //     auto &result = results.at(i);
+        //     // string treeStr;
+        //     // printAST(result, treeStr, MAIN_PRECISION);
+        //     // fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
+        //     fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
+        //     // fout << treeStr << endl;
+        // }
+        // fout << endl;
+        } // only rewrite end
 
         auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end-start;
+        std::chrono::duration<double> elapsed_seconds = end - start;
         cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }
 
-    // tmp end
+    // only rewrite
+    infile.close();
     fout.close();
 
     endPython();

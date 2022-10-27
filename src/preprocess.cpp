@@ -416,7 +416,7 @@ ast_ptr preprocessInit(const ast_ptr &expr)
         //     fprintf(stderr, "\tpreprocessInit: after moveDiv: No.%lu: %s\n", i, PrintExpression(exprs2[i]).c_str());
         // }
         exprNew = mergeFraction(exprs2);
-        printExpr(exprNew, prompt + "at the last, after mergeFraction, exprNew = ");
+        // printExpr(exprNew, prompt + "at the last, after mergeFraction, exprNew = ");
     }
     callCount--;
     callLevel--;
@@ -430,7 +430,7 @@ ast_ptr preprocess(const ast_ptr &expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "preprocess: ";
-    cout << prompt << "start--------" <<endl;
+    // cout << prompt << "start--------" <<endl;
     ast_ptr exprNew = preprocessInit(expr);
 
     if (isFraction(exprNew))
@@ -442,7 +442,7 @@ ast_ptr preprocess(const ast_ptr &expr)
         ast_ptr denominatorNew = preprocess(denominatorTmp);
         return combineFraction(numeratorNew, denominatorNew);
     }
-    cout << prompt << "end--------" <<endl;
+    // cout << prompt << "end--------" <<endl;
     callCount--;
     return exprNew;
 }

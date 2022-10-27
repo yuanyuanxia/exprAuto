@@ -16,6 +16,7 @@
 #include "exprAuto.hpp"
 #include "geneCode.hpp"
 #include "simplifyExpr.hpp"
+#include "color.hpp"
 
 using std::string;
 using std::vector;
@@ -471,7 +472,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "mathfuncRewrite: ";
-    if(callCount == 1) cout << prompt << "start--------" << endl;
+    // if(callCount == 1) cout << prompt << "start--------" << endl;
 
     // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     if(expr == nullptr)
@@ -486,12 +487,12 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 
     if(newexpr->type() == "Call")
     {
-        printExpr(expr, prompt + "before dealWithCalls: newexpr = ");
+        // printExpr(expr, prompt + "before dealWithCalls: newexpr = ");
         auto newASTs = dealWithCalls(newexpr);
         exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
 
-        if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        if(callCount == 1) cout << prompt << "end--------" << endl;
+        // if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
+        // if(callCount == 1) cout << prompt << "end--------" << endl;
         callCount--;
         callLevel--;
         return exprsFinal;
@@ -499,8 +500,8 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
 
     if(expr->type() != "Binary")  // May be variable or number
     {
-        if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
-        if(callCount == 1) cout << prompt << "end--------" << endl;
+        // if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
+        // if(callCount == 1) cout << prompt << "end--------" << endl;
         callCount--;
         callLevel--;
         return exprsFinal;
@@ -529,8 +530,8 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     deleteTheSame(exprsFinal);
 
     // fprintf(stderr, "\tmathfuncRewrite: end--------\n");
-    if(callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
-    if(callCount == 1) cout << prompt << "end--------" << endl;
+    // if(callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+    // if(callCount == 1) cout << prompt << "end--------" << endl;
     callCount--;
     callLevel--;
     return exprsFinal;
@@ -776,7 +777,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "polyRewrite: ";
-    cout << prompt << "start--------" <<endl;
+    // cout << prompt << "start--------" <<endl;
 
     ast_ptr middleNew = expandExprWrapper(expr);
     vector<ast_ptr> items = extractItems(middleNew);
@@ -801,7 +802,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
             auto tmp = fmaRewrite(result);
             mineAppend(resultsNew, tmp);
         }
-        cout << prompt << "end--------" <<endl;
+        // cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
         return resultsNew;
@@ -810,7 +811,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
     {
         auto results = createExpr(infoNew);
         
-        cout << prompt << "end--------" <<endl;
+        // cout << prompt << "end--------" <<endl;
         callCount--;
         callLevel--;
         return results;
@@ -827,8 +828,8 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "tryRewrite: ";
-    cout << prompt << "start--------" <<endl;
-
+    // cout << prompt << "start--------" <<endl;
+    // if(callCount == 1) printExpr(expr, prompt + "tryRewrites: at the begin: ");
     vector<ast_ptr> items = extractItems(expr);
     auto info = extractFracInfo(items);
     ast_ptr exprNew;
@@ -852,13 +853,13 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         cerr << prompt << "we can not handle this situation!" << endl;
         exit(EXIT_FAILURE);
     }
-    if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
+    // if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew);
     vector<ast_ptr> results;
     size_t index = 0;
     for(const auto &middle : middles)
     {
-        cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
+        // cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
         vector<string> vars;
         getVariablesFromExpr(middle, vars);
         // if(vars.size() > 1)
@@ -884,7 +885,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     deleteTheSame(results);
 
     if(callCount == 1) printExprs(results, prompt + "at the last: ");
-    cout << prompt << "end--------" <<endl;
+    // cout << prompt << "end--------" <<endl;
     callCount--;
     return results;
 }
@@ -938,14 +939,14 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
         cerr << prompt << "ERROR: the input expr is nullptr!" << endl;
         exit(EXIT_FAILURE);
     }
+    cout << prompt << "at the beginning: expr = " << PrintExpression(expr) << endl;
     cout << prompt << "step1: preprocess" << endl;
-    cout << prompt << "expr = " << PrintExpression(expr) << endl;
 
     ast_ptr exprNew = preprocess(expr);
     // exprNew = simplifyExpr(exprNew);
     exprNew = minusRewrite(exprNew);
     combineConstant(exprNew);
-    cout << prompt << "after preprocess, exprNew = " << PrintExpression(exprNew) << endl;
+    cout << prompt << "after preprocess: exprNew = " << PrintExpression(exprNew) << endl;
 
     vector<ast_ptr> results;
     cout << prompt << "step2: judge if exprNew is a fraction" << endl;
@@ -998,10 +999,54 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
         results = tryRewrite(std::move(exprNew));
     }
 
-    cout << prompt << "results size = " << results.size() << endl;
+    cout << prompt << "at the last: results size = " << results.size() << endl;
     printExprs(results, prompt);
     cout << prompt << "end-----------" << endl;
     callCount--;
     callLevel--;
     return results;
+}
+
+vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
+{
+    cout << "\n>exprAutoWrapper: start-----------" << endl;
+
+    combineConstant(expr);
+    sortExpr(expr);
+    printExpr(expr, "exprAutoWrapper: after parse, expr = ", DOUBLE_PRECISION);
+    ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
+    combineConstant(expr1);
+    sortExpr(expr1);
+    printExpr(expr1, "exprAutoWrapper: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
+    vector<ast_ptr> results;
+    if(isEqual(expr, expr1))
+    {
+        cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
+        results = exprAutoNew(expr);
+    }
+    else
+    {
+        cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
+        results = exprAutoNew(expr);
+        cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
+        vector<ast_ptr> results1 = exprAutoNew(expr1);
+        mineAppend(results, results1);
+    }
+    for(auto& result : results)
+    {
+        sortExpr(result);
+    }
+    deleteTheSame(results);
+
+    cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
+    printExprs(results, BLUE "exprAutoWrapper: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
+
+    cout << ">exprAutoWrapper: end-----------\n" << endl;
+    return results;
+}
+
+vector<ast_ptr> exprAutoWrapper(const string &inputStr)
+{
+    auto expr = ParseExpressionFromString(inputStr);
+    return exprAutoWrapper(expr);
 }

@@ -586,10 +586,10 @@ string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std:
     } else if (expr->type() == "Variable") {
         VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
         string variable = (variableExpr->getVariable());
-        if (variable_tmp != variable) {
-            variable_tmp = variable;
-            ofs << "\tdouble " << variable_tmp << ";" << endl;
-        }
+        // if (variable_tmp != variable) {
+        //     variable_tmp = variable;
+        //     ofs << "\tdouble " << variable_tmp << ";" << endl;
+        // }
         // ofs << "\tdouble " << variable << ";" << endl;
         ++mpfr_variables;
         variable_str = "mpfr_set_d(mp" + to_string(mpfr_variables) + ", " + variable + ", MPFR_RNDN);";

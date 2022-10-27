@@ -722,8 +722,8 @@ vector<ast_ptr> createExpr(const ast_ptr &exprInit)
 
     auto exprsFinal = createMiddle(variable, term, coefficient, len);
 
-    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
-    printExprs(exprsFinal, prompt);
+    // cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    // printExprs(exprsFinal, prompt);
     callCount--;
     callLevel--;
     return exprsFinal;
@@ -799,7 +799,7 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
     vector<ast_ptr> exprsFinal;
     vector<ast_ptr> exprsFinalTMP;
     len = monomials.size();
- 
+
     // for(size_t i = 0; i < len; i++)
     // {
     //     fprintf(stderr, "createExpr: %lu: %d, %f\n", i, term[i], coefficient[i]);
@@ -838,8 +838,8 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
             exprsFinalTMP.clear();
         }
     }
-    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
-    printExprs(exprsFinal, prompt);
+    // cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    // printExprs(exprsFinal, prompt);
     callCount--;
     callLevel--;
     return exprsFinal;
@@ -865,8 +865,8 @@ vector<ast_ptr> createExpr(const vector<monoFracInfo> &monoFracs)
     auto denominators = createExpr(denominatorInfos);
     auto exprsFinal = createAll(numerators, denominators);
 
-    cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
-    printExprs(exprsFinal, prompt);
+    // cout << prompt << "exprsFinal: " << exprsFinal.size() << endl;
+    // printExprs(exprsFinal, prompt);
     callCount--;
     callLevel--;
     return exprsFinal;

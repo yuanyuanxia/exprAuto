@@ -1,79 +1,84 @@
 #include "common.h"
-#include "expressionSingle.h"
 
-#define SUFFIX Mine
+#ifndef SUFFIX
+#define SUFFIX orgin
+#endif
 #ifndef EXPRESSION
 #define EXPRESSION NMSEproblem334
-#define EXPRESSIONMINE ADDSUFFIX(EXPRESSION, SUFFIX)
-#else
-#define EXPRESSIONMINE ADDSUFFIX(EXPRESSION, SUFFIX)
 #endif
+
+#define EXPRESSIONMINE ADDSUFFIX(EXPRESSION, SUFFIX)
+#define SUFFIX1 mpfr
+#define EXPRESSIONMPFR ADDSUFFIX(EXPRESSION, SUFFIX1)
+
 #define TESTNUMX0 500000
 // #define FP
 // #define DEBUG
+double EXPRESSIONMPFR(double, mpfr_t);
+double EXPRESSIONMINE(double);
 
 int computeOrcle1param(double x0, mpfr_t orcle)
 {
-    return EXPRESSION(x0, orcle);
+    return EXPRESSIONMPFR(x0, orcle);
 }
 
 int computeResult1param(double x0, mpfr_t mpfrResult)
 {
     int status = 1;
-    double result;
 
-    EXPRESSIONMINE(x0, &result);
-
+    double result = EXPRESSIONMINE(x0);
     mpfr_set_d(mpfrResult, result, MPFR_RNDN);
+
     return status;
 }
 
 void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
 {
     DL ii0, maxInputX0;
-#ifdef DEBUG
+    #ifdef DEBUG
     DL orcle, result;
-#endif
+    #endif
     int i0, flag;
     double x0, reUlp, aveReUlp, maxReUlp, lenX0;
-#ifdef FP
+    #ifdef FP
     unsigned long int reUlpInt, stepX0, sum, aveReUlpInt, maxReUlpInt;
-#endif
+    #endif
+    char *directory = "./outputs";
     FILE *f;
-    char *prefix = "./output/sample";
-    char *suffix = ".txt";
+    char *prefix = "";
+    char *suffix = "sample.txt";
     char *fileName;
     FILE *fErr;
-    char *prefixErr = "./output/expr";
-    char *suffixErr = "_originError.txt";
+    char *prefixErr = "";
+    char *suffixErr = "error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
-    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr)0);
+    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // printf("test expression: %s\n", STR2(EXPRESSION));
     // printf("x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l);
     // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l);
     // fprintf(f, "\nxInput\t\txInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
     // printf("testNum : %lu 0x%lx\n", testNumX0, testNumX0);
-    fileName = (char *)malloc(strlen(prefix) + strlen(suffix) + 64);
-    sprintf(fileName, "%s_%s_%d_%d_%lu%s", prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
-    printf("%s_%s_%d_%d_%lu%s\n", prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
+    fileName = (char *) malloc(strlen(prefix) + strlen(suffix) + 64);
+    sprintf(fileName, "%s/%s%s_%d_%d_%lu%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
+    printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
     if ((f = fopen(fileName, "w")) == NULL)
     {
         printf("Error opening file %s.\n", fileName);
         exit(0);
     }
-    fileNameErr = (char *)malloc(strlen(prefixErr) + strlen(suffixErr) + 64);
-    sprintf(fileNameErr, "%s_%s_%d_%d_%lu%s", prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
-    printf("%s_%s_%d_%d_%lu%s\n", prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
+    fileNameErr = (char *) malloc(strlen(prefixErr) + strlen(suffixErr) + 64);
+    sprintf(fileNameErr, "%s/%s%s_%d_%d_%lu%s", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
+    printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
     if ((fErr = fopen(fileNameErr, "w")) == NULL)
     {
         printf("Error opening file %s.\n", fileNameErr);
         exit(0);
     }
 
-#ifdef FP // FP number average
+    #ifdef FP // FP number average
     // printf("FP number average\n");
     sum = x0End.l - x0Start.l;
     stepX0 = sum / testNumX0;
@@ -88,7 +93,7 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     {
         x0 = ii0.d;
 
-#else // Real number average
+    #else // Real number average
     // printf("Real number average\n");
     lenX0 = x0End.d - x0Start.d;
     maxReUlp = 0;
@@ -98,19 +103,19 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     {
         ii0.d = x0Start.d + lenX0 / (double)testNumX0 * i0;
         x0 = ii0.d;
-#endif
+    #endif
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
-#ifdef SINGLE
+        #ifdef SINGLE
         reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
-#else // compute Double ULP as default
+        #else // compute Double ULP as default
         reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
-#endif
-#ifdef DEBUG
+        #endif
+        #ifdef DEBUG
         orcle.d = mpfr_get_d(mpfrOrcle, MPFR_RNDN);
         result.d = mpfr_get_d(mpfrResult, MPFR_RNDN);
         printf("%8lg %8lg %8lg %8lg\n", ii0.d, result.d, orcle.d, reUlp);
-#endif
+        #endif
         // if(reUlp <= 0.5) {
         //     reUlp = 0;
         // }

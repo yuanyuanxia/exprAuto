@@ -123,7 +123,7 @@ vector<monoFracInfo> extractFracInfo(const vector<ast_ptr> &exprs)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "extractFracInfo: ";
-    cout << prompt << "start-----------" << endl;
+    // cout << prompt << "start-----------" << endl;
 
     vector<monoFracInfo> results;
     for (size_t i = 0; i < exprs.size(); i++)
@@ -147,7 +147,7 @@ vector<monoFracInfo> extractFracInfo(const vector<ast_ptr> &exprs)
     //     (results.at(i)).showInfo();
     //     cout << endl;
     // }
-    cout << prompt << "end-----------" << endl;
+    // cout << prompt << "end-----------" << endl;
     callCount--;
     callLevel--;
     return results;

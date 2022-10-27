@@ -113,7 +113,7 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
     return true;
 }
 
-void geneCode(string exprStr, vector<string> vars, string uniqueLabel, string tail)
+string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLabel, string tail)
 {
     // just print input info
     cout << "expression    : " << exprStr << endl;
@@ -126,35 +126,38 @@ void geneCode(string exprStr, vector<string> vars, string uniqueLabel, string ta
 
     std::ofstream fout;
     // expr_uniquelabel_origin.c
-    string fileName = "expr_" + uniqueLabel + "_" + tail + ".c";
-    fout.open(fileName); // 清空并写入, ios::trunc
-    fout << "double function (";
-    // for(auto &var : vars)
-    for (size_t i = 0; i < (vars.size() - 1); i++)
-
+    string funcName = "expr_" + uniqueLabel + "_" + tail;
+    string fileName = funcName + ".c";
+    // string fileName = "./outputs/" + funcName + ".c";
+    fout.open(fileName);
+    fout << "#include <math.h>\n";
+    fout << "double " << funcName << "(";
+    for (size_t i = 0; i < vars.size(); ++i)
     {
-        fout << "double"
-             << " " << vars[i] << ",";
+        if (i != vars.size() - 1)
+            fout << "double" << " " << vars.at(i) << ", ";
+        else
+            fout << "double" << " " << vars.at(i);
     }
-    fout << "double"
-         << " " << vars[vars.size() - 1];
-    fout << ") {" << endl;
-    fout << "\t"
-         << "double result = " << exprStr << ";" << endl;
-    fout << "\t"
-         << "return result;" << endl;
-    fout << "}" << endl;
+    fout << ")\n";
+    fout << "{\n";
+    fout << "\t" << "double result = " << exprStr << ";\n";
+    fout << "\t" << "return result;\n";
+    fout << "}\n";
     fout.close();
+
+    return funcName;
 }
 
-void geneOriginCode(string exprStr, string uniqueLabel, string tail)
+string geneOriginCode(string exprStr, string uniqueLabel, string tail)
 {
-    // cout << "begin to gene origin code" << endl;
     auto originExpr = ParseExpressionFromString(exprStr);
 
     vector<string> vars;
     getVariablesFromExpr(originExpr, vars);
-    geneCode(exprStr, vars, uniqueLabel, tail);
+    auto funcName = geneOriginCodeKernel(exprStr, vars, uniqueLabel, tail);
+
+    return funcName;
 }
 
 void geneHerbieCode(string exprStr)
@@ -167,8 +170,13 @@ void geneDaisyCode(string exprStr)
     cout << exprStr << endl;
 }
 
-void geneMpfrCode(const string &exprStr)
+string geneMpfrCode(const string exprStr, const string uniqueLabel, const string tail)
 {
+    string funcName = "expr_" + uniqueLabel + "_" + tail;
+    string fileName = funcName + ".c";
+    ofstream file_clean(fileName, ios_base::out);
+    ofstream ofs(fileName, ios::app);
+
     std::map<string, string> mpfr_map = {
         {"+", "mpfr_add"},
         {"-", "mpfr_sub"},
@@ -182,22 +190,29 @@ void geneMpfrCode(const string &exprStr)
         {"cos", "mpfr_cos"},
         {"atan", "mpfr_atan"},
         {"tan", "mpfr_tan"}};
-    ofstream file_clean("./mpfrcode.c", ios_base::out);
-    ofstream ofs("./mpfrcode.c", ios::app);
-    size_t mpfr_variables = 0;
-    string variable_tmp = "";
+    
     std::unique_ptr<ExprAST> exprAst = ParseExpressionFromString(exprStr);
+    vector<string> vars;
+    getVariablesFromExpr(exprAst, vars);
+    size_t mpfr_variables = 0;
     getMpfrParameterNumber(exprAst, mpfr_variables);
+
     ofs << "#include <stdio.h>\n"
         << "#include <gmp.h>\n"
         << "#include <math.h>\n"
         << "#include <mpfr.h>\n"
-        << "int main() {\n"
+        << "int " << funcName << "(";
+    for (auto &var : vars)
+    {
+        ofs << "double" << " " << var << ", ";
+    }
+    ofs << "mpfr_t mpfrResult) {\n"
+        << "\tint status = 0;\n"
         << "\tmpfr_t ";
     for (size_t i = 0; i < mpfr_variables; ++i)
     {
         if (i != mpfr_variables - 1)
-            ofs << "mp" + to_string(i + 1) + ",";
+            ofs << "mp" + to_string(i + 1) + ", ";
         else
             ofs << "mp" + to_string(i + 1) + ";\n";
     }
@@ -206,7 +221,11 @@ void geneMpfrCode(const string &exprStr)
         ofs << "\tmpfr_init2(mp" + to_string(i + 1) + ", 128);\n";
     }
     mpfr_variables = 0;
+    string variable_tmp = "";
     mpfrCodeGenerator(exprAst, mpfr_variables, mpfr_map, ofs, variable_tmp);
-    ofs << "\treturn 0;\n"
+    ofs << "\n\tmpfr_set(mpfrResult, mp" << mpfr_variables << ", MPFR_RNDN);\n"
+        << "\treturn status;\n"
         << "}";
+
+    return funcName;
 }

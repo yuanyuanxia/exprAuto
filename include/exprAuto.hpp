@@ -48,4 +48,8 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
 
 vector<ast_ptr> exprAutoNew(const ast_ptr &expr);
 
+vector<ast_ptr> exprAutoWrapper(ast_ptr &expr);
+
+vector<ast_ptr> exprAutoWrapper(const string &inputStr);
+
 #endif
