@@ -23,7 +23,7 @@ def parse(t_str):
     # print("cancel", expr)
     expr = together(expr)
     # print("together", expr)
-    return sstr(expr, min=-11)
+    return sstr(expr, min=-21)
 
 
 

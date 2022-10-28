@@ -79,7 +79,26 @@ int gettokForStr()
             NumStr += LastChar;
             LastChar = getCharFromStr();
         } while(isdigit(LastChar) || LastChar == '.');
-
+        if(LastChar == 'e' || LastChar == 'E')
+        {
+            NumStr += LastChar;
+            LastChar = getCharFromStr();
+            if(LastChar == '-')
+            {
+                NumStr += LastChar;
+                LastChar = getCharFromStr();
+            }
+            if(isalpha(LastChar))
+            {
+                fprintf(stderr, "ERROR: gettokForStr: the %c is not '-' or number, which should not appear after 1.0e\n", LastChar);
+                exit(EXIT_FAILURE);
+            }
+            do
+            {
+                NumStr += LastChar;
+                LastChar = getCharFromStr();
+            } while(isdigit(LastChar) || LastChar == '.');
+        }
         NumVal1 = strtod(NumStr.c_str(), nullptr);
         return tok_number_forstr;
     }
