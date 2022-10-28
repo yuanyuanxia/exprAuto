@@ -70,7 +70,8 @@ int main()
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
             inputStr.pop_back(); // remove the last char ';'
         }
-
+        bool runAllFlag = true;
+        if(runAllFlag)
         { // the whole process
         auto uniqueLabel = getUniqueLabel();
         cout << "uniqueLabel: " << uniqueLabel << endl;
@@ -84,7 +85,7 @@ int main()
         // pickTheBest(uniqueLabel, 0, 1, 100);
         // testError(uniqueLabel, "origin", 0, 1, 100); // for 1 param
         // testError(uniqueLabel, "origin", 0, 1, 0, 1, 100, 100); // for 2 params
-        testError(uniqueLabel, "origin", 0, 1, 0, 1, 0, 1, 100, 100, 100); // for 3 params
+        testError(uniqueLabel, "origin", -100, 100, 20, 20000, -30, 50, 256, 256, 256); // for 3 params
 
         // geneBoundaryData(inputStr, uniqueLabel); // matlab
 
@@ -96,22 +97,23 @@ int main()
         geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
         } // the whole process end
 
+        if(runAllFlag)
         { // only rewrite
-        // auto results = exprAutoWrapper(inputStr);
-        
-        // cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
-        // printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
-        // fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
-        // for(size_t i = 0; i < results.size(); i++)
-        // {
-        //     auto &result = results.at(i);
-        //     // string treeStr;
-        //     // printAST(result, treeStr, MAIN_PRECISION);
-        //     // fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
-        //     fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
-        //     // fout << treeStr << endl;
-        // }
-        // fout << endl;
+        auto results = exprAutoWrapper(inputStr);
+
+        cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
+        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
+        fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
+        for(size_t i = 0; i < results.size(); i++)
+        {
+            auto &result = results.at(i);
+            // string treeStr;
+            // printAST(result, treeStr, MAIN_PRECISION);
+            // fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
+            fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
+            // fout << treeStr << endl;
+        }
+        fout << endl;
         } // only rewrite end
 
         auto end = std::chrono::high_resolution_clock::now();

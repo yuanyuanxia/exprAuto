@@ -41,11 +41,11 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
     char *directory = "./outputs";
     FILE *f;
     char *prefix = "";
-    char *suffix = "sample.txt";
+    char *suffix = STR(SUFFIX)"_sample.txt";
     char *fileName;
     FILE *fErr;
     char *prefixErr = "";
-    char *suffixErr = "error.txt";
+    char *suffixErr = STR(SUFFIX)"_error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
@@ -56,14 +56,14 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
     // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\nx1Start  : %lg 0x%016lx\nx1End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l, x1Start.d, x1Start.l, x1End.d, x1End.l);
     // fprintf(f, "\nxInput\t\txInput (Hex)\t\tyInput\t\tyInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
     // printf("testNum : %lu 0x%lx\n", testNumX0 * testNumX1, testNumX0 * testNumX1);
-    fileName = (char *) malloc(strlen(prefix) + strlen(suffix) + 64);
+    fileName = (char *) calloc(strlen(prefix) + strlen(suffix) + 128, sizeof(char));
     sprintf(fileName, "%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffix);
     printf("%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffix);
     if ((f = fopen(fileName, "w")) == NULL) { 
         printf("Error opening file %s.\n", fileName);
         exit(0);
     }
-    fileNameErr = (char *) malloc(strlen(prefixErr) + strlen(suffixErr) + 64);
+    fileNameErr = (char *) calloc(strlen(prefixErr) + strlen(suffixErr) + 128, sizeof(char));
     sprintf(fileNameErr, "%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffixErr);
     printf("%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffixErr);
     if ((fErr = fopen(fileNameErr, "w")) == NULL)
@@ -162,11 +162,15 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
         printf("average ulp\tmax ulp\n");
         printf("%lg\t%lg\n", aveReUlp, maxReUlp);
         printf("\naveReUlp = %lg\nmaxInputX = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
+        fprintf(fErr, "average ulp\tmax ulp\n");
+        fprintf(fErr, "%lg\t%lg\n", aveReUlp, maxReUlp);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
     }
 
     fclose(f);
     fclose(fErr);
+    free(fileName);
+    free(fileNameErr);
 }
 
 int main(int argc, char *argv[]) {

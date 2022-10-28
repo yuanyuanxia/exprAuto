@@ -46,11 +46,11 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     char *directory = "./outputs";
     FILE *f;
     char *prefix = "";
-    char *suffix = "sample.txt";
+    char *suffix = STR(SUFFIX)"_sample.txt";
     char *fileName;
     FILE *fErr;
     char *prefixErr = "";
-    char *suffixErr = "error.txt";
+    char *suffixErr = STR(SUFFIX)"_error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
@@ -61,7 +61,7 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l);
     // fprintf(f, "\nxInput\t\txInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
     // printf("testNum : %lu 0x%lx\n", testNumX0, testNumX0);
-    fileName = (char *) malloc(strlen(prefix) + strlen(suffix) + 64);
+    fileName = (char *) calloc(strlen(prefix) + strlen(suffix) + 128, sizeof(char));
     sprintf(fileName, "%s/%s%s_%d_%d_%lu%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
     printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
     if ((f = fopen(fileName, "w")) == NULL)
@@ -69,7 +69,7 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
         printf("Error opening file %s.\n", fileName);
         exit(0);
     }
-    fileNameErr = (char *) malloc(strlen(prefixErr) + strlen(suffixErr) + 64);
+    fileNameErr = (char *) calloc(strlen(prefixErr) + strlen(suffixErr) + 128, sizeof(char));
     sprintf(fileNameErr, "%s/%s%s_%d_%d_%lu%s", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
     printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
     if ((fErr = fopen(fileNameErr, "w")) == NULL)
@@ -140,13 +140,18 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     }
     else
     {
+        printf("average ulp\tmax ulp\n");
+        printf("%lg\t%lg\n", aveReUlp, maxReUlp);
         printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxReUlp);
-        fprintf(f, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxReUlp);
+        fprintf(fErr, "average ulp\tmax ulp\n");
+        fprintf(fErr, "%lg\t%lg\n", aveReUlp, maxReUlp);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxReUlp);
     }
 
     fclose(f);
     fclose(fErr);
+    free(fileName);
+    free(fileNameErr);
 }
 
 int main(int argc, char **argv)

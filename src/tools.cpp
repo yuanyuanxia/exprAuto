@@ -201,37 +201,46 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     vector<exprInfo> exprInfoVector;
 
     // for (int i = 0; i < intervalData.size(); i++)
+    size_t count = 0;
     for (auto &intervalTmp : intervalData)
     {
         auto newTempExprs = exprAutoWrapper(tempExpr);
         string bestRewriteExpr;
-        int scale = 100;
+        size_t scale;
+        auto dimension = intervalTmp.size() / 2;
+        if(dimension == 1) scale = 500000;
+        else if(dimension == 2) scale = 1024;
+        else if(dimension == 3) scale = 256;
+        else scale = 10;
 
-        //在此确定改写的最佳表达式
+        string suffix = "temp_" + std::to_string(count) + "_";
+
+        // pick the best rewrite expression
         for (size_t j = 0; j < newTempExprs.size(); j++)
         {
             cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-" << endl;
             string newExpr = PrintExpression(newTempExprs.at(j));
             cout << "No." << j << ": " << newExpr << endl;
-
+            
             // generate function code and test error
-            geneOriginCode(newExpr, uniqueLabel, "temp");
-            switch(intervalTmp.size())
+            string suffixTmp = suffix + std::to_string(j);
+            geneOriginCode(newExpr, uniqueLabel, suffixTmp);
+            switch(dimension)
             {
+                case 1:
+                    testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), scale);
+                    break;
+
                 case 2:
-                    testError(uniqueLabel, "origin", intervalTmp.at(0), intervalTmp.at(1), scale);
+                    testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), scale, scale);
                     break;
 
-                case 4:
-                    testError(uniqueLabel, "origin", intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), scale, scale);
-                    break;
-
-                case 6:
-                    testError(uniqueLabel, "origin", intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), intervalTmp.at(4), intervalTmp.at(5), scale, scale, scale);
+                case 3:
+                    testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), intervalTmp.at(4), intervalTmp.at(5), scale, scale, scale);
                     break;
 
                 default:
-                    fprintf(stderr, "WRONG: rewrite: the intervalTmp size is %ld\n", intervalTmp.size());
+                    fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", dimension);
                     exit(EXIT_FAILURE);
                     break;
             }
@@ -250,6 +259,8 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         tempInfo.maxError = 0.6;
         tempInfo.performance = 0.2;
         exprInfoVector.push_back(tempInfo);
+
+        count++;
     }
     return exprInfoVector;
 }
