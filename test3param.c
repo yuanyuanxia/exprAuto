@@ -105,14 +105,17 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     lenX2 = x2End.d - x2Start.d;
     maxReUlp = 0;
     flag = 1;
+    double stepX0 = lenX0 / (double)testNumX0;
+    double stepX1 = lenX1 / (double)testNumX1;
+    double stepX2 = lenX2 / (double)testNumX2;
     for(i2 = 0; i2 <= testNumX2; i2++) {
-        ii2.d = x2Start.d + lenX2 / (double)testNumX2 * i2;
+        ii2.d = x2Start.d + stepX2 * i2;
         x2 = ii2.d;
         for(i1 = 0; i1 <= testNumX1; i1++) {
-            ii1.d = x1Start.d + lenX1 / (double)testNumX1 * i1;
+            ii1.d = x1Start.d + stepX1 * i1;
             x1 = ii1.d;
             for(i0 = 0; i0 <= testNumX0; i0++) {
-                ii0.d = x0Start.d + lenX0 / (double)testNumX0 * i0;
+                ii0.d = x0Start.d + stepX0 * i0;
                 x0 = ii0.d;
     #endif
                 computeResult3param(x0, x1, x2, mpfrResult);
