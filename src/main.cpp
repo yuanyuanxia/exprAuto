@@ -85,7 +85,7 @@ int main()
         // pickTheBest(uniqueLabel, 0, 1, 100);
         // testError(uniqueLabel, "origin", 0, 1, 100); // for 1 param
         // testError(uniqueLabel, "origin", 0, 1, 0, 1, 100, 100); // for 2 params
-        testError(uniqueLabel, "origin", -100, 100, 20, 20000, -30, 50, 256, 256, 256); // for 3 params
+        testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, 256, 256, 256); // for 3 params
 
         // geneBoundaryData(inputStr, uniqueLabel); // matlab
 
@@ -97,7 +97,7 @@ int main()
         geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
         } // the whole process end
 
-        if(runAllFlag)
+        if(!runAllFlag)
         { // only rewrite
         auto results = exprAutoWrapper(inputStr);
 

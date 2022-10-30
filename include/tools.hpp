@@ -17,6 +17,7 @@ public:
     double aveError;
     double maxError;
     double performance;
+    size_t rewriteID;
 };
 
 string getUniqueLabel();

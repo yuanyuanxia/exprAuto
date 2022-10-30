@@ -38,3 +38,4 @@ build/
 main
 *.txt
 __pycache__/
+expr_*.c

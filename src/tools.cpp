@@ -120,63 +120,56 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     char command[200] = {0};
     strcat(command, commandStr.c_str());
     system(command);
-    // std::ifstream ifs(testName, std::ios::in);
+    std::ifstream ifs(testName, std::ios::in);
 
-    // double aveError = 0;
-    // double maxError = 0;
+    double aveError = 0;
+    double maxError = 0;
     exprInfo tempError;
     
-    // char ch;
-    // ifs >> ch;
-    // if (ifs.eof())
-    // {
-    //     std::cout << "is null" << std::endl;
-    //     ifs.close();
-    //     std::vector<double> intervals;
-    //     intervals.push_back(x0Start);
-    //     intervals.push_back(x0End);
-    //     intervals.push_back(x1Start);
-    //     intervals.push_back(x1End);
-    //     intervals.push_back(x2Start);
-    //     intervals.push_back(x2End);
+    char ch;
+    ifs >> ch;
+    if (ifs.eof())
+    {
+        std::cout << "is null" << std::endl;
+        ifs.close();
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+        intervals.push_back(x1Start);
+        intervals.push_back(x1End);
+        intervals.push_back(x2Start);
+        intervals.push_back(x2End);
 
-    //     tempError.intervals = intervals;
-    //     tempError.aveError = aveError;
-    //     tempError.maxError = maxError;
-    // }
-    // else
-    // {
-    //     std::ifstream ifs1(testName, std::ios::in);
-    //     ifs1.open(testName, std::ios::in);
-    //     std::string buf;
-    //     std::getline(ifs1, buf);
-    //     std::getline(ifs1, buf);
+        tempError.intervals = intervals;
+        tempError.aveError = aveError;
+        tempError.maxError = maxError;
+    }
+    else
+    {
+        std::ifstream ifs(testName, std::ios::in);
 
-    //     int spacePos;
+        std::string lineStr;
+        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // get the second line
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        strcpy(line, lineStr.c_str());
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        string aveErrorTemp = strtok(line, delim);
+        string maxErrorTemp = strtok(NULL, delim);
+        // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
 
-    //     for (int i = 0; i < buf.length(); i++)
-    //     {
-    //         if (buf[i] == ' ')
-    //         {
-    //             spacePos = i;
-    //             break;
-    //         }
-    //     }
-    //     aveError = atof(buf.substr(0, spacePos).c_str());
-    //     maxError = atof(buf.substr(spacePos + 1, buf.length() - 1 - spacePos).c_str());
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+        intervals.push_back(x1Start);
+        intervals.push_back(x1End);
+        intervals.push_back(x2Start);
+        intervals.push_back(x2End);
 
-    //     std::vector<double> intervals;
-    //     intervals.push_back(x0Start);
-    //     intervals.push_back(x0End);
-    //     intervals.push_back(x1Start);
-    //     intervals.push_back(x1End);
-    //     intervals.push_back(x2Start);
-    //     intervals.push_back(x2End);
-
-    //     tempError.intervals = intervals;
-    //     tempError.aveError = aveError;
-    //     tempError.maxError = maxError;
-    // }
+        tempError.intervals = intervals;
+        tempError.aveError = atof(aveErrorTemp.c_str());
+        tempError.maxError = atof(maxErrorTemp.c_str());
+    }
 
     return tempError;
 }
@@ -259,6 +252,7 @@ vector<vector<double>> getIntervalData(string filename)
 // call exprAuto to rewrite the input expression
 vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
 {
+    // string filename = "expr_" + uniqueLabel + "_interval.txt";
     string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
 
     auto intervalData = getIntervalData(filename);
@@ -272,9 +266,6 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     for (auto &intervalTmp : intervalData)
     {
         auto newTempExprs = exprAutoWrapper(tempExpr);
-        string bestRewriteExpr;
-        double maxError;
-        double aveError;
         size_t scale;
         auto dimension = intervalTmp.size() / 2;
         if (dimension == 1)
@@ -289,6 +280,10 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         string suffix = "temp_" + std::to_string(count) + "_";
 
         // pick the best rewrite expression
+        string bestRewriteExpr;
+        double maxError;
+        double aveError;
+        size_t maxIdx = -1;
         for (size_t j = 0; j < newTempExprs.size(); j++)
         {
             cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-" << endl;
@@ -311,9 +306,6 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
 
                 case 3:
                     tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), intervalTmp.at(4), intervalTmp.at(5), scale, scale, scale);
-                    // std::cout << "*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*" << std::endl;
-                    // std::cout << suffixTmp << std::endl;
-                    // std::cout << "*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*&*" << std::endl;
                     break;
 
                 default:
@@ -326,6 +318,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
                 maxError = tempError.maxError;
                 bestRewriteExpr = newExpr;
                 aveError = tempError.aveError;
+                maxIdx = j;
             }
             else
             {
@@ -334,11 +327,11 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
                     maxError = tempError.maxError;
                     bestRewriteExpr = newExpr;
                     aveError = tempError.aveError;
+                    maxIdx = j;
                 }
             }
 
-            cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n"
-                 << endl;
+            cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n" << endl;
         }
 
         exprInfo tempInfo;
@@ -350,6 +343,8 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         tempInfo.aveError = aveError;
         tempInfo.maxError = maxError;
         tempInfo.performance = 0.2;
+        tempInfo.rewriteID = maxIdx;
+        
         exprInfoVector.push_back(tempInfo);
 
         count++;
@@ -367,9 +362,11 @@ void geneFinalCode(string exprStr, string uniqueLabel, std::vector<exprInfo> exp
     cout << "the general information" << endl;
     for (size_t i = 0; i < exprInfoVector.size(); i++)
     {
-        cout << "NO." << i << endl;
-        cout << "Interval: [" << exprInfoVector.at(i).start << "," << exprInfoVector.at(i).end << "]" << endl;
-        cout << "expr: " << exprInfoVector.at(i).exprStr << endl;
+        cout << "Interval NO." << i << endl;
+        cout << "\trewriteID: " << exprInfoVector.at(i).rewriteID << endl;
+        cout << "\taveError: " << exprInfoVector.at(i).aveError << "\tmaxError: " << exprInfoVector.at(i).maxError << endl;
+        cout << "\texpr: " << exprInfoVector.at(i).exprStr << endl;
+        // cout << "Interval: [" << exprInfoVector.at(i).start << "," << exprInfoVector.at(i).end << "]" << endl;
     }
 
     // generate code to file
@@ -403,6 +400,5 @@ void geneFinalCode(string exprStr, string uniqueLabel, std::vector<exprInfo> exp
     fout.close();
     cout << "generate file: " << fileName << endl;
 
-    cout << "&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&\n"
-         << endl;
+    cout << "&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&\n" << endl;
 }

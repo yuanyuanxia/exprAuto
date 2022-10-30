@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
                 maxError = errTmp;
                 maxErrorIdx = i;
             }
-            aveError += errTmp;
+            aveError += errs[i].sumError;
         }
         aveError = aveError / (testNumX0 * testNumX1 * testNumX2);
         DL maxInputX0, maxInputX1, maxInputX2;
