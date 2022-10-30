@@ -32,7 +32,7 @@ int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult) {
     return status;
 }
 
-void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2) {
+void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* fileNameKernel) {
     DL ii0, ii1, ii2, maxInputX0, maxInputX1, maxInputX2;
     #ifdef DEBUG
     DL orcle, result;
@@ -44,12 +44,10 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     #endif
     char *directory = "./outputs";
     FILE *f;
-    char *prefix = "";
-    char *suffix = STR(SUFFIX)"_sample.txt";
-    char *fileName;
+    char *suffix = "sample.txt";
+    char *fileNameSample;
     FILE *fErr;
-    char *prefixErr = "";
-    char *suffixErr = STR(SUFFIX)"_error.txt";
+    char *suffixErr = "error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
@@ -60,18 +58,17 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\nx1Start  : %lg 0x%016lx\nx1End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l, x1Start.d, x1Start.l, x1End.d, x1End.l);
     // fprintf(f, "\nxInput\t\txInput (Hex)\t\tyInput\t\tyInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
     // printf("testNum : %lu 0x%lx\n", testNumX0 * testNumX1, testNumX0 * testNumX1);
-    fileName = (char *) calloc(strlen(prefix) + strlen(suffix) + 128, sizeof(char));
-    sprintf(fileName, "%s/%s%s_%d_%d_%d_%d_%d_%d_%lu_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, (int)x2Start.d, (int)x2End.d, testNumX0, testNumX1, testNumX2, suffix);
-    printf("%s/%s%s_%d_%d_%d_%d_%d_%d_%lu_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, (int)x2Start.d, (int)x2End.d, testNumX0, testNumX1, testNumX2, suffix);
-    if ((f = fopen(fileName, "w")) == NULL) { 
-        printf("Error opening file %s.\n", fileName);
+    fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    sprintf(fileNameSample, "./outputs/%s_%s", fileNameKernel, suffix);
+    printf("%s\n", fileNameSample);
+    if ((f = fopen(fileNameSample, "w")) == NULL) { 
+        printf("Error opening file %s.\n", fileNameSample);
         exit(0);
     }
-    fileNameErr = (char *) calloc(strlen(prefixErr) + strlen(suffixErr) + 128, sizeof(char));
-    sprintf(fileNameErr, "%s/%s%s_%d_%d_%d_%d_%d_%d_%lu_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, (int)x2Start.d, (int)x2End.d, testNumX0, testNumX1, testNumX2, suffixErr);
-    printf("%s/%s%s_%d_%d_%d_%d_%d_%d_%lu_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, (int)x2Start.d, (int)x2End.d, testNumX0, testNumX1, testNumX2, suffixErr);
-    if ((fErr = fopen(fileNameErr, "w")) == NULL)
-    {
+    fileNameErr = (char *) calloc(strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
+    sprintf(fileNameErr, "./outputs/%s_%s", fileNameKernel, suffixErr);
+    printf("%s\n", fileNameErr);
+    if ((fErr = fopen(fileNameErr, "w")) == NULL) { 
         printf("Error opening file %s.\n", fileNameErr);
         exit(0);
     }
@@ -104,6 +101,7 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     lenX1 = x1End.d - x1Start.d;
     lenX2 = x2End.d - x2Start.d;
     maxReUlp = 0;
+    aveReUlp = 0;
     flag = 1;
     double stepX0 = lenX0 / (double)testNumX0;
     double stepX1 = lenX1 / (double)testNumX1;
@@ -111,11 +109,9 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     for(i2 = 0; i2 <= testNumX2; i2++) {
         ii2.d = x2Start.d + stepX2 * i2;
         x2 = ii2.d;
-        for(i1 = 0; i1 <= testNumX1; i1++) {
-            ii1.d = x1Start.d + stepX1 * i1;
+        for(ii1.d = x1Start.d; ii1.d < x1End.d; ii1.d += stepX1) {
             x1 = ii1.d;
-            for(i0 = 0; i0 <= testNumX0; i0++) {
-                ii0.d = x0Start.d + stepX0 * i0;
+            for(ii0.d = x0Start.d; ii0.d < x0End.d; ii0.d += stepX0) {
                 x0 = ii0.d;
     #endif
                 computeResult3param(x0, x1, x2, mpfrResult);
@@ -166,7 +162,7 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
 
     fclose(f);
     fclose(fErr);
-    free(fileName);
+    free(fileNameSample);
     free(fileNameErr);
 }
 
@@ -184,7 +180,9 @@ int main(int argc, char **argv) {
     testNumX1 = TESTNUMX1;
     testNumX2 = TESTNUMX2;
 
-    if(argc == 10) {
+    char *fileNameKernel;
+    fileNameKernel = calloc(256, sizeof(char));
+    if(argc == 11) {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
@@ -194,23 +192,28 @@ int main(int argc, char **argv) {
         testNumX0 = strtod(argv[7], NULL);
         testNumX1 = strtod(argv[8], NULL);
         testNumX2 = strtod(argv[9], NULL);
-    } else if(argc == 7) {
+        strcpy(fileNameKernel, argv[10]);
+    } else if(argc == 8) {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
         x1End.d = strtod(argv[4], NULL);
         x2Start.d = strtod(argv[5], NULL);
         x2End.d = strtod(argv[6], NULL);
-    } else if(argc == 4) {
+        strcpy(fileNameKernel, argv[7]);
+    } else if(argc == 5) {
         testNumX0 = strtod(argv[1], NULL);
         testNumX1 = strtod(argv[2], NULL);
         testNumX2 = strtod(argv[3], NULL);
+        strcpy(fileNameKernel, argv[4]);
     } else {
-        printf("Usage: ./a.out [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2]\n");
+        printf("Usage: ./test3paramParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }
-    test3param(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2);
+    printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
+
+    test3param(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel);
 
     return 0;
 }
