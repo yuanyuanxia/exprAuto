@@ -2,6 +2,8 @@
 #define _GENECODE
 
 #include "basic.hpp"
+#include "tools.hpp"
+
 #include<stdio.h>
 #include <fstream>
 #include<iostream>
@@ -25,6 +27,10 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[
 
 void geneDaisyCode(string exprStr);
 
-string geneMpfrCode(const string exprStr, const string uniqueLabel, const string tail);
+string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<string> vars);
+
+string geneFinalCodeKernel(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector, vector<string> vars);
+
+string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector);
 
 #endif

@@ -6,6 +6,7 @@
 
 using std::string;
 using std::vector;
+
 class exprInfo
 {
 public:
@@ -35,7 +36,5 @@ void geneIntervalData(string exprStr, string unqiueLabel);
 vector<string> getIntervalData();
 
 vector<exprInfo> rewrite(string exprSr, string uniqueLabel);
-
-void geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector);
 
 #endif

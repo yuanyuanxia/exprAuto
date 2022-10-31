@@ -85,7 +85,7 @@ int main()
         // auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
         // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
         // auto funcNameDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
-        auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, "mpfr");
+        auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
         // TODO: pick the best from origin, herbie, daisy
         // pickTheBest(uniqueLabel, 0, 1, 100);
@@ -120,9 +120,7 @@ int main()
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         auto exprInfoVector = rewrite(inputStr, uniqueLabel);
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-        geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
-        // !!! NOTE: may use the similiar interface like geneOriginCodeKernel to implement the final code's generation
-        // auto funcNameFinal = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
+        auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
         } // the whole process end
 
         if(!runAllFlag)

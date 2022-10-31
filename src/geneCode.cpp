@@ -108,7 +108,7 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
     auto &rhs = binaryPtr->getRHS();
     getVariablesFromExpr(lhs, vars);
     getVariablesFromExpr(rhs, vars);
-    std::sort(vars.begin(), vars.end());
+    std::sort(vars.begin(), vars.end()); // sort to unique the parameters queue
     vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
     return true;
 }
@@ -170,9 +170,9 @@ void geneDaisyCode(string exprStr)
     cout << exprStr << endl;
 }
 
-string geneMpfrCode(const string exprStr, const string uniqueLabel, const string tail)
+string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<string> vars)
 {
-    string funcName = "expr_" + uniqueLabel + "_" + tail;
+    string funcName = "expr_" + uniqueLabel + "_mpfr";
     string fileName = funcName + ".c";
     ofstream file_clean(fileName, ios_base::out);
     ofstream ofs(fileName, ios::app);
@@ -192,8 +192,8 @@ string geneMpfrCode(const string exprStr, const string uniqueLabel, const string
         {"tan", "mpfr_tan"}};
     
     std::unique_ptr<ExprAST> exprAst = ParseExpressionFromString(exprStr);
-    vector<string> vars;
-    getVariablesFromExpr(exprAst, vars);
+    // vector<string> vars;
+    // getVariablesFromExpr(exprAst, vars);
     size_t mpfr_variables = 0;
     getMpfrParameterNumber(exprAst, mpfr_variables);
 
@@ -226,6 +226,96 @@ string geneMpfrCode(const string exprStr, const string uniqueLabel, const string
     ofs << "\n\tmpfr_set(mpfrResult, mp" << mpfr_variables << ", MPFR_RNDN);\n"
         << "\treturn status;\n"
         << "}";
+
+    return funcName;
+}
+
+// generate final code
+string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprInfo> exprInfoVector, vector<string> vars)
+{
+    cout << "\n&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&" << endl;
+
+    cout << "size of exprInfoVector:" << exprInfoVector.size() << endl;
+    cout << "the general information" << endl;
+    for (size_t i = 0; i < exprInfoVector.size(); i++)
+    {
+        cout << "Interval NO." << i << endl;
+        cout << "\trewriteID: " << exprInfoVector.at(i).rewriteID << endl;
+        cout << "\taveError: " << exprInfoVector.at(i).aveError << "\tmaxError: " << exprInfoVector.at(i).maxError << endl;
+        cout << "\texpr: " << exprInfoVector.at(i).exprStr << endl;
+        // cout << "Interval: [" << exprInfoVector.at(i).start << "," << exprInfoVector.at(i).end << "]" << endl;
+    }
+
+    // generate code to file
+    string funcName = "expr_" + uniqueLabel + "_final";
+    string fileName = funcName + ".c";
+    std::ofstream fout;
+    fout.open(fileName.c_str());
+
+    // function declearation
+    fout << "#include <math.h>" << std::endl;
+    fout << "double " << funcName << "(";
+    for (size_t i = 0; i < vars.size(); ++i)
+    {
+        if (i != vars.size() - 1)
+            fout << "double" << " " << vars.at(i) << ", ";
+        else
+            fout << "double" << " " << vars.at(i);
+    }
+    fout << ") {\n";
+    fout << "    double result;" << std::endl;
+
+    // function body
+    for (size_t i = 0; i < exprInfoVector.size(); i++)
+    {
+        std::vector<double> interval = exprInfoVector.at(i).intervals;
+
+        string &exprStr = exprInfoVector.at(i).exprStr;
+        // generate if statement
+        if (i == 0)
+        {
+            fout << "    if(";
+        }
+        else
+        {
+            fout << "    } else if(";
+        }
+        for(size_t j = 0; j < interval.size(); j +=2)
+        {
+            if(j < interval.size() - 2)
+            {
+                fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ") && ";
+            }
+            else
+            {
+                fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ")";
+            }
+        }
+        fout << ") {" << endl;
+        fout << "        result = " << exprStr << ";" << endl;
+    }
+    fout << "    } else {" << std::endl;
+    fout << "        result = " << exprStr << ";" << std::endl;
+    fout << "    }" << std::endl;
+    fout << "    return result;" << std::endl;
+    fout << "}" << std::endl;
+
+    fout << std::flush;
+    fout.close();
+    cout << "generate file: " << fileName << endl;
+
+    cout << "&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&\n" << endl;
+
+    return funcName;
+}
+
+string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector)
+{
+    auto originExpr = ParseExpressionFromString(exprStr);
+
+    vector<string> vars;
+    getVariablesFromExpr(originExpr, vars);
+    auto funcName = geneFinalCodeKernel(exprStr, uniqueLabel, exprInfoVector, vars);
 
     return funcName;
 }
