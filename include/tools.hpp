@@ -24,7 +24,7 @@ string getUniqueLabel();
 
 void testError(string uniqueLabel, string suffix, double start, double end, int scale);
 
-void testError(string uniqueLabel, string suffix, double xStart, double xEnd, double yStart, double yEnd, int xScale, int yScale);
+exprInfo testError(string uniqueLabel, string suffix, double xStart, double xEnd, double yStart, double yEnd, int xScale, int yScale);
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size);
 

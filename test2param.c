@@ -17,94 +17,71 @@
 double EXPRESSIONMPFR(double, double, mpfr_t);
 double EXPRESSIONMINE(double, double);
 
-int computeOrcle2param(double x0, double x1, mpfr_t orcle) {
-    return EXPRESSIONMPFR(x0, x1, orcle);
-}
+int computeOrcle2param(double x0, double x1, mpfr_t orcle) { return EXPRESSIONMPFR(x0, x1, orcle); }
 
-int computeResult2param(double x0, double x1, mpfr_t mpfrResult) {
+int computeResult2param(double x0, double x1, mpfr_t mpfrResult)
+{
     int status = 1;
-    
+
     double result = EXPRESSIONMINE(x0, x1);
     mpfr_set_d(mpfrResult, result, MPFR_RNDN);
 
     return status;
 }
 
-void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1) {
-    DL i, j, maxInputX0, maxInputX1;
-    // DL orcle, result;
-    int ii, jj, flag;
+void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char *fileNameKernel)
+{
+    DL ii0, ii1, maxInputX0, maxInputX1;
+    #ifdef DEBUG
+    DL orcle, result;
+    #endif
+    int flag;
     double x0, x1, reUlp, aveReUlp, maxReUlp, lenX0, lenX1;
     #ifdef FP
-    unsigned long int reUlpInt, step, stepY, sum, sumY, aveReUlpInt, maxReUlpInt;
+    unsigned long int reUlpInt, stepX0, stepX1, stepX2, sum, sumY, aveReUlpInt, maxReUlpInt;
     #endif
     char *directory = "./outputs";
     FILE *f;
-    char *prefix = "";
-    char *suffix = STR(SUFFIX)"_sample.txt";
-    char *fileName;
+    char *suffix = "sample.txt";
+    char *fileNameSample;
     FILE *fErr;
-    char *prefixErr = "";
-    char *suffixErr = STR(SUFFIX)"_error.txt";
+    char *suffixErr = "error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
-    // printf("test expression: %s\n", STR2(EXPRESSION));
-    // printf("x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\nx1Start  : %lg 0x%016lx\nx1End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l, x1Start.d, x1Start.l, x1End.d, x1End.l);
-    // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\nx1Start  : %lg 0x%016lx\nx1End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l, x1Start.d, x1Start.l, x1End.d, x1End.l);
-    // fprintf(f, "\nxInput\t\txInput (Hex)\t\tyInput\t\tyInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
-    // printf("testNum : %lu 0x%lx\n", testNumX0 * testNumX1, testNumX0 * testNumX1);
-    fileName = (char *) calloc(strlen(prefix) + strlen(suffix) + 128, sizeof(char));
-    sprintf(fileName, "%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffix);
-    printf("%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffix);
-    if ((f = fopen(fileName, "w")) == NULL) { 
-        printf("Error opening file %s.\n", fileName);
+    fileNameSample = (char *)calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    sprintf(fileNameSample, "./outputs/%s_%s", fileNameKernel, suffix);
+    printf("%s\n", fileNameSample);
+    if((f = fopen(fileNameSample, "w")) == NULL)
+    {
+        printf("Error opening file %s.\n", fileNameSample);
         exit(0);
     }
-    fileNameErr = (char *) calloc(strlen(prefixErr) + strlen(suffixErr) + 128, sizeof(char));
-    sprintf(fileNameErr, "%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffixErr);
-    printf("%s/%s%s_%d_%d_%d_%d_%lu_%lu_%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, (int)x1Start.d, (int)x1End.d, testNumX0, testNumX1, suffixErr);
-    if ((fErr = fopen(fileNameErr, "w")) == NULL)
+    fileNameErr = (char *)calloc(strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
+    sprintf(fileNameErr, "./outputs/%s_%s", fileNameKernel, suffixErr);
+    printf("%s\n", fileNameErr);
+    if((fErr = fopen(fileNameErr, "w")) == NULL)
     {
         printf("Error opening file %s.\n", fileNameErr);
         exit(0);
     }
 
-    #ifdef FP   // FP number average
-    // printf("FP number average\n");
-    sum = x0End.l - x0Start.l;
-    step = sum / testNumX0;
-    if(step == 0) {
-        step = 1;
-    }
-    sumY = x1End.l - x1Start.l;
-    stepY = sum / testNumX1;
-    if(stepY == 0) {
-        stepY = 1;
-    }
-
-    printf("sum     : %lu 0x%lx\nstep    : %lu 0x%lx\ntestNum : %lu 0x%lx\n", sum, sum, step, step, testNumX0 * testNumX1, testNumX0 * testNumX1);
-    // fprintf(f, "sum     : %lu 0x%lx\nstep    : %lu 0x%lx\ntestNum : %lu 0x%lx\n", sum, sum, step, step, testNumX0 * testNumX1, testNumX0 * testNumX1);
-    for(i.l = x1Start.l; i.l <= x1End.l; i.l = i.l + stepY) {
-        x1 = i.d;
-        for(j.l = zStart.l; j.l <= zEnd.l; j.l = j.l + step) {
-            x0 = j.d;
-
-    #else   // Real number average
     // printf("Real number average\n");
     lenX0 = x0End.d - x0Start.d;
     lenX1 = x1End.d - x1Start.d;
     maxReUlp = 0;
+    aveReUlp = 0;
     flag = 1;
-    for(ii = 0; ii <= testNumX1; ii++) {
-        i.d = x1Start.d + lenX1 / (double)testNumX1 * ii;
-        x1 = i.d;
-        for(jj = 0; jj <= testNumX0; jj++) {
-            j.d = x0Start.d + lenX0 / (double)testNumX0 * jj;
-            x0 = j.d;
-    #endif
+    double stepX0 = lenX0 / (double)testNumX0;
+    double stepX1 = lenX1 / (double)testNumX1;
+    for(ii1.d = x1Start.d; ii1.d < x1End.d; ii1.d += stepX1)
+    {
+        x1 = ii1.d;
+        for(ii0.d = x0Start.d; ii0.d < x0End.d; ii0.d += stepX0)
+        {
+            x0 = ii0.d;
             // constraint: ((-2 * ((x1 * x1) * (x1 * x1))) + 2) >= x2;
             // if (x0 + x1 > 2) {
             //     continue;
@@ -145,10 +122,11 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
             }
             // fprintf(f, "%.16le ", reUlp);
             aveReUlp += reUlp;
-            if (reUlp > maxReUlp) {
+            if (reUlp > maxReUlp)
+            {
                 flag = 0;
-                maxInputX1 = i;
-                maxInputX0 = j;
+                maxInputX1 = ii1;
+                maxInputX0 = ii0;
                 maxReUlp = reUlp;
             }
         }
@@ -156,24 +134,28 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
     }
     // fprintf(f, "\n");
     aveReUlp = aveReUlp / (testNumX0 * testNumX1);
-    if(flag == 1) {
+    if(flag == 1)
+    {
         printf("all error are 0!!\n");
-    } else {
+    }
+    else
+    {
         printf("average ulp\tmax ulp\n");
         printf("%lg\t%lg\n", aveReUlp, maxReUlp);
-        printf("\naveReUlp = %lg\nmaxInputX = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
+        printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%lg\t%lg\n", aveReUlp, maxReUlp);
-        fprintf(fErr, "\naveReUlp = %lg\nmaxInputX = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
+        fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
     }
 
     fclose(f);
     fclose(fErr);
-    free(fileName);
+    free(fileNameSample);
     free(fileNameErr);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     DL x0Start, x0End, x1Start, x1End;
     unsigned long int testNumX0, testNumX1;
 
@@ -184,22 +166,42 @@ int main(int argc, char *argv[]) {
     testNumX0 = TESTNUMX;
     testNumX1 = TESTNUMY;
 
-    if(argc == 7) {
+    char *fileNameKernel;
+    fileNameKernel = calloc(256, sizeof(char));
+    if(argc == 8)
+    {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
         x1End.d = strtod(argv[4], NULL);
         testNumX0 = strtod(argv[5], NULL);
         testNumX1 = strtod(argv[6], NULL);
-    } else if(argc == 3) {
+        strcpy(fileNameKernel, argv[7]);
+    }
+    else if(argc == 6)
+    {
+        x0Start.d = strtod(argv[1], NULL);
+        x0End.d = strtod(argv[2], NULL);
+        x1Start.d = strtod(argv[3], NULL);
+        x1End.d = strtod(argv[4], NULL);
+        strcpy(fileNameKernel, argv[5]);
+    }
+    else if(argc == 4)
+    {
         testNumX0 = strtod(argv[1], NULL);
         testNumX1 = strtod(argv[2], NULL);
-    } else {
+        strcpy(fileNameKernel, argv[3]);
+    }
+    else
+    {
         printf("Usage: ./a.out [x0Start x0End x1Start x1End] testNumX0 testNumX1\n");
         printf("Usage: if not correctly input:\n");
         printf("Usage: \tthe fixed inputs in the program will be used\n");
     }
-    test2param(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1);
+    printf("\n---------------------------------------------------start test2param\n");
+    printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, testNumX0 = %lu, testNumX1 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1, fileNameKernel);
+
+    test2param(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, fileNameKernel);
 
     return 0;
 }

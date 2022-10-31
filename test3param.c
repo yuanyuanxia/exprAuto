@@ -37,7 +37,7 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     #ifdef DEBUG
     DL orcle, result;
     #endif
-    int i0, i1, i2, flag;
+    int flag;
     double x0, x1, x2, reUlp, aveReUlp, maxReUlp, lenX0, lenX1, lenX2;
     #ifdef FP
     unsigned long int reUlpInt, stepX0, stepX1, stepX2, sum, sumY, aveReUlpInt, maxReUlpInt;
@@ -106,8 +106,7 @@ void test3param(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End
     double stepX0 = lenX0 / (double)testNumX0;
     double stepX1 = lenX1 / (double)testNumX1;
     double stepX2 = lenX2 / (double)testNumX2;
-    for(i2 = 0; i2 <= testNumX2; i2++) {
-        ii2.d = x2Start.d + stepX2 * i2;
+    for(ii2.d = x2Start.d; ii2.d < x2End.d; ii2.d += stepX2) {
         x2 = ii2.d;
         for(ii1.d = x1Start.d; ii1.d < x1End.d; ii1.d += stepX1) {
             x1 = ii1.d;
@@ -211,6 +210,7 @@ int main(int argc, char **argv) {
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }
+    printf("\n---------------------------------------------------start test3param\n");
     printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
 
     test3param(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel);

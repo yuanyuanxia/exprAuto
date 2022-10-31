@@ -1,27 +1,41 @@
 # !/bin/bash
-# Usage: ./detectError.sh ${func} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size}
+# Usage: ./detectErrorTwo.sh ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}
 # set -x
+
 path=`pwd`
 cd ${path}
+CC=gcc
 
-func=${1}
-suffix=${2} # herbie daisy origin tmp final
-x0Start=${3}
-x0End=${4}
-x1Start=${5}
-x1End=${6}
-if [ $# -eq 8 ]; then
-    x0Size=${7}
-    x1Size=${8}
+uniqueLabel=${1} # unique number
+x0Start=${2}
+x0End=${3}
+x1Start=${4}
+x1End=${5}
+
+if [ $# -eq 10 ]; then
+    x0Size=${6}
+    x1Size=${7}
+    prefix=${8} # expr_${uniqueLabel}. Eg: expr_20221030155958
+    middle=${9} # intervalsInfo_sizes. Eg: 3.8_7.8_-4.5_-0.3_0.4_0.9_256_256_256
+    suffix=${10} # different version. Eg: herbie daisy origin temp_0_3 final
+elif [ $# -eq 8 ]; then
+    x0Size=256
+    x1Size=256
+    prefix=${6}
+    middle=${7}
+    suffix=${8}
 else
-    x0Size=1024
-    x1Size=1024
+    echo "detectErrorTwo: Invalid input parameters"
+    exit
 fi
-prefix=`echo ${func} | cut -d " " -f 1`
-prefix=expr_${prefix}_
 
-echo "detecting error: ${func} ${suffix} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size}"
-gcc test2param.c ${prefix}${suffix}.c ${prefix}mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix} -DSUFFIX=${suffix} -lmpfr -lm -o test2param.exe
-./test2param.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size}
-rm test2param.exe
-echo -e "end detecting ${func}\n"
+testFileName=test2param
+
+echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle}"
+
+${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -o ${testFileName}.exe
+
+./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix}__${middle}_${suffix}
+rm ${testFileName}.exe
+echo "end detecting ${uniqueLabel}"
+echo

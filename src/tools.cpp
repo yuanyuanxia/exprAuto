@@ -66,27 +66,81 @@ void testError(string uniqueLabel, string suffix, double start, double end, int 
     system(command);
 }
 
-void testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
+exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
 {
+    std::ostringstream os1;
+    os1 << x0Start;
+    std::ostringstream os2;
+    os2 << x0End;
+    std::ostringstream os3;
+    os3 << x1Start;
+    std::ostringstream os4;
+    os4 << x1End;
+    
+    std::ostringstream os7;
+    os7 << x0Size;
+    std::ostringstream os8;
+    os8 << x1Size;
+
+
+    string prefix = "expr_" + uniqueLabel;
+    string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os7.str() + "_" + os8.str();
+    string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+    string testName = "./outputs/" + fileNameKernel + "_error.txt";
     string scriptName = "./detectErrorTwo.sh";
+    string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os3.str() + " " + os4.str() + " " + os7.str() + " " + os8.str() + " " + prefix + " " + middle + " " + suffix;
+    cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
-    string file = scriptName + " ";
-    strcpy(command, file.c_str());
-
-    string param1 = uniqueLabel + " ";
-    string param2 = suffix + " ";
-    string param3 = std::to_string(x0Start) + " ";
-    string param4 = std::to_string(x0End) + " ";
-    string param5 = std::to_string(x1Start) + " ";
-    string param6 = std::to_string(x1End) + " ";
-    string param7 = std::to_string(x0Size) + " ";
-    string param8 = std::to_string(x1Size) + " ";
-    // strcat(command, param8.c_str());
-
-    string params = param1 + param2 + param3 + param4 + param5 + param6 + param7 + param8;
-    strcat(command, params.c_str());
-    cout << "command: " << command << endl;
+    strcat(command, commandStr.c_str());
     system(command);
+    std::ifstream ifs(testName, std::ios::in);
+
+    double aveError = 0;
+    double maxError = 0;
+    exprInfo tempError;
+    
+    char ch;
+    ifs >> ch;
+    if (ifs.eof())
+    {
+        std::cout << "is null" << std::endl;
+        ifs.close();
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+        intervals.push_back(x1Start);
+        intervals.push_back(x1End);
+
+        tempError.intervals = intervals;
+        tempError.aveError = aveError;
+        tempError.maxError = maxError;
+    }
+    else
+    {
+        std::ifstream ifs(testName, std::ios::in);
+
+        std::string lineStr;
+        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // get the second line
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        strcpy(line, lineStr.c_str());
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        string aveErrorTemp = strtok(line, delim);
+        string maxErrorTemp = strtok(NULL, delim);
+        // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
+
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+        intervals.push_back(x1Start);
+        intervals.push_back(x1End);
+
+        tempError.intervals = intervals;
+        tempError.aveError = atof(aveErrorTemp.c_str());
+        tempError.maxError = atof(maxErrorTemp.c_str());
+    }
+
+    return tempError;
 }
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size)
@@ -301,7 +355,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
                     break;
 
                 case 2:
-                    testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), scale, scale);
+                    tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), scale, scale);
                     break;
 
                 case 3:

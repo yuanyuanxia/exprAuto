@@ -76,16 +76,42 @@ int main()
         auto uniqueLabel = getUniqueLabel();
         cout << "uniqueLabel: " << uniqueLabel << endl;
 
-        auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
+        // get the information about the input expr
+        auto originExpr = ParseExpressionFromString(inputStr);
+        vector<string> vars;
+        getVariablesFromExpr(originExpr, vars);
+
+        auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
+        // auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
         // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
         // auto funcNameDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
         auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, "mpfr");
 
         // TODO: pick the best from origin, herbie, daisy
         // pickTheBest(uniqueLabel, 0, 1, 100);
-        // testError(uniqueLabel, "origin", 0, 1, 100); // for 1 param
-        // testError(uniqueLabel, "origin", 0, 1, 0, 1, 100, 100); // for 2 params
-        testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, 256, 256, 256); // for 3 params
+        switch (vars.size()) // choose the test error version according to the input parameters number
+        {
+            case 1: {
+                int scale = 50000;
+                testError(uniqueLabel, "origin", 0, 1, scale); // for 1 param
+                break;
+            }
+            case 2: {
+                int scale = 1024;
+                testError(uniqueLabel, "origin", 0, 1, 0, 1, scale, scale); // for 2 params
+                break;
+            }
+            case 3: {
+                int scale = 256;
+                testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
+                break;
+            }
+            default: {
+                fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", vars.size());
+                exit(EXIT_FAILURE);
+                break;
+            }
+        }
 
         // geneBoundaryData(inputStr, uniqueLabel); // matlab
 
@@ -95,6 +121,8 @@ int main()
         auto exprInfoVector = rewrite(inputStr, uniqueLabel);
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         geneFinalCode(inputStr, uniqueLabel, exprInfoVector);
+        // !!! NOTE: may use the similiar interface like geneOriginCodeKernel to implement the final code's generation
+        // auto funcNameFinal = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
         } // the whole process end
 
         if(!runAllFlag)
