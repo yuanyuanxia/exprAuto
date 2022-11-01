@@ -798,7 +798,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         vector<ast_ptr> resultsNew;
         for(auto &result : results)
         {
-            resultsNew.push_back(result->Clone()); // the key to control the rewrite results
+            // resultsNew.push_back(result->Clone()); // the key to control the rewrite results
             auto tmp = fmaRewrite(result);
             mineAppend(resultsNew, tmp);
         }
@@ -1026,11 +1026,46 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
     }
     else
     {
+        bool pickOne = true;
+        if(pickOne)
+        {
+        // pick the better one from expr and expr1
+        string uniqueLabel = "pickBetter";
+        vector<string> vars;
+        getVariablesFromExpr(expr, vars);
+        
+        auto exprStr = PrintExpression(expr);
+        auto funcNameOrigin = geneOriginCodeKernel(exprStr, vars, uniqueLabel, "origin");
+        auto expr1Str = PrintExpression(expr1);
+        auto funcNameSympy = geneOriginCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
+        auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
+        
+        int scale = 256;
+        auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+
+        auto maxError = info.maxError;
+        auto maxError1 = info1.maxError;
+
+        if(maxError < maxError1)
+        {
+            cout << YELLOW << "-------------------------------------origin rewrite is better-------------------------------------" << RESET << endl;
+            results = exprAutoNew(expr);
+        }
+        else
+        {
+            cout << YELLOW << "-------------------------------------sympy rewrite is better-------------------------------------" << RESET << endl;
+            results = exprAutoNew(expr1);
+        }
+        }
+        else
+        {
         cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
         results = exprAutoNew(expr);
         cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
         vector<ast_ptr> results1 = exprAutoNew(expr1);
         mineAppend(results, results1);
+        }
     }
     for(auto& result : results)
     {

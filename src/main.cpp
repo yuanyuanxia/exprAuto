@@ -70,7 +70,7 @@ int main()
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
             inputStr.pop_back(); // remove the last char ';'
         }
-        bool runAllFlag = true;
+        bool runAllFlag = false;
         if(runAllFlag)
         { // the whole process
         auto uniqueLabel = getUniqueLabel();
@@ -122,13 +122,11 @@ int main()
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
         } // the whole process end
-
-        if(!runAllFlag)
+        else
         { // only rewrite
         auto results = exprAutoWrapper(inputStr);
 
-        cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
-        printExprs(results, BLUE "main: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
+        // write the results to file
         fout << "-------------------------------------NO." << getlineCount <<": " << inputStr << endl;
         for(size_t i = 0; i < results.size(); i++)
         {
