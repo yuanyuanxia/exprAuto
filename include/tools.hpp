@@ -22,6 +22,7 @@ public:
 };
 
 string getUniqueLabel();
+void testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales);
 
 void testError(string uniqueLabel, string suffix, double start, double end, int scale);
 

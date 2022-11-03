@@ -228,6 +228,40 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     return tempError;
 }
 
+void testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales)
+{
+    size_t size = scales.size();
+    size = 3;
+    switch (size) // choose the test error version according to the input parameters number
+    {
+    case 1:
+
+    {
+        int scale = 50000;
+        testError(uniqueLabel, suffix, 0, 1, scale); // for 1 param
+        break;
+    }
+    case 2:
+    {
+        int scale = 1024;
+        testError(uniqueLabel, suffix, 0, 1, 0, 1, scale, scale); // for 2 params
+        break;
+    }
+    case 3:
+    {
+        int scale = 256;
+        testError(uniqueLabel, suffix, 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
+        break;
+    }
+    default:
+    {
+        fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", size);
+        exit(EXIT_FAILURE);
+        break;
+    }
+    }
+}
+
 // TODO: implement
 // call matlab to generate the boundaryData to file
 void geneBoundaryData(string exprStr, string uniqueLabel)

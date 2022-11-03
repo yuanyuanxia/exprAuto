@@ -89,29 +89,34 @@ int main()
 
         // TODO: pick the best from origin, herbie, daisy
         // pickTheBest(uniqueLabel, 0, 1, 100);
-        switch (vars.size()) // choose the test error version according to the input parameters number
-        {
-            case 1: {
-                int scale = 50000;
-                testError(uniqueLabel, "origin", 0, 1, scale); // for 1 param
-                break;
-            }
-            case 2: {
-                int scale = 1024;
-                testError(uniqueLabel, "origin", 0, 1, 0, 1, scale, scale); // for 2 params
-                break;
-            }
-            case 3: {
-                int scale = 256;
-                testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
-                break;
-            }
-            default: {
-                fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", vars.size());
-                exit(EXIT_FAILURE);
-                break;
-            }
-        }
+        int scale = 256;
+        vector<double> intervals{3.8, 7.8, -4.5, -0.3, 0.4, 0.9};
+        vector<int> scales{scale, scale, scale};
+        testError(uniqueLabel, "origin", intervals, scales);
+
+        // switch (vars.size()) // choose the test error version according to the input parameters number
+        // {
+        //     case 1: {
+        //         int scale = 50000;
+        //         testError(uniqueLabel, "origin", 0, 1, scale); // for 1 param
+        //         break;
+        //     }
+        //     case 2: {
+        //         int scale = 1024;
+        //         testError(uniqueLabel, "origin", 0, 1, 0, 1, scale, scale); // for 2 params
+        //         break;
+        //     }
+        //     case 3: {
+        //         int scale = 256;
+        //         testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
+        //         break;
+        //     }
+        //     default: {
+        //         fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", vars.size());
+        //         exit(EXIT_FAILURE);
+        //         break;
+        //     }
+        // }
 
         // geneBoundaryData(inputStr, uniqueLabel); // matlab
 
