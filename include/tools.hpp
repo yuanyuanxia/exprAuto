@@ -38,4 +38,6 @@ vector<string> getIntervalData();
 
 vector<exprInfo> rewrite(string exprSr, string uniqueLabel);
 
+vector<vector<double>> zuhe(vector<vector<double>> vec);
+
 #endif

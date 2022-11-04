@@ -439,3 +439,131 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     }
     return exprInfoVector;
 }
+
+vector<vector<double>> zuhe(vector<vector<double>> vec)
+{
+    vector<vector<double>> suzu;
+    size_t row = vec.size();
+    if (row == 3)
+    {
+        int rowSize = vec.size();     //确定有几行
+        int columnSize = 2 * rowSize; //新生成二维数组的列数
+        int b[rowSize];               // b[]存储每一行的元素个数
+        int f[rowSize];               // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
+        int d[rowSize];               //建立数组，求e值
+        for (size_t i = 0; i < vec.size(); i++)
+        {
+            b[i] = vec[i].size();
+            f[i] = 0.5 * b[i];
+            d[i] = 0.5 * b[i];
+        }
+        for (size_t i = 0; i < vec.size(); i++)
+        {
+            d[i + 1] = d[i] * d[i + 1];
+        }
+        int e = d[vec.size() - 1]; //新生成二维数组的行数为e
+        double sz[e][columnSize];
+        for (int i = 0; i < e; i++) //确定前两列
+        {
+            int j = i % f[0];
+            sz[i][0] = vec[0][2 * j];
+            sz[i][1] = vec[0][2 * j + 1];
+        }
+        for (int i = 0; i < f[2]; i++) //确定中间两列
+        {
+            for (int j = 0; j < f[1]; j++)
+            {
+                for (int k = 0; k < f[0]; k++)
+                {
+                    sz[k + j * f[0] + i * f[0] * f[1]][2] = vec[1][2 * j];
+                    sz[k + j * f[0] + i * f[0] * f[1]][3] = vec[1][2 * j + 1];
+                }
+            }
+        }
+        for (int i = 0; i < f[2]; i++) //确定最后两列
+        {
+            for (int j = 0; j < f[0] * f[1]; j++)
+            {
+                sz[j + i * f[0] * f[1]][4] = vec[2][2 * i];
+                sz[j + i * f[0] * f[1]][5] = vec[2][2 * i + 1];
+            }
+        }
+        for (int i = 0; i < e; i++)
+        {
+            vector<double> tmps;
+            for (int j = 0; j < columnSize; j++)
+            {
+                tmps.push_back(sz[i][j]);
+            }
+            suzu.push_back(tmps);
+        }
+    }
+    else if (row == 2)
+    {
+        int rowSize = vec.size();     //确定有几行
+        int columnSize = 2 * rowSize; //新生成二维数组的列数
+        int b[rowSize];               // b[]存储每一行的元素个数
+        int f[rowSize];               // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
+        int d[rowSize];               //建立数组，求e值
+        for (size_t i = 0; i < vec.size(); i++)
+        {
+            b[i] = vec[i].size();
+            f[i] = 0.5 * b[i];
+            d[i] = 0.5 * b[i];
+        }
+        for (size_t i = 0; i < vec.size(); i++)
+        {
+            d[i + 1] = d[i] * d[i + 1];
+        }
+        int e = d[vec.size() - 1]; //新生成二维数组的行数为e
+        float sz[e][2 * rowSize];
+        for (int i = 0; i < e; i++) //确定前两列
+        {
+            int j = i % f[0];
+            sz[i][0] = vec[0][2 * j];
+            sz[i][1] = vec[0][2 * j + 1];
+        }
+        for (int i = 0; i < f[1]; i++) //确定最后两列
+        {
+            for (int j = 0; j < f[0]; j++)
+            {
+                sz[j + i * f[0]][2] = vec[1][2 * i];
+                sz[j + i * f[0]][3] = vec[1][2 * i + 1];
+            }
+        }
+        for (int i = 0; i < e; i++)
+        {
+            vector<double> tmpss;
+            for (int j = 0; j < columnSize; j++)
+            {
+                tmpss.push_back(sz[i][j]);
+            }
+            suzu.push_back(tmpss);
+        }
+    }
+    else if (row == 1)
+    {
+        size_t rowSize = vec[0].size();
+        int b = 0.5 * rowSize;
+        double sz[b][2];
+        for (int i = 0; i < b; i++)
+        {
+            sz[i][0] = vec[0][2 * i];
+            sz[i][1] = vec[0][2 * i + 1];
+        }
+        for (int i = 0; i < b; i++)
+        {
+            vector<double> tmps;
+            for (int j = 0; j < 2; j++)
+            {
+                tmps.push_back(sz[i][j]);
+            }
+            suzu.push_back(tmps);
+        }
+    }
+    else
+    {
+        cout << "The prime group you entered does not conform to the specification!" << endl;
+    }
+    return suzu;
+}
