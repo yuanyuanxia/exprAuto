@@ -23,7 +23,7 @@ string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLa
 
 string geneOriginCode(string exprStr, string uniqueLabel, string tail);
 
-void geneHerbieCode(string exprstr, vector<string> cs, string exprname, float v[], float u[]);
+void geneHerbieCode(string exprstr, vector<string> cs, string exprname,double v[], double u[]);
 
 void geneDaisyCode(string exprStr);
 

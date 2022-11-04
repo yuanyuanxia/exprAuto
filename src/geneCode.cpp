@@ -160,9 +160,30 @@ string geneOriginCode(string exprStr, string uniqueLabel, string tail)
     return funcName;
 }
 
-void geneHerbieCode(string exprStr)
+void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v[], double u[])
 {
-    cout << exprStr << endl;
+    std::ofstream fout;
+    fout.open("./herbie.info"); 
+    fout << "(FPCore" << endl;
+    fout << "(";
+    for(size_t i = 0; i<(cs.size()-1); i++)//输出参数
+    {
+        fout<<cs[i]<<" ";
+    }
+    fout << cs[cs.size()-1]; 
+    fout << ")" << endl;
+    fout << ":name" << endl;//输出表达式名字
+    fout << "\"" << exprname << "\"" << endl;
+    fout << ":pre" << endl;
+    fout << "(and ";
+    for(size_t j = 0; j < (cs.size()-1); j++)//输出范围
+    {
+        fout << "\t(<= " << v[j] << " " << cs[j] << " " << u[j] << ")" << endl;
+    }
+    fout << "\t" << "(<= " << v[cs.size()-1] << " " << cs[cs.size()-1] << " " << u[cs.size()-1] << "))" << endl;
+    fout << "(" << endl;
+    fout << exprstr << ")" << endl;
+    fout.close();
 }
 
 void geneDaisyCode(string exprStr)
