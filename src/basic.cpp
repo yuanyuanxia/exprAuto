@@ -579,7 +579,9 @@ string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std:
         ++mpfr_variables;
         NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
         double number = (numberExpr->getNumber());
-        number_str = "mpfr_set_d(mp" + to_string(mpfr_variables) + ", " + to_string(number) + ", MPFR_RNDN);";
+        std::stringstream ss;
+        ss << std::setprecision(DOUBLE_PRECISION) << number;
+        number_str = "mpfr_set_d(mp" + to_string(mpfr_variables) + ", " + ss.str() + ", MPFR_RNDN);";
         // cout << number_str << endl;
         ofs << "\t" << number_str << endl;
         return "mp" + to_string(mpfr_variables);
