@@ -70,7 +70,8 @@ int main()
             fprintf(stderr, "you do not need to add a ';' after the expression\n");
             inputStr.pop_back(); // remove the last char ';'
         }
-        bool runAllFlag = false;
+        bool runAllFlag = true;
+        std::chrono::_V2::system_clock::time_point tmp1, tmp2, tmp3;
         if(runAllFlag)
         { // the whole process
         auto uniqueLabel = getUniqueLabel();
@@ -92,38 +93,16 @@ int main()
         int scale = 256;
         vector<double> intervals{3.8, 7.8, -4.5, -0.3, 0.4, 0.9};
         vector<int> scales{scale, scale, scale};
+        tmp1 = std::chrono::high_resolution_clock::now();
         testError(uniqueLabel, "origin", intervals, scales);
-
-        // switch (vars.size()) // choose the test error version according to the input parameters number
-        // {
-        //     case 1: {
-        //         int scale = 50000;
-        //         testError(uniqueLabel, "origin", 0, 1, scale); // for 1 param
-        //         break;
-        //     }
-        //     case 2: {
-        //         int scale = 1024;
-        //         testError(uniqueLabel, "origin", 0, 1, 0, 1, scale, scale); // for 2 params
-        //         break;
-        //     }
-        //     case 3: {
-        //         int scale = 256;
-        //         testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
-        //         break;
-        //     }
-        //     default: {
-        //         fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", vars.size());
-        //         exit(EXIT_FAILURE);
-        //         break;
-        //     }
-        // }
-
+        tmp2 = std::chrono::high_resolution_clock::now();
         // geneBoundaryData(inputStr, uniqueLabel); // matlab
 
         // geneIntervalData(inputStr, uniqueLabel);
 
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         auto exprInfoVector = rewrite(inputStr, uniqueLabel);
+        tmp3 = std::chrono::high_resolution_clock::now();
         cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
         auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
         } // the whole process end
@@ -138,15 +117,19 @@ int main()
             auto &result = results.at(i);
             // string treeStr;
             // printAST(result, treeStr, MAIN_PRECISION);
-            // fout << "No." << i << ": " << PrintExpression(result, MAIN_PRECISION) << endl;
-            fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
+            fout << PrintExpression(result, MAIN_PRECISION) << endl;
+            // fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
             // fout << treeStr << endl;
         }
         fout << endl;
         } // only rewrite end
 
         auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> testError_seconds = tmp2 - tmp1;
+        std::chrono::duration<double> rewrite_seconds = tmp3 - tmp2;
         std::chrono::duration<double> elapsed_seconds = end - start;
+        cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
+        cout << BLUE << "rewrite time: " << rewrite_seconds.count() << "s" << RESET << endl;
         cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }
