@@ -1,10 +1,9 @@
-# !/bin/bash
-# Usage: ./detectErrorOne.sh ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}
+# Usage: ./detectErrorOneParallel.sh ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}
 # set -x
 
 path=`pwd`
 cd ${path}
-CC=gcc
+CC=mpicc
 
 uniqueLabel=${1} # unique number
 x0Start=${2}
@@ -20,17 +19,18 @@ elif [ $# -eq 6 ]; then
     middle=${5}
     suffix=${6}
 else
-    echo "detectErrorOne: Invalid input parameters"
+    echo "detectErrorOneParallel: Invalid input parameters"
     exit
 fi
-testFileName=test1param
+testFileName=test1paramParallel
+numProcs=32
 
 echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}"
 
 # echo "${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
 ${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -o ${testFileName}.exe
-# echo "./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix}"
-./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix}
+# echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix}"
+mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix}
 rm ${testFileName}.exe
 echo "end detecting ${uniqueLabel}"
 echo

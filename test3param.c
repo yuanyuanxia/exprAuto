@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
         testNumX2 = strtod(argv[3], NULL);
         strcpy(fileNameKernel, argv[4]);
     } else {
-        printf("Usage: ./test3paramParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
+        printf("Usage: ./test3param.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }

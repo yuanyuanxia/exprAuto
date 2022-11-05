@@ -32,7 +32,7 @@ int computeResult1param(double x0, mpfr_t mpfrResult)
     return status;
 }
 
-void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
+void test1param(DL x0Start, DL x0End, unsigned long int testNumX0, const char* fileNameKernel)
 {
     DL ii0, maxInputX0;
     #ifdef DEBUG
@@ -45,12 +45,10 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     #endif
     char *directory = "./outputs";
     FILE *f;
-    char *prefix = "";
-    char *suffix = STR(SUFFIX)"_sample.txt";
-    char *fileName;
+    char *suffix = "sample.txt";
+    char *fileNameSample;
     FILE *fErr;
-    char *prefixErr = "";
-    char *suffixErr = STR(SUFFIX)"_error.txt";
+    char *suffixErr = "error.txt";
     char *fileNameErr;
 
     mpfr_t mpfrOrcle, mpfrResult;
@@ -61,19 +59,17 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     // fprintf(f, "x0Start  : %lg 0x%016lx\nx0End    : %lg 0x%016lx\n", x0Start.d, x0Start.l, x0End.d, x0End.l);
     // fprintf(f, "\nxInput\t\txInput (Hex)\t\tresult\t\tresult (Hex)\t\torcle\t\torcle (Hex)\t\tulp error\n");
     // printf("testNum : %lu 0x%lx\n", testNumX0, testNumX0);
-    fileName = (char *) calloc(strlen(prefix) + strlen(suffix) + 128, sizeof(char));
-    sprintf(fileName, "%s/%s%s_%d_%d_%lu%s", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
-    printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefix, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffix);
-    if ((f = fopen(fileName, "w")) == NULL)
-    {
-        printf("Error opening file %s.\n", fileName);
+    fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    sprintf(fileNameSample, "./outputs/%s_%s", fileNameKernel, suffix);
+    printf("%s\n", fileNameSample);
+    if ((f = fopen(fileNameSample, "w")) == NULL) { 
+        printf("Error opening file %s.\n", fileNameSample);
         exit(0);
     }
-    fileNameErr = (char *) calloc(strlen(prefixErr) + strlen(suffixErr) + 128, sizeof(char));
-    sprintf(fileNameErr, "%s/%s%s_%d_%d_%lu%s", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
-    printf("%s/%s%s_%d_%d_%lu%s\n", directory, prefixErr, STR(EXPRESSION), (int)x0Start.d, (int)x0End.d, testNumX0, suffixErr);
-    if ((fErr = fopen(fileNameErr, "w")) == NULL)
-    {
+    fileNameErr = (char *) calloc(strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
+    sprintf(fileNameErr, "./outputs/%s_%s", fileNameKernel, suffixErr);
+    printf("%s\n", fileNameErr);
+    if ((fErr = fopen(fileNameErr, "w")) == NULL) { 
         printf("Error opening file %s.\n", fileNameErr);
         exit(0);
     }
@@ -97,11 +93,11 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
     // printf("Real number average\n");
     lenX0 = x0End.d - x0Start.d;
     maxReUlp = 0;
+    aveReUlp = 0;
     flag = 1;
-
-    for (i0 = 0; i0 <= testNumX0; i0++)
+    double stepX0 = lenX0 / (double)testNumX0;
+    for(ii0.d = x0Start.d; ii0.d < x0End.d; ii0.d += stepX0)
     {
-        ii0.d = x0Start.d + lenX0 / (double)testNumX0 * i0;
         x0 = ii0.d;
     #endif
         computeResult1param(x0, mpfrResult);
@@ -123,7 +119,7 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
         //     printf("happen to NaN or inf\n");
         //     exit(1);
         // }
-        fprintf(f, "%.16le\t%.16e\n", x0, reUlp);
+        // fprintf(f, "%.16le\t%.16e\n", x0, reUlp);
         aveReUlp += reUlp;
         if (reUlp > maxReUlp)
         {
@@ -150,7 +146,7 @@ void test1param(DL x0Start, DL x0End, unsigned long int testNumX0)
 
     fclose(f);
     fclose(fErr);
-    free(fileName);
+    free(fileNameSample);
     free(fileNameErr);
 }
 
@@ -161,31 +157,37 @@ int main(int argc, char **argv)
 
     x0Start.d = 1;
     x0End.d = 2;
-
     testNumX0 = TESTNUMX0;
 
-    if (argc == 4)
+    char *fileNameKernel;
+    fileNameKernel = calloc(256, sizeof(char));
+    if (argc == 5)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         testNumX0 = strtod(argv[3], NULL);
+        strcpy(fileNameKernel, argv[4]);
     }
-    else if (argc == 3)
+    else if (argc == 4)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
+        strcpy(fileNameKernel, argv[3]);
     }
-    else if (argc == 2)
+    else if (argc == 3)
     {
         testNumX0 = strtod(argv[1], NULL);
+        strcpy(fileNameKernel, argv[2]);
     }
     else
     {
-        printf("Usage: ./a.out [x0Start x0End testNumX0]\n");
+        printf("Usage: ./test1param.exe [x0Start x0End testNumX0]\n");
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %lu] will be used\n", x0Start.d, x0End.d, testNumX0);
     }
-    test1param(x0Start, x0End, testNumX0);
+    printf("\n---------------------------------------------------start test1param\n");
+    printf("Parameters: x0Start: %lg, x0End: %lg, testNumX0 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, testNumX0, fileNameKernel);
+    test1param(x0Start, x0End, testNumX0, fileNameKernel);
 
     return 0;
 }
