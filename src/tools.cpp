@@ -32,38 +32,70 @@ string getUniqueLabel()
 
 // TODO: set the return value as a exprInfo object
 // test error
-void testError(string uniqueLabel, string suffix, double start, double end, int scale)
+exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int x0Size)
 {
+    std::ostringstream os1;
+    os1 << x0Start;
+    std::ostringstream os2;
+    os2 << x0End;
+    
+    std::ostringstream os7;
+    os7 << x0Size;
+
+    string prefix = "expr_" + uniqueLabel;
+    string middle = os1.str() + "_" + os2.str() + "_" + os7.str();
+    string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+    string testName = "./outputs/" + fileNameKernel + "_error.txt";
     string scriptName = "./detectErrorOne.sh";
+    string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os7.str() + " " + prefix + " " + middle + " " + suffix;
+    cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
-    string file = scriptName + " ";
-    strcpy(command, file.c_str());
-
-    // parameter1
-    string parameter1 = uniqueLabel;
-    parameter1 = parameter1 + " ";
-    strcat(command, parameter1.c_str());
-
-    // parameter1.1
-    string parameter11 = suffix + " ";
-    strcat(command, parameter11.c_str());
-
-    // parameter2
-    string parameter2 = std::to_string(start);
-    parameter2 = parameter2 + " ";
-    strcat(command, parameter2.c_str());
-
-    // parameter3
-    string parameter3 = std::to_string(end);
-    parameter3 = parameter3 + " ";
-    strcat(command, parameter3.c_str());
-
-    string parameter4 = std::to_string(scale);
-    parameter4 = parameter4 + " ";
-    strcat(command, parameter4.c_str());
-
-    cout << "command: " << command << endl;
+    strcat(command, commandStr.c_str());
     system(command);
+    std::ifstream ifs(testName, std::ios::in);
+
+    double aveError = 0;
+    double maxError = 0;
+    exprInfo tempError;
+    
+    char ch;
+    ifs >> ch;
+    if (ifs.eof())
+    {
+        std::cout << "is null" << std::endl;
+        ifs.close();
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+
+        tempError.intervals = intervals;
+        tempError.aveError = aveError;
+        tempError.maxError = maxError;
+    }
+    else
+    {
+        std::ifstream ifs(testName, std::ios::in);
+
+        std::string lineStr;
+        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // get the second line
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        strcpy(line, lineStr.c_str());
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        string aveErrorTemp = strtok(line, delim);
+        string maxErrorTemp = strtok(NULL, delim);
+        // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
+
+        std::vector<double> intervals;
+        intervals.push_back(x0Start);
+        intervals.push_back(x0End);
+
+        tempError.intervals = intervals;
+        tempError.aveError = atof(aveErrorTemp.c_str());
+        tempError.maxError = atof(maxErrorTemp.c_str());
+    }
+
+    return tempError;
 }
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
@@ -228,38 +260,40 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     return tempError;
 }
 
-void testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales)
+exprInfo testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales)
 {
+    exprInfo tempError;
     size_t size = scales.size();
-    size = 3;
-    switch (size) // choose the test error version according to the input parameters number
+    size = 1;
+    switch(size)  // choose the test error version according to the input parameters number
     {
-    case 1:
+        case 1:
+        {
+            int scale = 500000;
+            tempError = testError(uniqueLabel, suffix, -1.57079632679, 1.57079632679, scale);  // for 1 param
+            break;
+        }
+        case 2:
+        {
+            int scale = 1024;
+            tempError = testError(uniqueLabel, suffix, 0, 1, 0, 1, scale, scale);  // for 2 params
+            break;
+        }
+        case 3:
+        {
+            int scale = 256;
+            tempError = testError(uniqueLabel, suffix, 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);  // for 3 params
+            break;
+        }
+        default:
+        {
+            fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", size);
+            exit(EXIT_FAILURE);
+            break;
+        }
+    }
 
-    {
-        int scale = 50000;
-        testError(uniqueLabel, suffix, 0, 1, scale); // for 1 param
-        break;
-    }
-    case 2:
-    {
-        int scale = 1024;
-        testError(uniqueLabel, suffix, 0, 1, 0, 1, scale, scale); // for 2 params
-        break;
-    }
-    case 3:
-    {
-        int scale = 256;
-        testError(uniqueLabel, suffix, 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale); // for 3 params
-        break;
-    }
-    default:
-    {
-        fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", size);
-        exit(EXIT_FAILURE);
-        break;
-    }
-    }
+    return tempError;
 }
 
 // TODO: implement
@@ -385,7 +419,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
             switch (dimension)
             {
                 case 1:
-                    testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), scale);
+                    tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), scale);
                     break;
 
                 case 2:

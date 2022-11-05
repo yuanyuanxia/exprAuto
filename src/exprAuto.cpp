@@ -1040,9 +1040,12 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
         auto funcNameSympy = geneOriginCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
         auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
         
-        int scale = 256;
-        auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        // int scale = 256;
+        // auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        // auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        int scale = 500000;
+        auto info = testError(uniqueLabel, "origin", -1.57079632679, 1.57079632679, scale);
+        auto info1 = testError(uniqueLabel, "sympy", -1.57079632679, 1.57079632679, scale);
 
         auto maxError = info.maxError;
         auto maxError1 = info1.maxError;
