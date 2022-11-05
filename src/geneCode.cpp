@@ -96,6 +96,8 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
                 exit(EXIT_FAILURE);
             }
         }
+        std::sort(vars.begin(), vars.end()); // sort to unique the parameters queue
+        vars.erase(std::unique(vars.begin(), vars.end()), vars.end());
         return true;
     }
     if (type != "Binary")
