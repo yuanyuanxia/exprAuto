@@ -23,7 +23,11 @@ public:
 
 string getUniqueLabel();
 
-exprInfo testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales);
+vector<double> getIntervals(string interval, const char *split);
+
+vector<int> getScales(string scale, const char *split);
+
+exprInfo testError(string uniqueLabel, string suffix, vector<double> &intervals, vector<int> &scales);
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int scale);
 
@@ -31,9 +35,9 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size);
 
-void geneBoundaryData(string exprStr, string uniqueLabel);
+void geneBoundaryData(string uniqueLabel, string suffix);
 
-void geneIntervalData(string exprStr, string unqiueLabel);
+void geneIntervalData(string uniqeuLabel, vector<string> &intervals, vector<double> &threholds);
 
 vector<string> getIntervalData();
 

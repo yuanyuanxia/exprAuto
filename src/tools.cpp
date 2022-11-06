@@ -20,7 +20,7 @@ using std::flush;
 using std::string;
 using std::to_string;
 
-//获取唯一标识符(时间戳)
+//get unique label(timestamp)
 string getUniqueLabel()
 {
     time_t currentTime = time(NULL);
@@ -28,6 +28,48 @@ string getUniqueLabel()
     strftime(chCurrentTime, sizeof(chCurrentTime), "%Y%m%d%H%M%S", localtime(&currentTime));
     string uniqueLabel = chCurrentTime;
     return uniqueLabel;
+}
+
+//get init interval info
+vector<double> getIntervals(string interval, const char *split)
+{
+    char *p;
+    char a[interval.length() + 1];
+    int i;
+    for (i = 0; i < interval.length(); i++)
+    {
+        a[i] = interval[i];
+    }
+    a[i] = '\0';
+    vector<double> intervalVector;
+    p = strtok(a, split);
+    while (p != NULL)
+    {
+        intervalVector.push_back(atof(p));
+        p = strtok(NULL, split);
+    }
+    return intervalVector;
+}
+
+//get init scale info
+vector<int> getScales(string scale, const char *split)
+{
+    char *q;
+    char b[scale.length() + 1];
+    int i;
+    for (i = 0; i < scale.length(); i++)
+    {
+        b[i] = scale[i];
+    }
+    b[i] = '\0';
+    vector<int> scaleVector;
+    q = strtok(b, split);
+    while (q != NULL)
+    {
+        scaleVector.push_back(stoi(q));
+        q = strtok(NULL, split);
+    }
+    return scaleVector;
 }
 
 // TODO: set the return value as a exprInfo object
@@ -38,7 +80,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     os1 << x0Start;
     std::ostringstream os2;
     os2 << x0End;
-    
+
     std::ostringstream os7;
     os7 << x0Size;
 
@@ -46,7 +88,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = os1.str() + "_" + os2.str() + "_" + os7.str();
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorOne.sh";
+    string scriptName = "./detectErrorOneParallel.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os7.str() + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
@@ -57,7 +99,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     double aveError = 0;
     double maxError = 0;
     exprInfo tempError;
-    
+
     char ch;
     ifs >> ch;
     if (ifs.eof())
@@ -77,11 +119,11 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
         std::ifstream ifs(testName, std::ios::in);
 
         std::string lineStr;
-        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // discard first line
         std::getline(ifs, lineStr); // get the second line
-        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));
         strcpy(line, lineStr.c_str());
-        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed
         string aveErrorTemp = strtok(line, delim);
         string maxErrorTemp = strtok(NULL, delim);
         // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
@@ -108,12 +150,11 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     os3 << x1Start;
     std::ostringstream os4;
     os4 << x1End;
-    
+
     std::ostringstream os7;
     os7 << x0Size;
     std::ostringstream os8;
     os8 << x1Size;
-
 
     string prefix = "expr_" + uniqueLabel;
     string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os7.str() + "_" + os8.str();
@@ -130,7 +171,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     double aveError = 0;
     double maxError = 0;
     exprInfo tempError;
-    
+
     char ch;
     ifs >> ch;
     if (ifs.eof())
@@ -152,11 +193,11 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
         std::ifstream ifs(testName, std::ios::in);
 
         std::string lineStr;
-        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // discard first line
         std::getline(ifs, lineStr); // get the second line
-        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));
         strcpy(line, lineStr.c_str());
-        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed
         string aveErrorTemp = strtok(line, delim);
         string maxErrorTemp = strtok(NULL, delim);
         // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
@@ -211,7 +252,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     double aveError = 0;
     double maxError = 0;
     exprInfo tempError;
-    
+
     char ch;
     ifs >> ch;
     if (ifs.eof())
@@ -235,11 +276,11 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
         std::ifstream ifs(testName, std::ios::in);
 
         std::string lineStr;
-        std::getline(ifs, lineStr); // discard first line 
+        std::getline(ifs, lineStr); // discard first line
         std::getline(ifs, lineStr); // get the second line
-        char *line = (char *)calloc(lineStr.length(), sizeof(char));        
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));
         strcpy(line, lineStr.c_str());
-        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed 
+        const char *delim = " ,\t"; // Sets the delimiter for the string to be decomposed
         string aveErrorTemp = strtok(line, delim);
         string maxErrorTemp = strtok(NULL, delim);
         // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
@@ -260,37 +301,30 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     return tempError;
 }
 
-exprInfo testError(string uniqueLabel, string suffix, vector<double> intervals, vector<int> scales)
+exprInfo testError(string uniqueLabel, string suffix, vector<double> &intervals, vector<int> &scales)
 {
     exprInfo tempError;
     size_t size = scales.size();
     size = 1;
-    switch(size)  // choose the test error version according to the input parameters number
+
+    switch (size)
     {
-        case 1:
-        {
-            int scale = 500000;
-            tempError = testError(uniqueLabel, suffix, -1.57079632679, 1.57079632679, scale);  // for 1 param
-            break;
-        }
-        case 2:
-        {
-            int scale = 1024;
-            tempError = testError(uniqueLabel, suffix, 0, 1, 0, 1, scale, scale);  // for 2 params
-            break;
-        }
-        case 3:
-        {
-            int scale = 256;
-            tempError = testError(uniqueLabel, suffix, 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);  // for 3 params
-            break;
-        }
-        default:
-        {
-            fprintf(stderr, "WRONG: main: the variables number is %ld, which we don't support now.\n", size);
-            exit(EXIT_FAILURE);
-            break;
-        }
+    case 1:
+        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), scales.at(0));
+        break;
+
+    case 2:
+        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), intervals.at(2), intervals.at(3), scales.at(0), scales.at(1));
+        break;
+
+    case 3:
+        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), intervals.at(2), intervals.at(3), intervals.at(4), intervals.at(5), scales.at(0), scales.at(1), scales.at(2));
+        break;
+
+    default:
+        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        exit(EXIT_FAILURE);
+        break;
     }
 
     return tempError;
@@ -298,9 +332,10 @@ exprInfo testError(string uniqueLabel, string suffix, vector<double> intervals, 
 
 // TODO: implement
 // call matlab to generate the boundaryData to file
-void geneBoundaryData(string exprStr, string uniqueLabel)
+void geneBoundaryData(string uniqueLabel, string suffix)
 {
-    string filename = "expr_" + uniqueLabel + "_boudary.txt";
+    suffix = "origin";
+    string filename = "expr_" + uniqueLabel + "_" + suffix + "_boudary.txt";
     std::ofstream ofs;
     ofs.open(filename, std::ios::out);
     ofs << "123" << std::endl;
@@ -310,14 +345,28 @@ void geneBoundaryData(string exprStr, string uniqueLabel)
 
 // TODO: improve
 // generate the interval info to file
-void geneIntervalData(string exprStr, string uniqueLabel)
+void geneIntervalData(string uniqueLabel, vector<string> &intervals, vector<double> &threholds)
 {
-    string filename = "expr_" + uniqueLabel + "_interval.txt";
-    std::ofstream ofs;
-    ofs.open(filename, std::ios::out);
-    ofs << "123" << std::endl;
-    ofs.close();
-    std::cout << "generate boundaryData file:" << filename << std::endl;
+    // filename = "expr_" + uniqueLabel + "_interval.txt";
+    for (int j = 1; j < threholds.size(); j++)
+    {
+        intervals.push_back(to_string(j * 2));
+        intervals.push_back(to_string(j * 2 + 1));
+        threholds.push_back(j + 0.0002);
+    }
+    for (int i = 0; i < threholds.size(); i++)
+    {
+        string fileName;
+        string prefix = "./outputs/expr_" + uniqueLabel;
+        string middle = "_" + intervals.at(i * 2) + "_" + intervals.at(i * 2 + 1) + "_" + to_string(threholds.at(i));
+        string suffix = "_interval.txt";
+        fileName = prefix + middle + suffix;
+        std::ofstream ofs;
+        ofs.open(fileName, std::ios::out);
+        ofs << "123" << std::endl;
+        ofs.close();
+        std::cout << "generate boudaryDate file:" << fileName << std::endl;
+    }
 }
 
 //生成区间数据
@@ -398,7 +447,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
             scale = 256;
         else
             scale = 10;
-
+        vector<int> scales(dimension, scale);
         string suffix = "temp_" + std::to_string(count) + "_";
 
         // pick the best rewrite expression
@@ -416,25 +465,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
             string suffixTmp = suffix + std::to_string(j);
             geneOriginCode(newExpr, uniqueLabel, suffixTmp);
             exprInfo tempError;
-            switch (dimension)
-            {
-                case 1:
-                    tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), scale);
-                    break;
-
-                case 2:
-                    tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), scale, scale);
-                    break;
-
-                case 3:
-                    tempError = testError(uniqueLabel, suffixTmp, intervalTmp.at(0), intervalTmp.at(1), intervalTmp.at(2), intervalTmp.at(3), intervalTmp.at(4), intervalTmp.at(5), scale, scale, scale);
-                    break;
-
-                default:
-                    fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", dimension);
-                    exit(EXIT_FAILURE);
-                    break;
-            }
+            tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
             if (j == 0)
             {
                 maxError = tempError.maxError;
@@ -453,7 +484,8 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
                 }
             }
 
-            cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n" << endl;
+            cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-\n"
+                 << endl;
         }
 
         exprInfo tempInfo;
@@ -466,7 +498,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         tempInfo.maxError = maxError;
         tempInfo.performance = 0.2;
         tempInfo.rewriteID = maxIdx;
-        
+
         exprInfoVector.push_back(tempInfo);
 
         count++;
