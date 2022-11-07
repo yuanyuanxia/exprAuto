@@ -26,10 +26,14 @@ ast_ptr sqrtMult(const ast_ptr &expr);
 ast_ptr sqrtDiv(const ast_ptr &expr);
 
 // x*y+a, y*x+a, a+x*y, a+y*x => fma(x,y,a), x*y+a*b, y*x+a*b, x*y+b*a, y*x+a*b,  => fma(x,y,a*b) or fma(a,b,x*y)
+vector<ast_ptr> checkFma(vector<ast_ptr> &exprs);
+
 vector<ast_ptr> toFma(const ast_ptr &expr);
 
 vector<ast_ptr> fmaRewriteKernel(vector<ast_ptr> &exprs, const char &op);
 
 vector<ast_ptr> fmaRewrite(const ast_ptr &expr);
+
+ast_ptr toPow(const ast_ptr &expr);
 
 #endif

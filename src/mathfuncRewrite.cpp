@@ -392,6 +392,148 @@ bool isSpecialNumber(const ast_ptr &expr)
 // x*y+a, y*x+a, a+x*y, a+y*x => fma(x,y,a), x*y+a*b, y*x+a*b, x*y+b*a, y*x+a*b,  => fma(x,y,a*b) or fma(a,b,x*y)
 // not consider 2, 4, 8 and so on...
 // NOTE: if no match, the origin input expr will also be returned.
+size_t countMul(const ast_ptr &expr)
+{
+    if (expr->type() != "Binary")
+    {
+        return 0;
+    }
+    BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOp->getOp();
+    if(op == '*')
+    {
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
+        size_t numOfMul = 1 + countMul(lhs) + countMul(rhs); // plus 1 is because that the op is '*'
+        return numOfMul;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+bool hasTooManyMul(const ast_ptr &expr, size_t threshold)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "hasTooManyMul's input is nullptr!\n");
+        exit(EXIT_FAILURE);
+    }
+    // return false;
+    if (expr->type() != "Binary")
+    {
+        return false;
+    }
+
+    BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOp->getOp();
+    ast_ptr &lhs = binOp->getLHS();
+    ast_ptr &rhs = binOp->getRHS();
+    
+    if (op != '*')
+    {
+        // fprintf(stderr, "hasTooManyMul's op is not *, but is %c!\n", op);
+        // printExpr(expr, "HHJJWW: ");
+        // exit(EXIT_FAILURE);
+        return false;
+    }
+    size_t numOfMul = 1 + countMul(lhs) + countMul(rhs); // plus 1 is because that the op is '*'
+    if (numOfMul < threshold)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool worthToDoFmaRewrite(const ast_ptr &e0, const ast_ptr &e1, const ast_ptr &e2)
+{
+    size_t threshold = 4;
+    if(hasTooManyMul(e0, threshold) || hasTooManyMul(e1, threshold))
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+bool worthToDoFmaRewriteWrapper(const ast_ptr &expr)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "worthToDoFmaRewriteWrapper's input is nullptr!\n");
+        exit(EXIT_FAILURE);
+    }
+    auto type = expr->type();
+    if(type == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto callee = callPtr->getCallee();
+        if(callee == "fma")
+        {
+            const auto &e0 = callPtr->getArgs().at(0);
+            const auto &e1 = callPtr->getArgs().at(1);
+            const auto &e2 = callPtr->getArgs().at(2);
+            if(!worthToDoFmaRewrite(e0, e1, e2))
+            {
+                return false;
+            }
+            if(worthToDoFmaRewriteWrapper(e0) && worthToDoFmaRewriteWrapper(e1) && worthToDoFmaRewriteWrapper(e2))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        for(const auto &arg : callPtr->getArgs())
+        {
+            if(!worthToDoFmaRewriteWrapper(arg))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    if (expr->type() != "Binary")
+    {
+        return true;
+    }
+
+    BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+    ast_ptr &lhs = binOp->getLHS();
+    ast_ptr &rhs = binOp->getRHS();
+
+    if(worthToDoFmaRewriteWrapper(lhs) && worthToDoFmaRewriteWrapper(rhs))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+vector<ast_ptr> checkFma(vector<ast_ptr> &exprs)
+{
+    vector<ast_ptr> results;
+    for(auto &expr : exprs)
+    {
+        if(worthToDoFmaRewriteWrapper(expr))
+        {
+            results.push_back(std::move(expr));
+        }
+    }
+    return results;
+}
+
 vector<ast_ptr> toFma(const ast_ptr &expr)
 {
     if (expr == nullptr)
@@ -623,4 +765,340 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
     callCount--;
     callLevel--;
     return exprsFinal;
+}
+
+bool countVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: countVariablesFromExpr: the input is nullptr\n");
+        exit(EXIT_FAILURE);
+    }
+    auto type = expr->type();
+    if (type == "Number")
+    {
+        return true;
+    }
+    else if (type == "Variable")
+    {
+        VariableExprAST *varPtr = dynamic_cast<VariableExprAST *>(expr.get());
+        auto var = varPtr->getVariable();
+        vars.push_back(var);
+        return true;
+    }
+    else if (type == "Call")
+    {
+        return true;
+        // CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        // auto callee = callPtr->getCallee();
+        // for(const auto &arg : callPtr->getArgs())
+        // {
+        //     if(!worthToDoFmaRewriteWrapper(arg))
+        //     {
+        //         return false;
+        //     }
+        // }
+    }
+    if (type != "Binary")
+    {
+        fprintf(stderr, "ERROR: countVariablesFromExpr: type %s is wrong\n", type.c_str());
+        exit(EXIT_FAILURE);
+    }
+    BinaryExprAST *binaryPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    auto op = binaryPtr->getOp();
+    if(op != '*')
+    {
+        return false;
+    }
+    auto &lhs = binaryPtr->getLHS();
+    auto &rhs = binaryPtr->getRHS();
+    countVariablesFromExpr(lhs, vars);
+    countVariablesFromExpr(rhs, vars);
+    std::sort(vars.begin(), vars.end()); // sort to unique the parameters queue
+    return true;
+}
+
+
+vector<size_t> getVariablesCount(const ast_ptr &expr, vector<string> &vars)
+{
+    vector<string> varsInit;
+    // printExpr(expr, "getVariablesCount: before countVariablesFromExpr: ");
+    countVariablesFromExpr(expr, varsInit);
+    // cout << "getVariablesCount: varsInit.size() = " << varsInit.size() << endl;
+    string key = varsInit.at(0);
+    vars.push_back(key);
+    vector<size_t> countVars;
+    size_t count = 0;
+    for(size_t i = 0; i < varsInit.size(); i++)
+    {
+        if(key == varsInit.at(i))
+        {
+            count++;
+        }
+        else
+        {
+            countVars.push_back(count);
+            key = varsInit.at(i);
+            vars.push_back(key);
+            count = 1;
+        }
+    }
+    countVars.push_back(count);
+
+    // for(size_t i = 0; i < vars.size(); i++)
+    // {
+    //     cout << "getVariablesCount: " << vars.at(i) << " " << countVars.at(i) << endl;
+    // }
+
+    return countVars;
+}
+
+ast_ptr dropTargetVar(const ast_ptr &expr, const string &target)
+{
+    if (expr == nullptr)
+    {
+        return nullptr; // the multiple result of both target variables
+    }
+
+    auto type = expr->type();
+    if (type == "Number")
+    {
+        return expr->Clone();
+    }
+    else if (type == "Variable")
+    {
+        VariableExprAST *varPtr = dynamic_cast<VariableExprAST *>(expr.get());
+        auto var = varPtr->getVariable();
+        if(var == target)
+        {
+            return nullptr; // drop the target variable
+        }
+        else
+        {
+            return expr->Clone();
+        }
+    }
+    else if (type == "Call")
+    {
+        return expr->Clone();
+        // CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        // auto &args = callPtr->getArgs();
+        // vector<ast_ptr> argsNew;
+        // for (auto &arg : args)
+        // {
+        //     auto argNew = ToPow(arg);
+        //     argsNew.push_back(std::move(argNew));
+        // }
+        // return makePtr<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
+    }
+    if (expr->type() != "Binary")
+    {
+        fprintf(stderr, "dropTargetVar: input type is not Binary!\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    BinaryExprAST *binaryPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    auto op = binaryPtr->getOp();
+    if(op != '*')
+    {
+        return expr->Clone();
+    }
+    auto &lhs = binaryPtr->getLHS();
+    auto &rhs = binaryPtr->getRHS();
+    auto tmp1 = dropTargetVar(lhs, target);
+    auto tmp2 = dropTargetVar(rhs, target);
+    if (tmp1 == nullptr)
+    {
+        return tmp2;
+    }
+    else if (tmp2 == nullptr)
+    {
+        return tmp1;
+    }
+    else
+    {
+        return mulExpr(tmp1, tmp2); // if both tmp1 and tmp2 were nullptr, then a warning would be show and nullptr would be returned.
+    }
+}
+
+
+ast_ptr ToPowKernel(const ast_ptr &expr)
+{
+    printExpr(expr, "ToPowKernel: 1106 expr = ");
+    vector<string> vars;
+    auto countVars = getVariablesCount(expr, vars);
+    
+    size_t threshold = 4; // if the number of '*' >= 4, then convert '*' to pow()
+    auto exprNew = expr->Clone();
+    for(size_t i = 0; i < vars.size(); i++)
+    {
+        if(countVars.at(i) > threshold)
+        {
+            vector<ast_ptr> args;
+            args.push_back(makePtr<VariableExprAST>(vars.at(i)));
+            args.push_back(makePtr<NumberExprAST>(countVars.at(i)));
+            ast_ptr tmp1 = makePtr<CallExprAST>("pow", std::move(args));
+            auto tmp = dropTargetVar(exprNew, vars.at(i));
+            exprNew = mulExpr(tmp, tmp1);
+        }
+    }
+    return exprNew;
+}
+
+ast_ptr updateForPowRewrite(const ast_ptr &expr)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: updateForPowRewrite: the input is nullptr\n");
+        exit(EXIT_FAILURE);
+    }
+
+    auto type = expr->type();
+    if (type == "Number")
+    {
+        return expr->Clone();
+    }
+    else if (type == "Variable")
+    {
+        return expr->Clone();
+    }
+    else if (type == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto callee = callPtr->getCallee();
+        if(callee == "pow")
+        {
+            return expr->Clone();
+        }
+        printExpr(expr, "updateForPowRewrite: happen to Call: ");
+        auto &args = callPtr->getArgs();
+        vector<ast_ptr> argsNew;
+        for (auto &arg : args)
+        {
+            auto argNew = toPow(arg);
+            argsNew.push_back(std::move(argNew));
+        }
+        ast_ptr result = makePtr<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
+        printExpr(result, "updateForPowRewrite: result = ");
+        return result;
+    }
+    if (expr->type() != "Binary")
+    {
+        fprintf(stderr, "updateForPowRewrite: input type is not Binary!\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    BinaryExprAST *binaryPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    auto op = binaryPtr->getOp();
+    auto &lhs = binaryPtr->getLHS();
+    auto &rhs = binaryPtr->getRHS();
+    if (op == '+' || op == '-' || op == '/')
+    {
+        auto lhsNew = toPow(lhs);
+        auto rhsNew = toPow(rhs);
+        return createBinaryExpr(lhsNew, rhsNew, op);
+    }
+    else if (op == '*')
+    {
+        auto lhsNew = updateForPowRewrite(lhs);
+        auto rhsNew = updateForPowRewrite(rhs);
+        return createBinaryExpr(lhsNew, rhsNew, op);
+    }
+    fprintf(stderr, "updateForPowRewrite: op is not [* / + -], but is %c!\n", op);
+    printExpr(expr, "updateForPowRewrite: the wrong expr: ");
+    exit(EXIT_FAILURE);
+}
+
+ast_ptr toPow(const ast_ptr &expr)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: toPow: the input is nullptr\n");
+        exit(EXIT_FAILURE);
+    }
+
+    auto type = expr->type();
+    if (type == "Number")
+    {
+        return expr->Clone();
+    }
+    else if (type == "Variable")
+    {
+        return expr->Clone();
+    }
+    else if (type == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callPtr->getArgs();
+        auto callee = callPtr->getCallee();
+        if(callee != "fma")
+        {
+            return expr->Clone();
+        }
+        else
+        {
+            vector<ast_ptr> argsNew;
+            for (auto &arg : args)
+            {
+                auto argNew = toPow(arg);
+                argsNew.push_back(std::move(argNew));
+            }
+            return makePtr<CallExprAST>(callee, std::move(argsNew));
+        }
+    }
+    if (expr->type() != "Binary")
+    {
+        fprintf(stderr, "toPow: input type is not Binary!\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    BinaryExprAST *binaryPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    auto op = binaryPtr->getOp();
+    auto &lhs = binaryPtr->getLHS();
+    auto &rhs = binaryPtr->getRHS();
+    if (op == '+' || op == '-' || op == '/')
+    {
+        auto lhsNew = toPow(lhs);
+        auto rhsNew = toPow(rhs);
+        return createBinaryExpr(lhsNew, rhsNew, op);
+    }
+    else if (op == '*')
+    {
+        vector<string> vars;
+        auto countVars = getVariablesCount(expr, vars);
+        // cout << "toPow: vars.size() = " << vars.size() << endl;
+        // for(size_t i = 0; i < vars.size(); i++)
+        // {
+        //     cout << "toPow: " << vars.at(i) << " " << countVars.at(i) << endl;
+        // }
+        size_t threshold = 4; // if the number of '*' >= 4, then convert '*' to pow()
+        auto exprNew = expr->Clone();
+        for(size_t i = 0; i < vars.size(); i++)
+        {
+            if(countVars.at(i) > threshold)
+            {
+                vector<ast_ptr> args;
+                args.push_back(makePtr<VariableExprAST>(vars.at(i)));
+                args.push_back(makePtr<NumberExprAST>(countVars.at(i)));
+                ast_ptr tmp1 = makePtr<CallExprAST>("pow", std::move(args));
+                auto tmp = dropTargetVar(exprNew, vars.at(i));
+                exprNew = mulExpr(tmp, tmp1);
+            }
+        }
+        exprNew = updateForPowRewrite(exprNew);
+        return exprNew;
+    }
+    
+    fprintf(stderr, "toPow: op is not [* / + -], but is %c!\n", op);
+    printExpr(expr, "toPow: the wrong expr: ");
+    exit(EXIT_FAILURE);
+    // vector<ast_ptr> items = extractItems(expr);
+    // ast_ptr result;
+    // for (auto &item : items)
+    // {
+    //     printExpr(item, "HHJJWW: 1106 ");
+    //     auto tmp = ToPowKernel(item);
+    //     result = addExpr(result, tmp);
+    // }
+    // return result;
 }
