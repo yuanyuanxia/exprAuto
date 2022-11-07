@@ -1,10 +1,10 @@
 # !/bin/bash
-# Usage: ./detectErrorTwo.sh ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}
+# Usage: ./detectErrorTwoParallel.sh ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}
 # set -x
 
 path=`pwd`
 cd ${path}
-CC=gcc
+CC=mpicc
 
 uniqueLabel=${1} # unique number
 x0Start=${2}
@@ -25,17 +25,20 @@ elif [ $# -eq 8 ]; then
     middle=${7}
     suffix=${8}
 else
-    echo "detectErrorTwo: Invalid input parameters"
+    echo "detectErrorTwoParallel: Invalid input parameters"
     exit
 fi
 
-testFileName=test2param
+testFileName=test2paramParallel
+numProcs=32
 
 echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}"
 
+# echo "${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
 ${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -o ${testFileName}.exe
+# echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x2Start} ${x2End} ${x0Size} ${x1Size} ${x2Size} ${prefix}__${middle}_${suffix}"
+mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix}__${middle}_${suffix}
 
-./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix}__${middle}_${suffix}
 rm ${testFileName}.exe
 echo "end detecting ${uniqueLabel}"
 echo

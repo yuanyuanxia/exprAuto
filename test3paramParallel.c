@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
     double stepX1 = lenX1 / testNumX1;
     double stepX2 = lenX2 / testNumX2;
     if(myid == 0) {
-        printf("\n---------------------------------------------------start test3param\n");
+        printf("\n---------------------------------------------------start test3paramParallel\n");
         printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
     }
 

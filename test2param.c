@@ -11,8 +11,8 @@
 #define SUFFIX1 mpfr
 #define EXPRESSIONMPFR ADDSUFFIX(EXPRESSION, SUFFIX1)
 
-#define TESTNUMX 1024
-#define TESTNUMY 1024
+#define TESTNUMX0 1024
+#define TESTNUMX1 1024
 // #define FP
 double EXPRESSIONMPFR(double, double, mpfr_t);
 double EXPRESSIONMINE(double, double);
@@ -106,9 +106,13 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
             #else   // compute Double ULP as default
             reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
             #endif
+            #ifdef DEBUG
             // orcle.d = mpfr_get_d(mpfrOrcle, MPFR_RNDN);
             // result.d = mpfr_get_d(mpfrResult, MPFR_RNDN);
             // fprintf(f, "%le\t%016lx\t%le\t%016lx\t%le\t%016lx\t%le\t%016lx\t%.16le\n", i.d, i.l, j.d, j.l, result.d, result.l, orcle.d, orcle.l, reUlp);
+            // printf("%le\t%016lx\t%le\t%016lx\t%le\t%016lx\t%le\t%016lx\t%.16le\n", i.d, i.l, j.d, j.l, result.d, result.l, orcle.d, orcle.l, reUlp);
+            printf("%8lg %8lg %8lg %8lg %8lg\n", ii1.d, ii0.d, result.d, orcle.d, reUlp);
+            #endif
             // if(reUlp <= 0.5) {
             //     reUlp = 0;
             // }
@@ -163,8 +167,8 @@ int main(int argc, char *argv[])
     x0End.d = 10;
     x1Start.d = 0;
     x1End.d = 360;
-    testNumX0 = TESTNUMX;
-    testNumX1 = TESTNUMY;
+    testNumX0 = TESTNUMX0;
+    testNumX1 = TESTNUMX1;
 
     char *fileNameKernel;
     fileNameKernel = calloc(256, sizeof(char));
@@ -194,9 +198,9 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Usage: ./a.out [x0Start x0End x1Start x1End] testNumX0 testNumX1\n");
+        printf("Usage: ./test2param.out [x0Start x0End x1Start x1End testNumX0 testNumX1 fileNameKernel]\n");
         printf("Usage: if not correctly input:\n");
-        printf("Usage: \tthe fixed inputs in the program will be used\n");
+        printf("Usage: \tthe fixed inputs [%g %g %g %g %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1);
     }
     printf("\n---------------------------------------------------start test2param\n");
     printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, testNumX0 = %lu, testNumX1 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1, fileNameKernel);
