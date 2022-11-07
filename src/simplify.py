@@ -59,7 +59,7 @@ def find_base(expr, i):
 
 
 def find_exp(expr, i):
-    op_lst = ['+', '-', '*', '/']
+    op_lst = ['+', '-', '*', '/', ',']
     if expr[i + 2] == '(':
         flag = 0
         j = i + 3
