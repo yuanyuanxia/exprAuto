@@ -41,44 +41,51 @@ int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult) {
     return status;
 }
 
-struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, double stepX0, double stepX1, double stepX2, const char* fileNameKernel, int myid, double xx2)
-{
+struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* fileNameKernel, int myid, int i2StartLocal, int i2EndLocal) {
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d);
-    DL x0, x1, x2, maxInputX0, maxInputX1, maxInputX2;
-    #ifdef DEBUG
-    DL orcle, result;
-    #endif
-    int i0, i1, i2, flag;
-    double reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1, lenX2;
-
+    DL maxInputX0, maxInputX1, maxInputX2;
+    int i0, i1, i2;
+    // int flag;
+    double x0, x1, x2, reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1, lenX2;
+    
     // mpfr
     mpfr_t mpfrOrcle, mpfrResult;
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // file
+    // char *directory = "outputs";
     // char *suffix = "sample.txt";
     // char *fileNameSample;
     // FILE *f;
     // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    // sprintf(fileNameSample, "./outputs/%s_%s_%d", fileNameKernel, suffix, myid);
-    // // printf("%s\n", fileNameSample);
+    // sprintf(fileNameSample, "./%s/%s_%s_%d", outputs, fileNameKernel, suffix, myid);
+    // printf("%s\n", fileNameSample);
     // if ((f = fopen(fileNameSample, "w")) == NULL) { 
     //     printf("Error opening file %s.\n", fileNameSample);
     //     exit(0);
     // }
 
+    // loop boundary
+    lenX0 = x0End.d - x0Start.d;
+    lenX1 = x1End.d - x1Start.d;
+    lenX2 = x2End.d - x2Start.d;
+    double stepX0 = lenX0 / (double)testNumX0;
+    double stepX1 = lenX1 / (double)testNumX1;
+    double stepX2 = lenX2 / (double)testNumX2;
+
     // Real number average
     maxReUlp = 0;
-    flag = 1;
-    size_t testCount = 0;
+    // flag = 1;
+    // size_t testCount = 0;
     sumError = 0;
-    double x2RealStart = xx2 + ceil((x2Start.d - xx2) / stepX2) * stepX2;
-    for(x2.d = x2RealStart; x2.d < x2End.d; x2.d += stepX2) {
-        for(x1.d = x1Start.d; x1.d < x1End.d; x1.d += stepX1) {
-            for(x0.d = x0Start.d; x0.d < x0End.d; x0.d += stepX0) {
-                testCount++;
-                computeResult3param(x0.d, x1.d, x2.d, mpfrResult);
-                computeOrcle3param(x0.d, x1.d, x2.d, mpfrOrcle);
+    for(i2 = i2StartLocal; i2 <= i2EndLocal; i2++) {
+        x2 = x2Start.d + stepX2 * i2;
+        for(i1 = 0; i1 <= (int)testNumX1; i1++) {
+            x1 = x1Start.d + stepX1 * i1;
+            for(i0 = 0; i0 <= (int)testNumX0; i0++) {
+                x0 = x0Start.d + stepX0 * i0;
+                computeResult3param(x0, x1, x2, mpfrResult);
+                computeOrcle3param(x0, x1, x2, mpfrOrcle);
                 #ifdef SINGLE
                 reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
                 #else   // compute Double ULP as default
@@ -94,10 +101,10 @@ struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, 
                 // fprintf(f, "%.16le\n", reUlp);
                 sumError += reUlp;
                 if (reUlp > maxReUlp) {
-                    flag = 0;
-                    maxInputX2 = x2;
-                    maxInputX1 = x1;
-                    maxInputX0 = x0;
+                    // flag = 0;
+                    maxInputX2.d = x2;
+                    maxInputX1.d = x1;
+                    maxInputX0.d = x0;
                     maxReUlp = reUlp;
                 }
             }
@@ -175,32 +182,26 @@ int main(int argc, char **argv) {
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }
-    double lenX0 = x0End.d - x0Start.d;
-    double lenX1 = x1End.d - x1Start.d;
-    double lenX2 = x2End.d - x2Start.d;
-    double stepX0 = lenX0 / testNumX0;
-    double stepX1 = lenX1 / testNumX1;
-    double stepX2 = lenX2 / testNumX2;
+
     if(myid == 0) {
-        printf("\n---------------------------------------------------start test3paramParallel\n");
+        printf("\n---------------------------------------------------start test3param\n");
         printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
     }
 
     // local parameters init
-    double lenX2Local = lenX2 / numProcs;
-    DL x2StartLocal;
-    x2StartLocal.d = x2Start.d + myid * lenX2Local;
-    DL x2EndLocal;
-    x2EndLocal.d = x2Start.d + (myid + 1) * lenX2Local;
-    // if(myid != numProcs - 1) {
-    //     x2EndLocal.d = x2Start.d + (myid + 1) * lenX2Local;
-    // } else {
-    //     x2EndLocal.d = x2End.d;
-    // }
+    int lenX2Local = testNumX2 / numProcs;
+    int i2StartLocal;
+    i2StartLocal = myid * lenX2Local;
+    int i2EndLocal;
+    if(myid != numProcs - 1) {
+        i2EndLocal = (myid + 1) * lenX2Local - 1;
+    } else {
+        i2EndLocal = testNumX2;
+    }
 
     // call the error test function
-    struct errorInfo err = test3paramParallel(x0Start, x0End, x1Start, x1End, x2StartLocal, x2EndLocal, stepX0, stepX1, stepX2, fileNameKernel, myid, x2Start.d);
-    
+    struct errorInfo err = test3paramParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel, myid, i2StartLocal, i2EndLocal);
+
     // gather errors and find the max
     struct errorInfo *errs;
     errs = (struct errorInfo *)calloc(numProcs, sizeof(struct errorInfo));
