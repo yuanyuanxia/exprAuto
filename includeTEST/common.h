@@ -7,7 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include <mpfr.h>
-#define PRECISION 120
+#define PRECISION 128
 
 typedef union {
     double d;
@@ -32,5 +32,20 @@ double computeUlpUnitF(double x);
 double computeUlpDiff(mpfr_t correctValue, mpfr_t myValue);
 
 double computeUlpDiffF(mpfr_t correctValue, mpfr_t myValue);
+
+#define _EXP_BITS 11
+#define SIGN_BIT 0x8000000000000000
+#define EXP_BIT 0x7FF0000000000000
+#define TAIL_BIT 0x000fffffffffffff
+typedef unsigned long _TYPE;  // 8 bytes
+typedef double DATATYPE;
+
+// for data generation
+typedef struct
+{
+    _TYPE m_nFraction : sizeof(_TYPE) * 8 - _EXP_BITS - 1;
+    _TYPE m_nExp : _EXP_BITS;
+    _TYPE m_nSign : 1;
+} _DATA;
 
 #endif

@@ -19,8 +19,8 @@ if [ $# -eq 10 ]; then
     middle=${9} # intervalsInfo_sizes. Eg: 3.8_7.8_-4.5_-0.3_0.4_0.9_256_256_256
     suffix=${10} # different version. Eg: herbie daisy origin temp_0_3 final
 elif [ $# -eq 8 ]; then
-    x0Size=256
-    x1Size=256
+    x0Size=1024
+    x1Size=1024
     prefix=${6}
     middle=${7}
     suffix=${8}
