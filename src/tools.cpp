@@ -89,7 +89,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = os1.str() + "_" + os2.str() + "_" + os7.str();
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorOneFPED.sh";
+    string scriptName = "./detectErrorOneFPEDParallel.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os7.str() + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
@@ -161,7 +161,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os7.str() + "_" + os8.str();
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorTwoParallel.sh";
+    string scriptName = "./detectErrorTwoFPEDParallel.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os3.str() + " " + os4.str() + " " + os7.str() + " " + os8.str() + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
@@ -242,7 +242,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os5.str() + "_" + os6.str() + "_" + os7.str() + "_" + os8.str() + "_" + os9.str();
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorThreeParallel.sh";
+    string scriptName = "./detectErrorThreeFPEDParallel.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os3.str() + " " + os4.str() + " " + os5.str() + " " + os6.str() + " " + os7.str() + " " + os8.str() + " " + os9.str() + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};

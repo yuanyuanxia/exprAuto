@@ -58,7 +58,7 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     char *fileNameSample;
     FILE *f;
     fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    sprintf(fileNameSample, "./%s/%s_%s_%d.txt", outputs, fileNameKernel, suffix, myid);
+    sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
     printf("%s\n", fileNameSample);
     if ((f = fopen(fileNameSample, "w")) == NULL) { 
         printf("Error opening file %s.\n", fileNameSample);
@@ -98,7 +98,7 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
                 //     printf("happen to NaN or inf\n");
                 //     exit(1);
                 // }
-                fprintf(f, "%le\t%e\n", x0, reUlp);
+                fprintf(f, "%le\t%le\t%le\t%e\n", x0, x1, x2, reUlp);
                 sumError += reUlp;
                 if (reUlp > maxReUlp) {
                     // flag = 0;
@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
     }
 
     if(myid == 0) {
-        printf("\n---------------------------------------------------start test3param\n");
+        printf("\n---------------------------------------------------start test3paramFPEDParallel\n");
         printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
     }
 
