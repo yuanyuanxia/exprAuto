@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iomanip>
 
 using std::cout;
 using std::endl;
@@ -77,9 +78,9 @@ vector<int> getScales(string scale, const char *split)
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int x0Size)
 {
     std::ostringstream os1;
-    os1 << x0Start;
+    os1 << std::setprecision(DOUBLE_PRECISION) << x0Start;
     std::ostringstream os2;
-    os2 << x0End;
+    os2 << std::setprecision(DOUBLE_PRECISION) << x0End;
 
     std::ostringstream os7;
     os7 << x0Size;
@@ -88,7 +89,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = os1.str() + "_" + os2.str() + "_" + os7.str();
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorOneParallel.sh";
+    string scriptName = "./detectErrorOneFPED.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os7.str() + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
@@ -143,13 +144,13 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
 {
     std::ostringstream os1;
-    os1 << x0Start;
+    os1 << std::setprecision(DOUBLE_PRECISION)  << x0Start;
     std::ostringstream os2;
-    os2 << x0End;
+    os2 << std::setprecision(DOUBLE_PRECISION)  << x0End;
     std::ostringstream os3;
-    os3 << x1Start;
+    os3 << std::setprecision(DOUBLE_PRECISION)  << x1Start;
     std::ostringstream os4;
-    os4 << x1End;
+    os4 << std::setprecision(DOUBLE_PRECISION)  << x1End;
 
     std::ostringstream os7;
     os7 << x0Size;
@@ -219,23 +220,23 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size)
 {
     std::ostringstream os1;
-    os1 << x0Start;
+    os1 << std::setprecision(DOUBLE_PRECISION)  << x0Start;
     std::ostringstream os2;
-    os2 << x0End;
+    os2 << std::setprecision(DOUBLE_PRECISION)  << x0End;
     std::ostringstream os3;
-    os3 << x1Start;
+    os3 << std::setprecision(DOUBLE_PRECISION)  << x1Start;
     std::ostringstream os4;
-    os4 << x1End;
+    os4 << std::setprecision(DOUBLE_PRECISION)  << x1End;
     std::ostringstream os5;
-    os5 << x2Start;
+    os5 << std::setprecision(DOUBLE_PRECISION)  << x2Start;
     std::ostringstream os6;
-    os6 << x2End;
+    os6 << std::setprecision(DOUBLE_PRECISION)  << x2End;
     std::ostringstream os7;
-    os7 << x0Size;
+    os7 << std::setprecision(DOUBLE_PRECISION)  << x0Size;
     std::ostringstream os8;
-    os8 << x1Size;
+    os8 << std::setprecision(DOUBLE_PRECISION)  << x1Size;
     std::ostringstream os9;
-    os9 << x2Size;
+    os9 << std::setprecision(DOUBLE_PRECISION)  << x2Size;
 
     string prefix = "expr_" + uniqueLabel;
     string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os5.str() + "_" + os6.str() + "_" + os7.str() + "_" + os8.str() + "_" + os9.str();
