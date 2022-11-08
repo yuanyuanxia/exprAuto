@@ -41,7 +41,7 @@ int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult) {
     return status;
 }
 
-struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* fileNameKernel, int myid, int i2StartLocal, int i2EndLocal) {
+struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* fileNameKernel, int myid, int i2StartLocal, int i2EndLocal) {
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d);
     DL maxInputX0, maxInputX1, maxInputX2;
     int i0, i1, i2;
@@ -53,17 +53,17 @@ struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, 
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // file
-    // char *directory = "outputs";
-    // char *suffix = "sample.txt";
-    // char *fileNameSample;
-    // FILE *f;
-    // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    // sprintf(fileNameSample, "./%s/%s_%s_%d", outputs, fileNameKernel, suffix, myid);
-    // printf("%s\n", fileNameSample);
-    // if ((f = fopen(fileNameSample, "w")) == NULL) { 
-    //     printf("Error opening file %s.\n", fileNameSample);
-    //     exit(0);
-    // }
+    char *directory = "outputs";
+    char *suffix = "sample";
+    char *fileNameSample;
+    FILE *f;
+    fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    sprintf(fileNameSample, "./%s/%s_%s_%d.txt", outputs, fileNameKernel, suffix, myid);
+    printf("%s\n", fileNameSample);
+    if ((f = fopen(fileNameSample, "w")) == NULL) { 
+        printf("Error opening file %s.\n", fileNameSample);
+        exit(0);
+    }
 
     // loop boundary
     lenX0 = x0End.d - x0Start.d;
@@ -98,7 +98,7 @@ struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, 
                 //     printf("happen to NaN or inf\n");
                 //     exit(1);
                 // }
-                // fprintf(f, "%.16le\n", reUlp);
+                fprintf(f, "%le\t%e\n", x0, reUlp);
                 sumError += reUlp;
                 if (reUlp > maxReUlp) {
                     // flag = 0;
@@ -119,7 +119,7 @@ struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, 
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxReUlp);
 
-    // fclose(f);
+    fclose(f);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
         testNumX2 = strtod(argv[3], NULL);
         strcpy(fileNameKernel, argv[4]);
     } else {
-        printf("Usage: ./test3paramParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
+        printf("Usage: ./test3paramFPEDParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }
@@ -200,7 +200,7 @@ int main(int argc, char **argv) {
     }
 
     // call the error test function
-    struct errorInfo err = test3paramParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel, myid, i2StartLocal, i2EndLocal);
+    struct errorInfo err = test3paramFPEDParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel, myid, i2StartLocal, i2EndLocal);
 
     // gather errors and find the max
     struct errorInfo *errs;
