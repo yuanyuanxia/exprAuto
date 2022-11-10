@@ -30,7 +30,7 @@ else
 fi
 
 testFileName=test2paramParallel
-numProcs=32
+numProcs=4
 
 echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}"
 

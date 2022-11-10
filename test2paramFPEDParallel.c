@@ -53,17 +53,17 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // file
-    char *directory = "outputs";
-    char *suffix = "sample";
-    char *fileNameSample;
-    FILE *f;
-    fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
-    printf("%s\n", fileNameSample);
-    if ((f = fopen(fileNameSample, "w")) == NULL) { 
-        printf("Error opening file %s.\n", fileNameSample);
-        exit(0);
-    }
+    // char *directory = "outputs";
+    // char *suffix = "sample";
+    // char *fileNameSample;
+    // FILE *f;
+    // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    // sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
+    // printf("%s\n", fileNameSample);
+    // if ((f = fopen(fileNameSample, "w")) == NULL) { 
+    //     printf("Error opening file %s.\n", fileNameSample);
+    //     exit(0);
+    // }
 
     // loop boundary
     lenX0 = x0End.d - x0Start.d;
@@ -94,7 +94,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
             //     printf("happen to NaN or inf\n");
             //     exit(1);
             // }
-            fprintf(f, "%le\t%le\t%e\n", x0, x1, reUlp);
+            // fprintf(f, "%le\t%le\t%e\n", x0, x1, reUlp);
             sumError += reUlp;
             if (reUlp > maxReUlp) {
                 // flag = 0;
@@ -113,7 +113,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxReUlp);
 
-    fclose(f);
+    // fclose(f);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
