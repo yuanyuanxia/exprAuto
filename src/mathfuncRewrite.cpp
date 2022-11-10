@@ -1071,7 +1071,7 @@ ast_ptr toPow(const ast_ptr &expr)
         // {
         //     cout << "toPow: " << vars.at(i) << " " << countVars.at(i) << endl;
         // }
-        size_t threshold = 4; // if the number of '*' >= 4, then convert '*' to pow()
+        size_t threshold = 2; // if the number of '*' >= threshold, then convert '*' to pow()
         auto exprNew = expr->Clone();
         for(size_t i = 0; i < vars.size(); i++)
         {

@@ -798,9 +798,27 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         vector<ast_ptr> resultsNew;
         for(auto &result : results)
         {
-            // resultsNew.push_back(result->Clone()); // the key to control the rewrite results
-            auto tmp = fmaRewrite(result);
-            mineAppend(resultsNew, tmp);
+            resultsNew.push_back(result->Clone()); // the key to control the rewrite results
+            auto tmps = fmaRewrite(result);
+            mineAppend(resultsNew, tmps);
+
+            // the following code: checkFma, toPow
+            // auto tmps1 = checkFma(tmps);
+            // vector<ast_ptr> tmps1;
+            // for(auto &tmp : tmps)
+            // {
+            //     auto tmp1 = toPow(tmp);
+            //     tmps1.push_back(std::move(tmp->Clone()));
+            //     tmps1.push_back(std::move(tmp1));
+            // }
+            // if(tmps1.empty())
+            // {
+            //     resultsNew.push_back(std::move(result));
+            // }
+            // else
+            // {
+            //     mineAppend(resultsNew, tmps1);
+            // }
         }
         // cout << prompt << "end--------" <<endl;
         callCount--;
@@ -1017,7 +1035,8 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
     combineConstant(expr1);
     sortExpr(expr1);
-    printExpr(expr1, "exprAutoWrapper: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
+    printExpr(expr1, "\nexprAutoWrapper: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
+    cout << endl;
     vector<ast_ptr> results;
     if(isEqual(expr, expr1))
     {
@@ -1040,12 +1059,18 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
         auto funcNameSympy = geneOriginCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
         auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
         
-        // int scale = 256;
-        // auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        // auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        int scale = 500000;
-        auto info = testError(uniqueLabel, "origin", -1.57079632679, 1.57079632679, scale);
-        auto info1 = testError(uniqueLabel, "sympy", -1.57079632679, 1.57079632679, scale);
+        int scale = 256;
+        // doppler1
+        auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        // int scale = 500000;
+        // sine
+        // auto info = testError(uniqueLabel, "origin", -1.57079632679, 1.57079632679, scale);
+        // auto info1 = testError(uniqueLabel, "sympy", -1.57079632679, 1.57079632679, scale);
+        // sqroot
+        // auto info = testError(uniqueLabel, "origin", 0, 1, scale);
+        // auto info1 = testError(uniqueLabel, "sympy", 0, 1, scale);
+
 
         auto maxError = info.maxError;
         auto maxError1 = info1.maxError;

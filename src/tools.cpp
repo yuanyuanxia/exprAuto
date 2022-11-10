@@ -3,6 +3,7 @@
 #include "parserASTLY.hpp"
 #include "basic.hpp"
 #include "geneCode.hpp"
+#include "color.hpp"
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -14,6 +15,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 
 using std::cout;
 using std::endl;
@@ -452,10 +454,19 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
 
         // pick the best rewrite expression
         string bestRewriteExpr;
-        double maxError;
-        double aveError;
+        double maxError = -1;
+        double aveError = 0;
         size_t maxIdx = -1;
-        for (size_t j = 0; j < newTempExprs.size(); j++)
+        size_t jEnd = min(newTempExprs.size(), size_t(300));
+        // std::ofstream fTimeout;
+        // fTimeout.open("./tmpTimeResult.txt");
+        // if (!fTimeout.is_open())
+        // {
+        //     cout << "open tmpResult.txt failed";
+        //     exit(EXIT_FAILURE);
+        // }
+
+        for (size_t j = 0; j < jEnd; j++)
         {
             cout << "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-" << endl;
             string newExpr = PrintExpression(newTempExprs.at(j));
@@ -464,8 +475,12 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
             // generate function code and test error
             string suffixTmp = suffix + std::to_string(j);
             geneOriginCode(newExpr, uniqueLabel, suffixTmp);
-            exprInfo tempError;
-            tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
+            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
+            auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
+            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
+            // cout << BLUE << "rewrite: For NO." << j << ": testError time: " << testError_seconds.count() << " s" << RESET << endl;
+            // fTimeout << testError_seconds.count() << endl;
             if (j == 0)
             {
                 maxError = tempError.maxError;

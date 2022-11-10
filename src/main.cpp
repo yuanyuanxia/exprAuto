@@ -57,7 +57,7 @@ int main()
         if (getlineCount == 35 || getlineCount == 36 || getlineCount < 0)
             continue;
 
-        auto start = std::chrono::high_resolution_clock::now();
+        auto timeStart = std::chrono::high_resolution_clock::now();
 
         if (inputStr == "exit;" || inputStr == "quit;" || inputStr == "exit" || inputStr == "quit")
         {
@@ -90,7 +90,6 @@ int main()
 
 
         bool runAllFlag = true;
-        std::chrono::_V2::system_clock::time_point tmp1, tmp2, tmp3;
         if (runAllFlag)
         { // the whole process
             auto uniqueLabel = getUniqueLabel();
@@ -98,6 +97,7 @@ int main()
 
             // get the information about the input expr
             auto originExpr = ParseExpressionFromString(inputStr);
+            printExpr(originExpr, "\nmain: the originExpr = ", DOUBLE_PRECISION);
             vector<string> vars;
             getVariablesFromExpr(originExpr, vars);
 
@@ -110,9 +110,13 @@ int main()
             // TODO: pick the best from origin, herbie, daisy
             // pickTheBest(uniqueLabel, 0, 1, 100);
 
-            tmp1 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto infoTmp = testError(uniqueLabel, "origin", intervals, scales);
-            tmp2 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
+            // cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
 
             geneBoundaryData(uniqueLabel, "origin"); // matlab
 
@@ -121,14 +125,25 @@ int main()
             geneIntervalData(uniqueLabel, intervalsTemp, threholdsTemp);
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+            // auto timeTmp3 = std::chrono::high_resolution_clock::now();
             auto exprInfoVector = rewrite(inputStr, uniqueLabel);
-            tmp3 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp4 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> rewrite_seconds = timeTmp4 - timeTmp3;
+            // cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
             auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
         } // the whole process end
         else
         { // only rewrite
+            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto results = exprAutoWrapper(inputStr);
+            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> exprAutoWrapper_seconds = timeTmp2 - timeTmp1;
+            // cout << BLUE << "exprAutoWrapper time: " << exprAutoWrapper_seconds.count() << " s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
 
             // write the results to file
             fout << "-------------------------------------NO." << getlineCount << ": " << inputStr << endl;
@@ -144,12 +159,8 @@ int main()
             fout << endl;
         } // only rewrite end
 
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> testError_seconds = tmp2 - tmp1;
-        std::chrono::duration<double> rewrite_seconds = tmp3 - tmp2;
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
-        cout << BLUE << "rewrite time: " << rewrite_seconds.count() << "s" << RESET << endl;
+        auto timeEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
         cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }
