@@ -47,6 +47,8 @@ double computeUlpDiff(mpfr_t correctValue, mpfr_t myValue) {
     reUlp = mpfr_get_d(mpfrReUlp, MPFR_RNDN);
     reUlp = fabs(reUlp);
 
+    // mpfr clear
+    mpfr_clears(mpfrDiff, mpfrReUlp, (mpfr_ptr) 0);
     return reUlp;
 }
 
@@ -91,5 +93,6 @@ double computeUlpDiffF(mpfr_t correctValue, mpfr_t myValue) {
     reUlp = mpfr_get_d(mpfrReUlp, MPFR_RNDN);
     reUlp = fabs(reUlp);
 
+    mpfr_clears(mpfrDiff, mpfrReUlp, (mpfr_ptr) 0);
     return reUlp;
 }

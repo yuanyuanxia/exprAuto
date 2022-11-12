@@ -104,7 +104,10 @@ struct errorInfo test1paramParallel(DL x0Start, DL x0End, double stepX0, const c
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxReUlp);
 
+    // clear
     // fclose(f);
+    // free(fileNameSample);
+    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
@@ -215,9 +218,14 @@ int main(int argc, char **argv) {
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%lg\t%lg\n", aveError, maxError);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxError);
+
+        free(fileNameErr);
+        fclose(fErr);
     }
     
-    // end everything
+    // clear
+    free(fileNameKernel);
+    free(errs);
     MPI_Type_free(&MPI_errorInfo);
     MPI_Finalize();
     return 0;

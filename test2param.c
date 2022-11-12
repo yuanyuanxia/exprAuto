@@ -152,10 +152,12 @@ void test2param(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int te
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxReUlp);
     }
 
+    // clear
     fclose(f);
     fclose(fErr);
     free(fileNameSample);
     free(fileNameErr);
+    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 }
 
 int main(int argc, char *argv[])
@@ -207,5 +209,7 @@ int main(int argc, char *argv[])
 
     test2param(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, fileNameKernel);
 
+    // clear
+    free(fileNameKernel);
     return 0;
 }

@@ -246,8 +246,12 @@ string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<strin
     mpfr_variables = 0;
     string variable_tmp = "";
     mpfrCodeGenerator(exprAst, mpfr_variables, mpfr_map, ofs, variable_tmp);
-    ofs << "\n\tmpfr_set(mpfrResult, mp" << mpfr_variables << ", MPFR_RNDN);\n"
-        << "\treturn status;\n"
+    ofs << "\n\tmpfr_set(mpfrResult, mp" << mpfr_variables << ", MPFR_RNDN);\n";
+    for (size_t i = 0; i < mpfr_variables; ++i)
+    {
+        ofs << "\tmpfr_clear(mp" + to_string(i + 1) + ");\n";
+    }
+    ofs << "\treturn status;\n"
         << "}";
 
     return funcName;

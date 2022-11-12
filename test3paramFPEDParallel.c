@@ -119,7 +119,10 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxReUlp);
 
+    // clear
     // fclose(f);
+    // free(fileNameSample);
+    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
@@ -245,9 +248,14 @@ int main(int argc, char **argv) {
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%lg\t%lg\n", aveError, maxError);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
+
+        free(fileNameErr);
+        fclose(fErr);
     }
     
-    // end everything
+    // clear
+    free(fileNameKernel);
+    free(errs);
     MPI_Type_free(&MPI_errorInfo);
     MPI_Finalize();
     return 0;
