@@ -52,20 +52,10 @@ int main()
     // while (getline(infile, inputStr)) // read line from file's input
     while (getline(cin, inputStr)) // read line from keyboard input
     {
-        auto benchMarkData = initalBenchMark();
-        auto pos = benchMarkData.find(inputStr);
-        if (pos != benchMarkData.end())
-        {
-            inputStr = pos->second.begin()->first;
-            cout << inputStr << endl;
-        }
-
         // only rewrite
         getlineCount++;
         if (getlineCount == 35 || getlineCount == 36 || getlineCount < 0)
             continue;
-
-        auto start = std::chrono::high_resolution_clock::now();
 
         if (inputStr == "exit;" || inputStr == "quit;" || inputStr == "exit" || inputStr == "quit")
         {
@@ -84,18 +74,32 @@ int main()
             inputStr.pop_back(); // remove the last char ';'
         }
 
+        auto benchMarkData = initalBenchMark();
+        auto pos = benchMarkData.find(inputStr);
+        if (pos != benchMarkData.end())
+        {
+            inputStr = pos->second.begin()->first;
+            cout << inputStr << endl;
+        }
+
         const char *split = " ";
 
-        auto originExpr1 = ParseExpressionFromString(inputStr);
-        vector<string> vars1;
-        getVariablesFromExpr(originExpr1, vars1);
-        cout << vars1.size() << endl;
+        // Get the information about the input expr
+        auto originExpr = ParseExpressionFromString(inputStr);
+        vector<string> vars;
+        getVariablesFromExpr(originExpr, vars);
+        // cout << vars.size() << endl;
 
         fprintf(stderr, GREEN "interval> " RESET);
 
+        // after input completed, start timing
+        auto timeStart = std::chrono::high_resolution_clock::now();
+
         string intervalStr;
         getline(cin, intervalStr);
-        vector<double> intervals = getIntervals(intervalStr, split);
+        auto intervals = getIntervals(intervalStr, split);
+
+        // For temporary use only . It will be replaced by geneBoundaryData and geneIntervalData
         ofstream ofs;
         ofs.open("intervalData.txt", ios::out);
         for (int i = 0; i < intervals.size(); i++)
@@ -111,22 +115,23 @@ int main()
         }
         ofs.close();
 
+        // Read scale from keyboard
         // fprintf(stderr, GREEN "scale> " RESET);
         // string scaleStr;
         // getline(cin, scaleStr);
         // vector<int> scales = getScales(scaleStr, split);
+        
+        // Default scale setting according to the variables' size
         int sampleScale;
-
-        cout << vars1.size() << endl;
-        if (vars1.size() == 1)
+        if (vars.size() == 1)
         {
             sampleScale = 500000;
         }
-        else if (vars1.size() == 2)
+        else if (vars.size() == 2)
         {
             sampleScale = 1024;
         }
-        else if (vars1.size() == 3)
+        else if (vars.size() == 3)
         {
             sampleScale = 256;
         }
@@ -135,35 +140,33 @@ int main()
             sampleScale = 10;
         }
         vector<int> scales;
-        for (int i = 0; i < vars1.size(); i++)
+        for (int i = 0; i < vars.size(); i++)
         {
             scales.push_back(sampleScale);
         }
 
         bool runAllFlag = true;
-        std::chrono::_V2::system_clock::time_point tmp1, tmp2, tmp3;
         if (runAllFlag)
         { // the whole process
             auto uniqueLabel = getUniqueLabel();
             cout << "uniqueLabel: " << uniqueLabel << endl;
 
-            // get the information about the input expr
-            // auto originExpr = ParseExpressionFromString(inputStr);
-            // vector<string> vars;
-            // getVariablesFromExpr(originExpr, vars);
-
-            auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars1, uniqueLabel, "origin");
+            auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
             // auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
             // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
             // auto funcNameDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
-            auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars1);
+            auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
             // TODO: pick the best from origin, herbie, daisy
             // pickTheBest(uniqueLabel, 0, 1, 100);
 
-            tmp1 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto infoTmp = testError(uniqueLabel, "origin", intervals, scales);
-            tmp2 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
+            // cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
 
             geneBoundaryData(uniqueLabel, "origin"); // matlab
 
@@ -172,14 +175,25 @@ int main()
             geneIntervalData(uniqueLabel, intervalsTemp, threholdsTemp);
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
+            // auto timeTmp3 = std::chrono::high_resolution_clock::now();
             auto exprInfoVector = rewrite(inputStr, uniqueLabel);
-            tmp3 = std::chrono::high_resolution_clock::now();
+            // auto timeTmp4 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> rewrite_seconds = timeTmp4 - timeTmp3;
+            // cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-            auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars1);
+            auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
         } // the whole process end
         else
         { // only rewrite
+            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto results = exprAutoWrapper(inputStr);
+            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> exprAutoWrapper_seconds = timeTmp2 - timeTmp1;
+            // cout << BLUE << "exprAutoWrapper time: " << exprAutoWrapper_seconds.count() << " s" << RESET << endl;
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
 
             // write the results to file
             fout << "-------------------------------------NO." << getlineCount << ": " << inputStr << endl;
@@ -195,12 +209,8 @@ int main()
             fout << endl;
         } // only rewrite end
 
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> testError_seconds = tmp2 - tmp1;
-        std::chrono::duration<double> rewrite_seconds = tmp3 - tmp2;
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
-        cout << BLUE << "rewrite time: " << rewrite_seconds.count() << "s" << RESET << endl;
+        auto timeEnd = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
         cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }

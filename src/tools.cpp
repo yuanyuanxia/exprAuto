@@ -236,7 +236,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     string middle = param1 + "_" + param2 + "_" + param3 + "_" + param4 + "_" + param5 + "_" + param6 + "_" + param7 + "_" + param8 + "_" + param9;
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectError" + size() + "FPEDParallel.sh";
+    string scriptName = "./detectErrorThreeFPEDParallel.sh";
     string commandStr = scriptName + " " + uniqueLabel + " " + param1 + " " + param2 + " " + param3 + " " + param4 + " " + param5 + " " + param6 + " " + param7 + " " + param8 + " " + param9 + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
