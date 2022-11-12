@@ -4,7 +4,7 @@ CC = gcc
 CPP = g++
 INCLUDE = -Iinclude -I/usr/include/python3.8
 # LIBS=  -L/usr/lib/python3.8/config-3.8-x86_64-linux-gnu -lpython3.8 # may need -L to assign the Python lobrary path
-LIBS = -lpython3.8
+LIBS = -lpython3.8 -lfmt
 ECHO = printf
 
 # $(info $(CFLAGS) )

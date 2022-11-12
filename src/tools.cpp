@@ -16,6 +16,7 @@
 #include <sstream>
 #include <iomanip>
 #include <chrono>
+#include <fmt/core.h>
 
 using std::cout;
 using std::endl;
@@ -221,31 +222,22 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size)
 {
-    std::ostringstream os1;
-    os1 << std::setprecision(DOUBLE_PRECISION)  << x0Start;
-    std::ostringstream os2;
-    os2 << std::setprecision(DOUBLE_PRECISION)  << x0End;
-    std::ostringstream os3;
-    os3 << std::setprecision(DOUBLE_PRECISION)  << x1Start;
-    std::ostringstream os4;
-    os4 << std::setprecision(DOUBLE_PRECISION)  << x1End;
-    std::ostringstream os5;
-    os5 << std::setprecision(DOUBLE_PRECISION)  << x2Start;
-    std::ostringstream os6;
-    os6 << std::setprecision(DOUBLE_PRECISION)  << x2End;
-    std::ostringstream os7;
-    os7 << std::setprecision(DOUBLE_PRECISION)  << x0Size;
-    std::ostringstream os8;
-    os8 << std::setprecision(DOUBLE_PRECISION)  << x1Size;
-    std::ostringstream os9;
-    os9 << std::setprecision(DOUBLE_PRECISION)  << x2Size;
+    string param1 = fmt::format("{}", x0Start);
+    string param2 = fmt::format("{}", x0End);
+    string param3 = fmt::format("{}", x1Start);
+    string param4 = fmt::format("{}", x1End);
+    string param5 = fmt::format("{}", x2Start);
+    string param6 = fmt::format("{}", x2End);
+    string param7 = fmt::format("{}", x0Size);
+    string param8 = fmt::format("{}", x1Size);
+    string param9 = fmt::format("{}", x2Size);
 
     string prefix = "expr_" + uniqueLabel;
-    string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os5.str() + "_" + os6.str() + "_" + os7.str() + "_" + os8.str() + "_" + os9.str();
+    string middle = param1 + "_" + param2 + "_" + param3 + "_" + param4 + "_" + param5 + "_" + param6 + "_" + param7 + "_" + param8 + "_" + param9;
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorThreeFPEDParallel.sh";
-    string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os3.str() + " " + os4.str() + " " + os5.str() + " " + os6.str() + " " + os7.str() + " " + os8.str() + " " + os9.str() + " " + prefix + " " + middle + " " + suffix;
+    string scriptName = "./detectError" + size() + "FPEDParallel.sh";
+    string commandStr = scriptName + " " + uniqueLabel + " " + param1 + " " + param2 + " " + param3 + " " + param4 + " " + param5 + " " + param6 + " " + param7 + " " + param8 + " " + param9 + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
     strcat(command, commandStr.c_str());
