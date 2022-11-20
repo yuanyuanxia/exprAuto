@@ -1060,9 +1060,12 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
         auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
         
         int scale = 256;
+        // turbine1
+        auto info = testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
+        auto info1 = testError(uniqueLabel, "sympy", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
         // doppler1
-        auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        // auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
+        // auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
         // int scale = 500000;
         // sine
         // auto info = testError(uniqueLabel, "origin", -1.57079632679, 1.57079632679, scale);

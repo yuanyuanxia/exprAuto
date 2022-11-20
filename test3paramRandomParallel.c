@@ -1,3 +1,5 @@
+#include<stdlib.h>
+#include<time.h>
 #include "common.h"
 #include "mpi.h"
 
@@ -23,6 +25,8 @@ struct errorInfo {
 #define TESTNUMX0 256
 #define TESTNUMX1 256
 #define TESTNUMX2 256
+
+#define RANDOMCOUNT 10
 // #define FP
 // #define DEBUG
 double EXPRESSIONMPFR(double, double, double, mpfr_t);
@@ -41,51 +45,48 @@ int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult) {
     return status;
 }
 
-struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* fileNameKernel, int myid, int i2StartLocal, int i2EndLocal) {
-    // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d);
-    DL maxInputX0, maxInputX1, maxInputX2;
-    int i0, i1, i2;
-    // int flag;
-    double x0, x1, x2, reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1, lenX2;
-    
+struct errorInfo test3paramParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2StartLocal, DL x2EndLocal, int lenX0, int lenX1, int lenX2Local, const char* fileNameKernel, int myid)
+{
+    srand(time(0));
+    // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2StartLocal: %lg, x2EndLocal: %lg, lenX0Local = %d, lenX1Local = %d, lenX2Local = %d\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d, x2StartLocal.d, x2EndLocal.d, lenX0Local, lenX1Local, lenX2Local);
+    DL x0, x1, x2, maxInputX0, maxInputX1, maxInputX2;
+    #ifdef DEBUG
+    DL orcle, result;
+    #endif
+    int i0, i1, i2, flag;
+    double reUlp, sumError, aveReUlp, maxReUlp;
+
     // mpfr
     mpfr_t mpfrOrcle, mpfrResult;
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // file
-    // char *directory = "outputs";
-    // char *suffix = "sample";
+    // char *suffix = "sample.txt";
     // char *fileNameSample;
     // FILE *f;
     // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    // sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
-    // printf("%s\n", fileNameSample);
+    // sprintf(fileNameSample, "./outputs/%s_%s_%d", fileNameKernel, suffix, myid);
+    // // printf("%s\n", fileNameSample);
     // if ((f = fopen(fileNameSample, "w")) == NULL) { 
     //     printf("Error opening file %s.\n", fileNameSample);
     //     exit(0);
     // }
 
-    // loop boundary
-    lenX0 = x0End.d - x0Start.d;
-    lenX1 = x1End.d - x1Start.d;
-    lenX2 = x2End.d - x2Start.d;
-    double stepX0 = lenX0 / (double)testNumX0;
-    double stepX1 = lenX1 / (double)testNumX1;
-    double stepX2 = lenX2 / (double)testNumX2;
-
     // Real number average
     maxReUlp = 0;
-    // flag = 1;
-    // size_t testCount = 0;
+    flag = 1;
+    size_t testCount = 0;
     sumError = 0;
-    for(i2 = i2StartLocal; i2 <= i2EndLocal; i2++) {
-        x2 = x2Start.d + stepX2 * i2;
-        for(i1 = 0; i1 <= (int)testNumX1; i1++) {
-            x1 = x1Start.d + stepX1 * i1;
-            for(i0 = 0; i0 <= (int)testNumX0; i0++) {
-                x0 = x0Start.d + stepX0 * i0;
-                computeResult3param(x0, x1, x2, mpfrResult);
-                computeOrcle3param(x0, x1, x2, mpfrOrcle);
+    for(size_t i = 0; i < lenX2Local; i++) {
+        // x2.d = random(x2StartLocal, x2EndLocal);
+        x2.d = x2StartLocal.d + ((double)rand() / (double)RAND_MAX) * (x2EndLocal.d - x2StartLocal.d);
+        for(size_t j = 0; j < lenX1; j++) {
+            x1.d = x1Start.d + ((double)rand() / (double)RAND_MAX) * (x1End.d - x1Start.d);
+            for(size_t k = 0; k < lenX0; k++) {
+                x0.d = x0Start.d + ((double)rand() / (double)RAND_MAX) * (x0End.d - x0Start.d);
+                testCount++;
+                computeResult3param(x0.d, x1.d, x2.d, mpfrResult);
+                computeOrcle3param(x0.d, x1.d, x2.d, mpfrOrcle);
                 #ifdef SINGLE
                 reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
                 #else   // compute Double ULP as default
@@ -98,13 +99,13 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
                 //     printf("happen to NaN or inf\n");
                 //     exit(1);
                 // }
-                // fprintf(f, "%le\t%le\t%le\t%e\n", x0, x1, x2, reUlp);
+                // fprintf(f, "%.16le\n", reUlp);
                 sumError += reUlp;
                 if (reUlp > maxReUlp) {
-                    // flag = 0;
-                    maxInputX2.d = x2;
-                    maxInputX1.d = x1;
-                    maxInputX0.d = x0;
+                    flag = 0;
+                    maxInputX2 = x2;
+                    maxInputX1 = x1;
+                    maxInputX0 = x0;
                     maxReUlp = reUlp;
                 }
             }
@@ -181,54 +182,90 @@ int main(int argc, char **argv) {
         testNumX2 = strtod(argv[3], NULL);
         strcpy(fileNameKernel, argv[4]);
     } else {
-        printf("Usage: ./test3paramFPEDParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
+        printf("Usage: ./test3paramParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
         printf("Usage: if no correct input:\n");
         printf("Usage: \tthe fixed inputs [%g %g %g %g %g %g %lu %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2);
     }
     if(myid == 0) {
-        printf("\n---------------------------------------------------start test3paramFPEDParallel\n");
+        printf("\n---------------------------------------------------start test3paramParallel\n");
         printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg, testNumX0 = %lu, testNumX1 = %lu, testNumX2 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d, testNumX0, testNumX1, testNumX2, fileNameKernel);
     }
+    // global
+    double lenX2 = x2End.d - x2Start.d;
+    double lenX2Unit = lenX2 / testNumX2;
 
     // local parameters init
-    int lenX2Local = testNumX2 / numProcs;
-    int i2StartLocal;
-    i2StartLocal = myid * lenX2Local;
-    int i2EndLocal;
-    if(myid != numProcs - 1) {
-        i2EndLocal = (myid + 1) * lenX2Local - 1;
-    } else {
-        i2EndLocal = testNumX2;
+    int testNumX2Local;
+    DL x2StartLocal;
+    DL x2EndLocal;
+    if(myid < (testNumX2 % numProcs)) {
+        testNumX2Local = testNumX2 / numProcs + 1;
+        x2StartLocal.d = x2Start.d + myid * testNumX2Local * lenX2Unit;
+        x2EndLocal.d = x2Start.d + (myid + 1) * testNumX2Local * lenX2Unit;
+    }
+    else
+    {
+        testNumX2Local = testNumX2 / numProcs;
+        x2StartLocal.d = x2End.d - (numProcs - myid - 1) * testNumX2Local * lenX2Unit;
+        x2EndLocal.d = x2End.d - (numProcs - myid) * testNumX2Local * lenX2Unit;
     }
 
-    // call the error test function
-    struct errorInfo err = test3paramFPEDParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, fileNameKernel, myid, i2StartLocal, i2EndLocal);
-
-    // gather errors and find the max
     struct errorInfo *errs;
     errs = (struct errorInfo *)calloc(numProcs, sizeof(struct errorInfo));
-    MPI_Gather(&err, 1, MPI_errorInfo, errs, 1, MPI_errorInfo, 0, MPI_COMM_WORLD);
-    if(myid == 0)
-    {
-        double maxError = -1;
-        double aveError = 0;
-        double errTmp = -1;
-        int maxErrorIdx = -1;
-        for(int i = 0; i < numProcs; i++)
+    double maxErrorFinal = -1;
+    double aveErrorFinal = 0;
+    DL maxInputX0Final, maxInputX1Final, maxInputX2Final;
+
+    for(size_t runCount = 0; runCount < RANDOMCOUNT; runCount++){
+        // call the error test function
+        struct errorInfo err = test3paramParallel(x0Start, x0End, x1Start, x1End, x2StartLocal, x2EndLocal, testNumX0, testNumX1, testNumX2Local, fileNameKernel, myid);
+        
+        // gather errors and find the max
+        MPI_Gather(&err, 1, MPI_errorInfo, errs, 1, MPI_errorInfo, 0, MPI_COMM_WORLD);
+        if(myid == 0)
         {
-            errTmp = errs[i].maxError;
-            if(errTmp > maxError)
+            double maxError = -1;
+            double aveError = 0;
+            double errTmp = -1;
+            int maxErrorIdx = -1;
+            for(int i = 0; i < numProcs; i++)
             {
-                maxError = errTmp;
-                maxErrorIdx = i;
+                errTmp = errs[i].maxError;
+                if(errTmp > maxError)
+                {
+                    maxError = errTmp;
+                    maxErrorIdx = i;
+                }
+                aveError += errs[i].sumError;
             }
-            aveError += errs[i].sumError;
+            aveError = aveError / (testNumX0 * testNumX1 * testNumX2);
+            DL maxInputX0, maxInputX1, maxInputX2;
+            maxInputX0.d = errs[maxErrorIdx].maxInputX0;
+            maxInputX1.d = errs[maxErrorIdx].maxInputX1;
+            maxInputX2.d = errs[maxErrorIdx].maxInputX2;
+
+            printf("\n\n----------NO.%lu\n", runCount);
+            printf("average ulp\tmax ulp\n");
+            printf("%lg\t%lg\n", aveError, maxError);
+            printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
+
+            if(maxError > maxErrorFinal)
+            {
+                maxErrorFinal = maxError;
+                maxInputX0Final.d = maxInputX0.d;
+                maxInputX1Final.d = maxInputX1.d;
+                maxInputX2Final.d = maxInputX2.d;
+            }
+            aveErrorFinal += aveError;
         }
-        aveError = aveError / (testNumX0 * testNumX1 * testNumX2);
-        DL maxInputX0, maxInputX1, maxInputX2;
-        maxInputX0.d = errs[maxErrorIdx].maxInputX0;
-        maxInputX1.d = errs[maxErrorIdx].maxInputX1;
-        maxInputX2.d = errs[maxErrorIdx].maxInputX2;
+    }
+    if(myid == 0) {
+        aveErrorFinal = aveErrorFinal / RANDOMCOUNT;
+
+        printf("\n\n----------FINAL\n");
+        printf("average ulp\tmax ulp\n");
+        printf("%lg\t%lg\n", aveErrorFinal, maxErrorFinal);
+        printf("\naveReUlp = %lg\nmaxInputX0Final = 0x%016lx %lg, maxInputX1Final = 0x%016lx %lg, maxInputX2Final = 0x%016lx %lg, maxReUlp = %lg\n", aveErrorFinal, maxInputX0Final.l, maxInputX0Final.d, maxInputX1Final.l, maxInputX1Final.d, maxInputX2Final.l, maxInputX2Final.d, maxErrorFinal);
 
         FILE *fErr;
         char *directory = "./outputs";
@@ -241,17 +278,13 @@ int main(int argc, char **argv) {
             printf("Error opening file %s.\n", fileNameErr);
             exit(0);
         }
-        printf("average ulp\tmax ulp\n");
-        printf("%lg\t%lg\n", aveError, maxError);
-        printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
-        fprintf(fErr, "%lg\t%lg\n", aveError, maxError);
-        fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
+        fprintf(fErr, "%lg\t%lg\n", aveErrorFinal, maxErrorFinal);
+        fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0Final = 0x%016lx %lg, maxInputX1Final = 0x%016lx %lg, maxInputX2Final = 0x%016lx %lg, maxReUlp = %lg\n", aveErrorFinal, maxInputX0Final.l, maxInputX0Final.d, maxInputX1Final.l, maxInputX1Final.d, maxInputX2Final.l, maxInputX2Final.d, maxErrorFinal);
 
         free(fileNameErr);
         fclose(fErr);
     }
-    
     // clear
     free(fileNameKernel);
     free(errs);
