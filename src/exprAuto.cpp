@@ -1025,7 +1025,7 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     return results;
 }
 
-vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
+vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &intervals, const std::vector<int> &scales)
 {
     cout << "\n>exprAutoWrapper: start-----------" << endl;
 
@@ -1059,10 +1059,10 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
         auto funcNameSympy = geneOriginCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
         auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
         
-        int scale = 256;
+        // int scale = 256;
         // turbine1
-        auto info = testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
-        auto info1 = testError(uniqueLabel, "sympy", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
+        // auto info = testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
+        // auto info1 = testError(uniqueLabel, "sympy", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
         // doppler1
         // auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
         // auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
@@ -1074,7 +1074,8 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
         // auto info = testError(uniqueLabel, "origin", 0, 1, scale);
         // auto info1 = testError(uniqueLabel, "sympy", 0, 1, scale);
 
-
+        auto info = testError(uniqueLabel, "origin", intervals, scales);
+        auto info1 = testError(uniqueLabel, "sympy", intervals, scales);
         auto maxError = info.maxError;
         auto maxError1 = info1.maxError;
 
@@ -1111,8 +1112,8 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr)
     return results;
 }
 
-vector<ast_ptr> exprAutoWrapper(const string &inputStr)
+vector<ast_ptr> exprAutoWrapper(const string &inputStr, const std::vector<double> &intervals, const std::vector<int> &scales)
 {
     auto expr = ParseExpressionFromString(inputStr);
-    return exprAutoWrapper(expr);
+    return exprAutoWrapper(expr, intervals, scales);
 }

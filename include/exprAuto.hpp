@@ -48,8 +48,8 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
 
 vector<ast_ptr> exprAutoNew(const ast_ptr &expr);
 
-vector<ast_ptr> exprAutoWrapper(ast_ptr &expr);
+vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &intervals = {0, 1}, const std::vector<int> &scales = {100});
 
-vector<ast_ptr> exprAutoWrapper(const string &inputStr);
+vector<ast_ptr> exprAutoWrapper(const string &inputStr, const std::vector<double> &intervals = {0, 1}, const std::vector<int> &scales = {100});
 
 #endif

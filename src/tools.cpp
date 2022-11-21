@@ -296,7 +296,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     return tempError;
 }
 
-exprInfo testError(string uniqueLabel, string suffix, vector<double> &intervals, vector<int> &scales)
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales)
 {
     exprInfo tempError;
     size_t size = scales.size();

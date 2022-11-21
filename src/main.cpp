@@ -188,7 +188,7 @@ int main()
         else
         { // only rewrite
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
-            auto results = exprAutoWrapper(inputStr);
+            auto results = exprAutoWrapper(inputStr, intervals, scales);
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
             // std::chrono::duration<double> exprAutoWrapper_seconds = timeTmp2 - timeTmp1;
             // cout << BLUE << "exprAutoWrapper time: " << exprAutoWrapper_seconds.count() << " s" << RESET << endl;
