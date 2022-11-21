@@ -249,7 +249,16 @@ string PrintExpression(const ast_ptr &expr, const size_t PRECISION)
         fprintf(stderr, "number: %f\n", number);
 #endif
         std::stringstream ss;
-        ss << std::setprecision(PRECISION) << number;
+        if(number - int(number) == 0)
+        {
+            ss.precision(1);
+            ss.setf(std::ios::fixed);
+            ss << number;
+        }
+        else
+        {
+            ss << std::setprecision(PRECISION) << number;
+        }
         return ss.str(); // better than to_string: 1 outputs as 1, 1.23456789 outputs as 1.23456789
         // return std::to_string(number); // really not a good choice: 1 outputs as 1.000000, 1.23456789 outputs as 1.234567
     }
