@@ -38,8 +38,8 @@ string getUniqueLabel()
 vector<double> getIntervals(string interval, const char *split)
 {
     char *p;
-    char a[interval.length() + 1];
-    int i;
+    char *a = new char[interval.length() + 1]();
+    size_t i;
     for (i = 0; i < interval.length(); i++)
     {
         a[i] = interval[i];
@@ -52,6 +52,8 @@ vector<double> getIntervals(string interval, const char *split)
         intervalVector.push_back(atof(p));
         p = strtok(NULL, split);
     }
+
+    delete [] a;
     return intervalVector;
 }
 
@@ -59,8 +61,8 @@ vector<double> getIntervals(string interval, const char *split)
 vector<int> getScales(string scale, const char *split)
 {
     char *q;
-    char b[scale.length() + 1];
-    int i;
+    char *b = new char[scale.length() + 1]();
+    size_t i;
     for (i = 0; i < scale.length(); i++)
     {
         b[i] = scale[i];
@@ -73,6 +75,7 @@ vector<int> getScales(string scale, const char *split)
         scaleVector.push_back(stoi(q));
         q = strtok(NULL, split);
     }
+    delete [] b;
     return scaleVector;
 }
 
@@ -342,13 +345,13 @@ void geneBoundaryData(string uniqueLabel, string suffix)
 void geneIntervalData(string uniqueLabel, vector<string> &intervals, vector<double> &threholds)
 {
     // filename = "expr_" + uniqueLabel + "_interval.txt";
-    for (int j = 1; j < threholds.size(); j++)
+    for (size_t j = 1; j < threholds.size(); j++)
     {
         intervals.push_back(to_string(j * 2));
         intervals.push_back(to_string(j * 2 + 1));
         threholds.push_back(j + 0.0002);
     }
-    for (int i = 0; i < threholds.size(); i++)
+    for (size_t i = 0; i < threholds.size(); i++)
     {
         string fileName;
         string prefix = "./outputs/expr_" + uniqueLabel;
@@ -519,12 +522,12 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
     size_t row = vec.size();
     if (row == 3)
     {
-        int rowSize = vec.size();     //确定有几行
-        int columnSize = 2 * rowSize; //新生成二维数组的列数
-        int b[rowSize];               // b[]存储每一行的元素个数
-        int f[rowSize];               // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
-        int d[rowSize];               //建立数组，求e值
-        for (size_t i = 0; i < vec.size(); i++)
+        int rowSize = vec.size();      // 确定有几行
+        int columnSize = 2 * rowSize;  // 新生成二维数组的列数
+        int *b = new int[rowSize]();   // b[]存储每一行的元素个数
+        int *f = new int[rowSize]();   // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
+        int *d = new int[rowSize]();   // 建立数组，求e值
+        for(size_t i = 0; i < vec.size(); i++)
         {
             b[i] = vec[i].size();
             f[i] = 0.5 * b[i];
@@ -535,7 +538,13 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
             d[i + 1] = d[i] * d[i + 1];
         }
         int e = d[vec.size() - 1]; //新生成二维数组的行数为e
-        double sz[e][columnSize];
+        double **sz;
+        sz = new double *[e];
+        for(int i = 0; i < e; i++)
+        {
+            sz[i] = new double[columnSize]();
+        }
+
         for (int i = 0; i < e; i++) //确定前两列
         {
             int j = i % f[0];
@@ -570,14 +579,23 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
             }
             suzu.push_back(tmps);
         }
+
+        delete [] b;
+        delete [] f;
+        delete [] d;
+        for(int i = 0; i < e; i++)
+        {
+            delete[] sz[i];
+        }
+        delete[] sz;
     }
     else if (row == 2)
     {
         int rowSize = vec.size();     //确定有几行
         int columnSize = 2 * rowSize; //新生成二维数组的列数
-        int b[rowSize];               // b[]存储每一行的元素个数
-        int f[rowSize];               // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
-        int d[rowSize];               //建立数组，求e值
+        int *b = new int[rowSize]();   // b[]存储每一行的元素个数
+        int *f = new int[rowSize]();   // f[]中的每个元素是b[]中的0.5倍。即每一行有几对。
+        int *d = new int[rowSize]();   // 建立数组，求e值
         for (size_t i = 0; i < vec.size(); i++)
         {
             b[i] = vec[i].size();
@@ -589,7 +607,12 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
             d[i + 1] = d[i] * d[i + 1];
         }
         int e = d[vec.size() - 1]; //新生成二维数组的行数为e
-        float sz[e][2 * rowSize];
+        double **sz;
+        sz = new double *[e];
+        for(int i = 0; i < e; i++)
+        {
+            sz[i] = new double[2 * rowSize]();
+        }
         for (int i = 0; i < e; i++) //确定前两列
         {
             int j = i % f[0];
@@ -613,12 +636,26 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
             }
             suzu.push_back(tmpss);
         }
+
+        delete [] b;
+        delete [] f;
+        delete [] d;
+        for(int i = 0; i < e; i++)
+        {
+            delete[] sz[i];
+        }
+        delete[] sz;
     }
     else if (row == 1)
     {
         size_t rowSize = vec[0].size();
         int b = 0.5 * rowSize;
-        double sz[b][2];
+        double **sz;
+        sz = new double *[b];
+        for(int i = 0; i < b; i++)
+        {
+            sz[i] = new double[2]();
+        }
         for (int i = 0; i < b; i++)
         {
             sz[i][0] = vec[0][2 * i];
@@ -633,6 +670,11 @@ vector<vector<double>> zuhe(vector<vector<double>> vec)
             }
             suzu.push_back(tmps);
         }
+        for(int i = 0; i < b; i++)
+        {
+            delete[] sz[i];
+        }
+        delete[] sz;
     }
     else
     {
