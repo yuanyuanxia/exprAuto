@@ -76,10 +76,14 @@ int main()
 
         auto benchMarkData = initalBenchMark();
         auto pos = benchMarkData.find(inputStr);
+        bool isBenchMark = false;
+        string name;
         if (pos != benchMarkData.end())
         {
+            name = inputStr;
             inputStr = pos->second.begin()->first;
             cout << inputStr << endl;
+            isBenchMark = true;
         }
 
         const char *split = " ";
@@ -94,15 +98,22 @@ int main()
 
         // after input completed, start timing
         auto timeStart = std::chrono::high_resolution_clock::now();
-
-        string intervalStr;
-        getline(cin, intervalStr);
-        auto intervals = getIntervals(intervalStr, split);
+        vector<double> intervals;
+        if (isBenchMark)
+        {
+            intervals = pos->second.begin()->second;
+        }
+        else
+        {
+            string intervalStr;
+            getline(cin, intervalStr);
+            intervals = getIntervals(intervalStr, split);
+        }
 
         // For temporary use only . It will be replaced by geneBoundaryData and geneIntervalData
         ofstream ofs;
         ofs.open("intervalData.txt", ios::out);
-        for (int i = 0; i < intervals.size(); i++)
+        for (size_t i = 0; i < intervals.size(); i++)
         {
             if (i == intervals.size() - 1)
             {
@@ -120,7 +131,7 @@ int main()
         // string scaleStr;
         // getline(cin, scaleStr);
         // vector<int> scales = getScales(scaleStr, split);
-        
+
         // Default scale setting according to the variables' size
         int sampleScale;
         if (vars.size() == 1)
@@ -140,7 +151,7 @@ int main()
             sampleScale = 10;
         }
         vector<int> scales;
-        for (int i = 0; i < vars.size(); i++)
+        for (size_t i = 0; i < vars.size(); i++)
         {
             scales.push_back(sampleScale);
         }
@@ -149,6 +160,10 @@ int main()
         if (runAllFlag)
         { // the whole process
             auto uniqueLabel = getUniqueLabel();
+            if (isBenchMark)
+            {
+                uniqueLabel = name;
+            }
             cout << "uniqueLabel: " << uniqueLabel << endl;
 
             auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");

@@ -8,6 +8,6 @@ using std::map;
 using std::string;
 using std::vector;
 
-map<string, map<string, vector<int>>> initalBenchMark();
+map<string, map<string, vector<double>>> initalBenchMark();
 
 #endif

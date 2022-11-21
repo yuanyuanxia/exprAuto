@@ -1,0 +1,53 @@
+Bsplines3 -x*x*x/6
+exp1x (exp(x) - 1)/x
+exp1x_log (exp(x) - 1)/log(exp(x))
+intro_example t/(t+1)
+logexp log(exp(x)+1)
+NMSEexample31 sqrt(x+1) - sqrt(x)
+NMSEexample310 log(1 - x)/log(1+x)
+NMSEexample34 (1 - cos(x))/sin(x)
+NMSEexample35 atan(x+1) - atan(x)
+NMSEexample36 1/(sqrt(x)) - 1/sqrt(1+x)
+NMSEexample37 exp(x) - 1
+NMSEexample38 (x+1)*log(x+1) - x*log(x) - 1
+NMSEexample39 1/x - 1/tan(x)
+NMSEproblem331 1/(x+1) - 1/x
+NMSEproblem333 1/(1+x) - 2/x + 1/(x - 1)
+NMSEproblem334 pow((x+1),1/3) - pow(x,1/3)
+NMSEproblem336 log(x+1) - log(x)
+NMSEproblem337 exp(x) - 2+exp(-x)
+NMSEproblem341 (1 - cos(x))/(x*x)
+NMSEproblem343 log((1 - eps)/(1+eps))
+NMSEproblem344 sqrt((exp(2*x) - 1)/(exp(x) - 1))
+NMSEproblem345 (x - sin(x))/(x - tan(x))
+NMSEsection311 exp(x)/(exp(x) - 1)
+predatorPrey (4*x*x)/(1+x/1.11*x/1.11)
+sine x - (1.0/6.0)*x*x*x+(1.0/120.0)*x*x*x*x*x - (1.0/5040.0)*x*x*x*x*x*x*x
+sineorder3 (238732414637843.0/250000000000000.0)*x - (6450306886639899.0/50000000000000000.0)*x*x*x
+sqroot 1.0 + 0.5*x - 0.125*x*x + 0.0625*x*x*x - 0.0390625*x*x*x*x
+sqrt_add 1/(sqrt(x + 1) + sqrt(x))
+test05_nonlin1,r4 (x - 1)/(x*x - 1)
+test05_nonlin1_test2 1.0/(1+x)
+verhulst (4*x)/(1+x/1.11)
+ComplexSinCos 1.0/2.0*sin(r)*(exp(-i) - exp(i))
+ComplexSquareRoot 1.0/2.0*sqrt(2.0*(sqrt(x1*x1+x2*x2)+x1))
+doppler1 ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+doppler2 ((-(1657/5+3/5*T))*v)/(((1657/5+3/5*T)+u)*((1657/5+3/5*T)+u))
+doppler3 ((-(1657/5+3/5*T))*v)/(((1657/5+3/5*T)+u)*((1657/5+3/5*T)+u))
+hypot32 sqrt(x1*x1+x2*x2)
+i4 sqrt(x+y*y)
+i6 sin(x*y)
+NMSEexample33 sin(x*eps) - sin(x)
+NMSEproblem332 tan(x+eps) - tan(x)
+NMSEproblem335 cos(x+eps) - cos(x)
+NMSEproblem346 pow((x+1),1/n) - pow(x,1/n)
+NMSEsection35 exp(a*x) - 1
+polarToCarthesianX radius*cos(3.14159265359/180*theta)
+polarToCarthesianY radius*sin(3.14159265359/180*theta)
+sec4example ((x1*x2) - 1)/((x1*x2)*(x1*x2) - 1)
+test03_nonlin2 (x+y)/(x - y)
+theta atan(x2/x1)*180/3.14159265359
+turbine1 (2.0/(r*r)+3.0) - ((3.0 - 2.0*v)*(1.0/8.0)*((w*w)*r*r))/(1.0 - v) - 9.0/2.0
+nonlin1 z/(z+1)
+carbonGas 35000000+(401.0/v)*(1000/v)*(v - 0.0427) - 0.0000000000000000041419509
+exp1x_32 (exp(x) - 1)/x
