@@ -433,7 +433,6 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     size_t count = 0;
     for (auto &intervalTmp : intervalData)
     {
-        auto newTempExprs = exprAutoWrapper(tempExpr);
         size_t scale;
         auto dimension = intervalTmp.size() / 2;
         if (dimension == 1)
@@ -445,6 +444,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         else
             scale = 10;
         vector<int> scales(dimension, scale);
+        auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
         string suffix = "temp_" + std::to_string(count) + "_";
 
         // pick the best rewrite expression
