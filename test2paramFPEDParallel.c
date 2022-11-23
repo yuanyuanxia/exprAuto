@@ -27,7 +27,8 @@ struct errorInfo
 double EXPRESSIONMPFR(double, double, mpfr_t);
 double EXPRESSIONMINE(double, double);
 
-int computeOrcle2param(double x0, double x1, mpfr_t orcle) { 
+int computeOrcle2param(double x0, double x1, mpfr_t orcle)
+{
     return EXPRESSIONMPFR(x0, x1, orcle);
 }
 
@@ -41,16 +42,17 @@ int computeResult2param(double x0, double x1, mpfr_t mpfrResult)
     return status;
 }
 
-struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char* fileNameKernel, int myid, int i1StartLocal, int i1EndLocal) {
+struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char *fileNameKernel, int myid, int i1StartLocal, int i1EndLocal)
+{
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d);
     DL maxInputX0, maxInputX1;
     int i0, i1;
     // int flag;
     double x0, x1, reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1;
-    
+
     // mpfr
     mpfr_t mpfrOrcle, mpfrResult;
-    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr)0);
 
     // file
     // char *directory = "outputs";
@@ -60,7 +62,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
     // sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
     // printf("%s\n", fileNameSample);
-    // if ((f = fopen(fileNameSample, "w")) == NULL) { 
+    // if ((f = fopen(fileNameSample, "w")) == NULL) {
     //     printf("Error opening file %s.\n", fileNameSample);
     //     exit(0);
     // }
@@ -76,27 +78,31 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // flag = 1;
     // size_t testCount = 0;
     sumError = 0;
-    for(i1 = i1StartLocal; i1 <= i1EndLocal; i1++) {
+    for (i1 = i1StartLocal; i1 <= i1EndLocal; i1++)
+    {
         x1 = x1Start.d + stepX1 * i1;
-        for(i0 = 0; i0 <= (int)testNumX0; i0++) {
+        for (i0 = 0; i0 <= (int)testNumX0; i0++)
+        {
             x0 = x0Start.d + stepX0 * i0;
             computeResult2param(x0, x1, mpfrResult);
             computeOrcle2param(x0, x1, mpfrOrcle);
-            #ifdef SINGLE
+#ifdef SINGLE
             reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
-            #else   // compute Double ULP as default
+#else // compute Double ULP as default
             reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
-            #endif
+#endif
             // if(reUlp <= 0.5) {
             //     reUlp = 0;
             // }
-            // if(isfinite(reUlp) == 0) {
-            //     printf("happen to NaN or inf\n");
-            //     exit(1);
-            // }
+            if (isfinite(reUlp) == 0)
+            {
+                printf("happen to NaN or inf\n");
+                exit(1);
+            }
             // fprintf(f, "%le\t%le\t%e\n", x0, x1, reUlp);
             sumError += reUlp;
-            if (reUlp > maxReUlp) {
+            if (reUlp > maxReUlp)
+            {
                 // flag = 0;
                 maxInputX1.d = x1;
                 maxInputX0.d = x0;
@@ -116,7 +122,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // clear
     // fclose(f);
     // free(fileNameSample);
-    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr)0);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
@@ -125,14 +131,15 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     return err;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     // parallel
     int myid, numProcs;
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Datatype MPI_errorInfo;
-    MPI_Type_contiguous(4, MPI_DOUBLE, &MPI_errorInfo); 
+    MPI_Type_contiguous(4, MPI_DOUBLE, &MPI_errorInfo);
     MPI_Type_commit(&MPI_errorInfo);
 
     // parameters init
@@ -146,7 +153,7 @@ int main(int argc, char **argv) {
     testNumX1 = TESTNUMX1;
     char *fileNameKernel;
     fileNameKernel = calloc(256, sizeof(char));
-    if(argc == 8)
+    if (argc == 8)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
@@ -156,7 +163,7 @@ int main(int argc, char **argv) {
         testNumX1 = strtod(argv[6], NULL);
         strcpy(fileNameKernel, argv[7]);
     }
-    else if(argc == 6)
+    else if (argc == 6)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
@@ -164,7 +171,7 @@ int main(int argc, char **argv) {
         x1End.d = strtod(argv[4], NULL);
         strcpy(fileNameKernel, argv[5]);
     }
-    else if(argc == 4)
+    else if (argc == 4)
     {
         testNumX0 = strtod(argv[1], NULL);
         testNumX1 = strtod(argv[2], NULL);
@@ -177,7 +184,8 @@ int main(int argc, char **argv) {
         printf("Usage: \tthe fixed inputs [%g %g %g %g %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1);
     }
 
-    if(myid == 0) {
+    if (myid == 0)
+    {
         printf("\n---------------------------------------------------start test2paramFPEDParallel\n");
         printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, testNumX0 = %lu, testNumX1 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1, fileNameKernel);
     }
@@ -187,9 +195,12 @@ int main(int argc, char **argv) {
     int i1StartLocal;
     i1StartLocal = myid * lenX1Local;
     int i1EndLocal;
-    if(myid != numProcs - 1) {
+    if (myid != numProcs - 1)
+    {
         i1EndLocal = (myid + 1) * lenX1Local - 1;
-    } else {
+    }
+    else
+    {
         i1EndLocal = testNumX1;
     }
 
@@ -200,16 +211,16 @@ int main(int argc, char **argv) {
     struct errorInfo *errs;
     errs = (struct errorInfo *)calloc(numProcs, sizeof(struct errorInfo));
     MPI_Gather(&err, 1, MPI_errorInfo, errs, 1, MPI_errorInfo, 0, MPI_COMM_WORLD);
-    if(myid == 0)
+    if (myid == 0)
     {
         double maxError = -1;
         double aveError = 0;
         double errTmp = -1;
         int maxErrorIdx = -1;
-        for(int i = 0; i < numProcs; i++)
+        for (int i = 0; i < numProcs; i++)
         {
             errTmp = errs[i].maxError;
-            if(errTmp > maxError)
+            if (errTmp > maxError)
             {
                 maxError = errTmp;
                 maxErrorIdx = i;
@@ -227,7 +238,7 @@ int main(int argc, char **argv) {
         char *fileNameErr;
         fileNameErr = (char *)calloc(strlen(directory) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
         sprintf(fileNameErr, "%s/%s_%s", directory, fileNameKernel, suffixErr);
-        if((fErr = fopen(fileNameErr, "w")) == NULL)
+        if ((fErr = fopen(fileNameErr, "w")) == NULL)
         {
             printf("Error opening file %s.\n", fileNameErr);
             exit(0);

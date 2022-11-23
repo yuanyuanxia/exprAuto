@@ -5,6 +5,12 @@ path=`pwd`
 cd ${path}
 CC=mpicc
 
+uniqueLabel=${1} # unique number
+x0Start=${2}
+x0End=${3}
+x1Start=${4}
+x1End=${5}
+
 if [ $# -eq 10 ]; then
     x0Size=${6}
     x1Size=${7}
