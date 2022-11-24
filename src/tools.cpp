@@ -83,20 +83,16 @@ vector<int> getScales(string scale, const char *split)
 // test error
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int x0Size)
 {
-    std::ostringstream os1;
-    os1 << std::setprecision(DOUBLE_PRECISION) << x0Start;
-    std::ostringstream os2;
-    os2 << std::setprecision(DOUBLE_PRECISION) << x0End;
-
-    std::ostringstream os7;
-    os7 << x0Size;
+    string param1 = fmt::format("{}", x0Start);
+    string param2 = fmt::format("{}", x0End);
+    string param3 = fmt::format("{}", x0Size);
 
     string prefix = "expr_" + uniqueLabel;
-    string middle = os1.str() + "_" + os2.str() + "_" + os7.str();
+    string middle = param1 + "_" + param2 + "_" + param3;
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
     string scriptName = "./detectErrorOneFPEDParallel.sh";
-    string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os7.str() + " " + prefix + " " + middle + " " + suffix;
+    string commandStr = scriptName + " " + uniqueLabel + " " + param1 + " " + param2 + " " + param3 + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
     strcat(command, commandStr.c_str());
@@ -149,26 +145,20 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
 {
-    std::ostringstream os1;
-    os1 << std::setprecision(DOUBLE_PRECISION)  << x0Start;
-    std::ostringstream os2;
-    os2 << std::setprecision(DOUBLE_PRECISION)  << x0End;
-    std::ostringstream os3;
-    os3 << std::setprecision(DOUBLE_PRECISION)  << x1Start;
-    std::ostringstream os4;
-    os4 << std::setprecision(DOUBLE_PRECISION)  << x1End;
+    string param1 = fmt::format("{}", x0Start);
+    string param2 = fmt::format("{}", x0End);
+    string param3 = fmt::format("{}", x1Start);
+    string param4 = fmt::format("{}", x1End);
+    string param5 = fmt::format("{}", x0Size);
+    string param6 = fmt::format("{}", x1Size);
 
-    std::ostringstream os7;
-    os7 << x0Size;
-    std::ostringstream os8;
-    os8 << x1Size;
 
     string prefix = "expr_" + uniqueLabel;
-    string middle = os1.str() + "_" + os2.str() + "_" + os3.str() + "_" + os4.str() + "_" + os7.str() + "_" + os8.str();
+    string middle = param1 + "_" + param2 + "_" + param3 + "_" + param4 + "_" + param5 + "_" + param6;
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
     string testName = "./outputs/" + fileNameKernel + "_error.txt";
     string scriptName = "./detectErrorTwoFPEDParallel.sh";
-    string commandStr = scriptName + " " + uniqueLabel + " " + os1.str() + " " + os2.str() + " " + os3.str() + " " + os4.str() + " " + os7.str() + " " + os8.str() + " " + prefix + " " + middle + " " + suffix;
+    string commandStr = scriptName + " " + uniqueLabel + " " + param1 + " " + param2 + " " + param3 + " " + param4 + " " + param5 + " " + param6 + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};
     strcat(command, commandStr.c_str());

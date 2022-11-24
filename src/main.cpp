@@ -11,6 +11,7 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
+#include <fmt/ranges.h>
 
 using std::cin;
 using std::cout;
@@ -102,6 +103,8 @@ int main()
         if (isBenchMark)
         {
             intervals = pos->second.begin()->second;
+            string intervalsStr = fmt::format("{}\n", intervals);
+            fprintf(stderr, "%s", intervalsStr.c_str());
         }
         else
         {
