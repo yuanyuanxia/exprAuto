@@ -207,6 +207,34 @@ void combineConstant(ast_ptr &expr)
     
 }
 
+// combine 1 + x + y + 3 to 4 + x + y
+ast_ptr combineConstant1(ast_ptr &expr)
+{
+    auto items = extractItems(expr);
+    ast_ptr result = nullptr;
+    double constant = 0;
+    for (const auto &item : items)
+    {
+        printExpr(item, "const:: ");
+        if (item->type() == "Number")
+        {
+            NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(item.get());
+            auto number = (numberExpr->getNumber());
+            constant += number;
+        }
+        else
+        {
+            result = addExpr(result, item);
+        }
+    }
+    if(constant != 0)
+    {
+        result = addExpr(result, makePtr<NumberExprAST>(constant));
+    }
+
+    return result;
+}
+
 // similiar to getExprFromVariants
 ast_ptr getCallFromVariants(const vector<ast_ptr> &variants, const vector<size_t> orders, const string callee)
 {
@@ -1029,7 +1057,9 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
 {
     cout << "\n>exprAutoWrapper: start-----------" << endl;
 
+    expr = minusRewrite(expr);
     combineConstant(expr);
+    expr = combineConstant1(expr);
     sortExpr(expr);
     printExpr(expr, "exprAutoWrapper: after parse, expr = ", DOUBLE_PRECISION);
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
