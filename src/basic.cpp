@@ -251,18 +251,20 @@ string PrintExpression(const ast_ptr &expr, const size_t PRECISION)
 #ifdef DEBUG
         fprintf(stderr, "number: %f\n", number);
 #endif
-        std::stringstream ss;
-        if(number - int(number) == 0)
-        {
-            ss.precision(1);
-            ss.setf(std::ios::fixed);
-            ss << number;
-        }
-        else
-        {
-            ss << std::setprecision(PRECISION) << number;
-        }
-        return ss.str(); // better than to_string: 1 outputs as 1, 1.23456789 outputs as 1.23456789
+        string numberString = fmt::format("{}", number);
+        return numberString; // better than stringstream && setprecision. For example, return 0.1 as 0.100...001, or return 10 as 10.1
+        // std::stringstream ss;
+        // if(number - int(number) == 0)
+        // {
+        //     ss.precision(1);
+        //     ss.setf(std::ios::fixed);
+        //     ss << number;
+        // }
+        // else
+        // {
+        //     ss << std::setprecision(PRECISION) << number;
+        // }
+        // return ss.str(); // better than to_string: 1 outputs as 1, 1.23456789 outputs as 1.23456789
         // return std::to_string(number); // really not a good choice: 1 outputs as 1.000000, 1.23456789 outputs as 1.234567
     }
     else if(expr->type() == "Variable")

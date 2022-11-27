@@ -167,7 +167,7 @@ int main()
             {
                 uniqueLabel = name;
             }
-            cout << "uniqueLabel: " << uniqueLabel << endl;
+            cout << BLUE << "uniqueLabel: " << uniqueLabel << RESET << endl;
 
             auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
             // auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
@@ -177,10 +177,12 @@ int main()
 
             // TODO: pick the best from origin, herbie, daisy
             // pickTheBest(uniqueLabel, 0, 1, 100);
-
+            
+            cout << BLUE << "main: start  testError for origin: " << inputStr << RESET << endl;
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto infoTmp = testError(uniqueLabel, "origin", intervals, scales);
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+            cout << BLUE << "main: ending testError for origin: " << inputStr << RESET << endl;
             // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
             // cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
