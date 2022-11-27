@@ -3,6 +3,9 @@
 #include <sstream>
 #include <iomanip>
 #include <string>
+#include <random>
+#include <algorithm>
+#include <fmt/core.h>
 
 using std::cerr;
 using std::cout;
@@ -651,4 +654,76 @@ string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std:
         exprStr = "unknown expression";
     }
     return exprStr;
+}
+
+std::vector<size_t> geneRandom(size_t start, size_t end)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(start, end);
+    std::vector<size_t> results;
+    
+    results.push_back(dis(gen));
+    while(true)
+    {
+        size_t tmp = dis(gen);
+        if(tmp != results[0])
+        {
+            results.push_back(tmp);
+            return results;
+        }
+    }
+}
+
+// 从 indexs 集合中选择 num 个元素进行组合并保证返回的组合中没有重复的元素
+vector<vector<int>> combination(const int num, const vector<int> &indexs)
+{
+    vector<vector<int>> set;
+    if(num > (int)indexs.size())
+        return set;
+
+    vector<int> elements;
+    elements.resize(indexs.size());
+    for(int i = 0; i < num; i++)
+    {
+        elements.at(i) = 1;
+    }
+
+    do
+    {
+        vector<int> currentCombination;
+        for(size_t i = 0; i < elements.size(); ++i)
+        {
+            if(elements[i])
+            {
+                currentCombination.insert(currentCombination.begin(), indexs[i]);
+            }
+            else
+            {
+                currentCombination.push_back(indexs[i]);
+            }
+        }
+        set.push_back(currentCombination);
+    } while(prev_permutation(elements.begin(), elements.end()));
+
+    return set;
+}
+
+inline unsigned int factorial(unsigned int value)
+{
+    unsigned int local_value = value;
+    while(value-- > 1)
+    {
+        local_value *= value;
+    }
+    return local_value;
+}
+
+size_t combination(size_t k, size_t n)
+{
+    if(k > n)
+    {
+        return 0;
+    }
+    return factorial(n) / (factorial(k) * factorial(n - k));
 }

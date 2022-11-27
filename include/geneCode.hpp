@@ -27,6 +27,8 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname,double v[
 
 void geneDaisyCode(string exprStr);
 
+string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars);
+
 string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<string> vars);
 
 string geneFinalCodeKernel(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector, vector<string> vars);

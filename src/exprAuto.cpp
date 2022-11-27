@@ -4,6 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <sstream>
+#include <fmt/ranges.h>
 
 #include "basic.hpp"
 #include "monoFracInfo.hpp"
@@ -215,7 +216,7 @@ ast_ptr combineConstant1(ast_ptr &expr)
     double constant = 0;
     for (const auto &item : items)
     {
-        printExpr(item, "const:: ");
+        // printExpr(item, "const:: ");
         if (item->type() == "Number")
         {
             NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(item.get());
@@ -936,6 +937,222 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     return results;
 }
 
+ast_ptr geneRandomAST(const vector<ast_ptr> &items, size_t first, size_t second)
+{
+    ast_ptr result;
+    for (size_t i = 0; i < items.size(); ++i)
+    {
+        if(i != first && i != second)
+        {
+            result = addExpr(result, items.at(i));
+        }
+    }
+    const ast_ptr &lhs = items.at(first);
+    const ast_ptr &rhs = items.at(second);
+    ast_ptr tmp = addExpr(lhs, rhs);
+    result = addExpr(result, tmp);
+    return result;
+}
+
+void combineTheTwo(vector<ast_ptr> &items, size_t first, size_t second)
+{
+    static size_t callCount = 0;
+    callCount++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "combineTheTwo: ";
+
+    auto former = min(first, second);
+    auto later = max(first, second);
+
+    const ast_ptr &lhs = items.at(former);
+    const ast_ptr &rhs = items.at(later);
+    ast_ptr tmp = addExpr(lhs, rhs);
+    
+    items.erase(items.begin() + later);
+    items.erase(items.begin() + former);
+    items.push_back(std::move(tmp));
+
+    if(callCount == 1) printExpr(items.back(), prompt + "at the last: ");
+    // cout << prompt << "end--------" <<endl;
+    callCount--;
+}
+
+size_t computeRandomNum(size_t sum)
+{
+    double radio = 0.2;
+    size_t randomNum = combination(2, sum) * radio; // combination(2, sum) = sum * (sum - 1) / 2
+    return randomNum;
+}
+
+size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
+{
+    auto uniqueLabel = getUniqueLabel();
+    vector<string> vars;
+    getVariablesFromExpr(originExpr, vars);
+    auto funcNameMpfr = geneMpfrCode(originExpr, uniqueLabel, vars);
+
+    string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
+    auto intervalData = getIntervalData(filename);
+    size_t scale;
+    auto intervalTmp = intervalData.at(0);
+    auto dimension = intervalTmp.size() / 2;
+    if (dimension == 1)
+        scale = 500000;
+    else if (dimension == 2)
+        scale = 1024;
+    else if (dimension == 3)
+        scale = 256;
+    else
+        scale = 10;
+    vector<int> scales(dimension, scale);
+    size_t count = 0;
+    string suffix = "temp_" + std::to_string(count) + "_";
+    string bestRewriteExpr;
+    double maxError = -1;
+    double aveError = 0;
+    size_t maxIdx = -1;
+    size_t iEnd = min(items.size(), size_t(300));
+    for (size_t i = 0; i < iEnd; i++)
+    {
+        string item = PrintExpression(items.at(i));
+        cout << "*-*-*-pickTheBest" << "No." << i << ": " << item << endl;
+
+        // generate function code and test error
+        string suffixTmp = suffix + std::to_string(i);
+        geneOriginCodeKernel(item, vars, uniqueLabel, suffixTmp);
+        // auto timeTmp1 = std::chrono::high_resolution_clock::now();
+        auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
+        // auto timeTmp2 = std::chrono::high_resolution_clock::now();
+        // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
+        // cout << BLUE << "rewrite: For NO." << i << ": testError time: " << testError_seconds.count() << " s" << RESET << endl;
+        // fTimeout << testError_seconds.count() << endl;
+        cout << "pickTheBest: maxError: " << tempError.maxError << endl;
+        cout << "pickTheBest: aveError: " << tempError.aveError << endl << endl;
+        if (i == 0)
+        {
+            maxError = tempError.maxError;
+            bestRewriteExpr = item;
+            aveError = tempError.aveError;
+            maxIdx = i;
+        }
+        else
+        {
+            if (tempError.maxError < maxError)
+            {
+                maxError = tempError.maxError;
+                bestRewriteExpr = item;
+                aveError = tempError.aveError;
+                maxIdx = i;
+            }
+        }
+    }
+
+    exprInfo tempInfo;
+    tempInfo.intervals = intervalTmp;
+    tempInfo.exprStr = bestRewriteExpr;
+    tempInfo.aveError = aveError;
+    tempInfo.maxError = maxError;
+    tempInfo.rewriteID = maxIdx;
+
+    cout << "*-*-*-pickTheBest: maxIdx: " << maxIdx << endl;
+    return maxIdx;
+}
+
+vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
+{
+    static size_t callCount = 0;
+    callCount++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "tryRewriteRandom: ";
+    // cout << prompt << "start--------" <<endl;
+    if(callCount == 1) printExpr(expr, prompt + "at the begin: ");
+    
+    vector<ast_ptr> items = extractItems(expr);
+    auto itemSize = items.size();
+    for(size_t i = itemSize; i > 4; i--) // 从items中每次随机挑2个进行合并，直到只剩下一个 // 或者更成熟的思路：直到剩下4个就不合并了，剩下的可以直接穷举，也就15个
+    {
+        vector<size_t> randomTwos;
+        vector<ast_ptr> randomSet;
+        size_t randomNum = computeRandomNum(i); // 5 should be replaced by the number of terms;
+        for(size_t j = 0; j < randomNum; j++) // 随机randomNum次，调用pickTheBest，从中选出最佳
+        {
+            auto randomTwo = geneRandom(0, items.size() - 1);
+            auto &first = randomTwo.at(0);
+            auto &second = randomTwo.at(1);
+            randomTwos.push_back(first);
+            randomTwos.push_back(second);
+            // fprintf(stderr, "combine NO.%ld: random NO.%ld: pick %ld and %ld\n", i, j, first, second);
+            auto randomAST = geneRandomAST(items, first, second);
+            randomSet.push_back(std::move(randomAST));
+        }
+        auto bestNum = pickTheBest(randomSet, expr);
+        auto &first = randomTwos.at(bestNum * 2);
+        auto &second = randomTwos.at(bestNum * 2 + 1);
+        combineTheTwo(items, first, second); // items.size-- should happen after combining;
+    }
+    vector<ast_ptr> results;
+    if (items.size() != 4) // exception handling
+    {
+        fprintf(stderr, "ERROR: size should be 1, not %ld\n", items.size());
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        // 当items中只有4个的时候，对其进行穷举，应当输出15个表达式
+        vector<ast_ptr> &items1 = items;
+        vector<ast_ptr> candidates;
+        const vector<int> indexs = {0, 1, 2, 3};
+        // 3 items and 1 item
+        {
+            auto lhsIndexs = combination(3, indexs);
+            for (auto &lhsIndex : lhsIndexs) 
+            {
+                auto rhsIndex = lhsIndex.back(); // because of special combination, the last element in lhsIndex is rhsIndex.
+                lhsIndex.pop_back();
+                auto lhsOflhsIndexs = combination(2, lhsIndex);
+                for (auto &lhsOflhsIndex : lhsOflhsIndexs)
+                {
+                    auto rhsOflhsIndex = lhsOflhsIndex.back();
+                    lhsOflhsIndex.pop_back();
+                    ast_ptr lhsOflhsAST = addExpr(items1.at(lhsOflhsIndex.at(0)), items1.at(lhsOflhsIndex.at(1)));
+                    ast_ptr &rhsOflhsAST = items1.at(rhsOflhsIndex);
+                    ast_ptr lhsAST = addExpr(lhsOflhsAST, rhsOflhsAST);
+                    ast_ptr &rhsAST = items1.at(rhsIndex);
+                    ast_ptr tmpAST = addExpr(lhsAST, rhsAST);
+                    candidates.push_back(std::move(tmpAST));
+                }
+            }
+        }
+        // 2 items and 2 items
+        {
+            auto lhsIndexs = combination(2, indexs);
+            lhsIndexs.erase(lhsIndexs.begin() + lhsIndexs.size() / 2, lhsIndexs.end()); // just erase the duplicate half part
+            for (auto &lhsIndex : lhsIndexs) 
+            {
+                vector<int> rhsIndex;
+                rhsIndex.assign(lhsIndex.begin() + 2, lhsIndex.end()); // because of special combination, the last element in lhsIndex is rhsIndex.
+                lhsIndex.erase(lhsIndex.begin() + 2, lhsIndex.end());
+                fmt::print("hhh lhsIndex = {}, ", lhsIndex);
+                fmt::print("rhsIndex = {}\n", rhsIndex);
+                ast_ptr lhsAST = addExpr(items1.at(lhsIndex.at(0)), items1.at(lhsIndex.at(1)));
+                ast_ptr rhsAST = addExpr(items1.at(rhsIndex.at(0)), items1.at(rhsIndex.at(1)));
+                ast_ptr tmpAST = addExpr(lhsAST, rhsAST);
+                candidates.push_back(std::move(tmpAST));
+            }
+        }
+        printExprs(candidates, "the 4 items: ");
+        pickTheBest(candidates, expr);
+        mineAppend(results, candidates);
+    }
+
+    if(callCount == 1) printExprs(results, prompt + "at the last: ");
+    // cout << prompt << "end--------" <<endl;
+    callCount--;
+    return results;
+}
+
 vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators)
 {
     ast_ptr resultsTemp;
@@ -1043,6 +1260,7 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     {
         cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
         results = tryRewrite(std::move(exprNew));
+        // results = tryRewriteRandom(std::move(exprNew));
     }
 
     cout << prompt << "at the last: results size = " << results.size() << endl;

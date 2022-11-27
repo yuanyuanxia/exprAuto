@@ -289,6 +289,72 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
     return tempError;
 }
 
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals)
+{
+    vector<string> parameters;
+    string prefix = "expr_" + uniqueLabel;
+    string middle;
+    string commandStr = " " + uniqueLabel;
+    for(size_t i = 0; i < intervals.size(); ++i)
+    {
+        auto temp = fmt::format("{}", intervals.at(i));
+        parameters.push_back(temp);
+        if(i == 0)
+        {
+            middle = temp;
+        }
+        else
+        {
+            middle = middle + "_" + temp;
+        }
+        commandStr = commandStr + " " + temp;
+    }
+    string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+    string testName = "./outputs/" + fileNameKernel + "_error.txt";
+    string scriptName = "./detectErrorMulti.sh";
+    commandStr = scriptName + commandStr + " " + prefix + " " + middle + " " + suffix;
+    cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
+    char command[200] = {0};
+    strcat(command, commandStr.c_str());
+    system(command);
+    std::ifstream ifs(testName, std::ios::in);
+
+    double aveError = 0;
+    double maxError = 0;
+    exprInfo tempError;
+    tempError.intervals = intervals;
+
+    char ch;
+    ifs >> ch;
+    if(ifs.eof())
+    {
+        std::cout << "is null" << std::endl;
+        ifs.close();
+
+        tempError.aveError = aveError;
+        tempError.maxError = maxError;
+    }
+    else
+    {
+        std::ifstream ifs(testName, std::ios::in);
+
+        std::string lineStr;
+        std::getline(ifs, lineStr);  // discard first line
+        std::getline(ifs, lineStr);  // get the second line
+        char *line = (char *)calloc(lineStr.length(), sizeof(char));
+        strcpy(line, lineStr.c_str());
+        const char *delim = " ,\t";  // Sets the delimiter for the string to be decomposed
+        string aveErrorTemp = strtok(line, delim);
+        string maxErrorTemp = strtok(NULL, delim);
+        // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
+
+        tempError.aveError = atof(aveErrorTemp.c_str());
+        tempError.maxError = atof(maxErrorTemp.c_str());
+    }
+
+    return tempError;
+}
+
 exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales)
 {
     exprInfo tempError;
@@ -307,7 +373,9 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     case 3:
         tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), intervals.at(2), intervals.at(3), intervals.at(4), intervals.at(5), scales.at(0), scales.at(1), scales.at(2));
         break;
-
+    case 4:
+        tempError = testError(uniqueLabel, suffix, intervals);
+        break;
     default:
         fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);

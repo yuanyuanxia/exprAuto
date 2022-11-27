@@ -228,6 +228,12 @@ string getMpfrParameterNumber(const ast_ptr &expr, size_t &mpfr_variabless);
 
 string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std::map<string, string> &map, ofstream &ofs, string &variable_tmp);
 
+std::vector<size_t> geneRandom(size_t start, size_t end);
+
+vector<vector<int>> combination(const int num, const vector<int>& indexs);
+
+size_t combination(size_t k, size_t n);
+
 // } // end anonymous namespace
 
 #endif

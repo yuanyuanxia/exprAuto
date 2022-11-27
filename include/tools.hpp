@@ -41,6 +41,8 @@ void geneIntervalData(string uniqeuLabel, vector<string> &intervals, vector<doub
 
 vector<string> getIntervalData();
 
+vector<vector<double>> getIntervalData(string filename);
+
 vector<exprInfo> rewrite(string exprSr, string uniqueLabel);
 
 vector<vector<double>> zuhe(vector<vector<double>> vec);

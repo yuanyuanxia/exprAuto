@@ -193,7 +193,7 @@ void geneDaisyCode(string exprStr)
     cout << exprStr << endl;
 }
 
-string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<string> vars)
+string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars)
 {
     string funcName = "expr_" + uniqueLabel + "_mpfr";
     string fileName = funcName + ".c";
@@ -214,7 +214,6 @@ string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<strin
         {"atan", "mpfr_atan"},
         {"tan", "mpfr_tan"}};
     
-    std::unique_ptr<ExprAST> exprAst = ParseExpressionFromString(exprStr);
     // vector<string> vars;
     // getVariablesFromExpr(exprAst, vars);
     size_t mpfr_variables = 0;
@@ -254,6 +253,13 @@ string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<strin
     ofs << "\treturn status;\n"
         << "}";
 
+    return funcName;
+}
+
+string geneMpfrCode(const string exprStr, const string uniqueLabel, vector<string> vars)
+{
+    const auto exprAst = ParseExpressionFromString(exprStr);
+    auto funcName = geneMpfrCode(exprAst, uniqueLabel, vars);
     return funcName;
 }
 
