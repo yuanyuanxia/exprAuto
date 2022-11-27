@@ -11,7 +11,9 @@
 
 #include "common.h"
 
-#define NUM 524288 // 2^19
+#ifndef TESTNUM
+#define TESTNUM 524288 // 2^19
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -67,7 +69,7 @@ int main(int argc, char *argv[])
     
     // main body
     double *temps = (double *)calloc(dimension, sizeof(double));
-    for(i = 0; i < NUM; i++)
+    for(i = 0; i < TESTNUM; i++)
     {
         for(j = 0; j < dimension; j++)
         {

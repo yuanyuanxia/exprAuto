@@ -6,56 +6,49 @@ struct errorInfo
 {
     double sumError;
     double maxError;
-    MAXINPUT_PARA_DEF
+    MAXINPUT_PARA_DEF // declare variables maxInputx0, maxInputx1, ...
 };
 
 #ifndef SUFFIX
-#define SUFFIX orgin
+#define SUFFIX Origin
 #endif
 #ifndef EXPRESSION
-#define EXPRESSION sum
+#define EXPRESSION example // sin(x) + cos(y)
 #endif
 
 #define EXPRESSIONMINE ADDSUFFIX(EXPRESSION, SUFFIX)
-#define SUFFIX1 mpfr
+#define SUFFIX1 Mpfr
 #define EXPRESSIONMPFR ADDSUFFIX(EXPRESSION, SUFFIX1)
 
-#define TESTNUMX0 256
-#define TESTNUMX1 256
-#define TESTNUMX2 256
 // #define FP
 // #define DEBUG
-double EXPRESSIONMPFR(double, double, double, mpfr_t);
-double EXPRESSIONMINE(double, double, double);
+double EXPRESSIONMPFR(PARA, mpfr_t);
+double EXPRESSIONMINE(PARA);
 
-// int computeOrcle3param(double x0, double x1, double x2, mpfr_t orcle) { return EXPRESSIONMPFR(x0, x1, x2, orcle); }
+int computeOrcle(PARA, mpfr_t orcle) { return EXPRESSIONMPFR(INPUT, orcle); }
 
-// int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult)
-// {
-//     int status = 1;
+int computeResult(PARA, mpfr_t mpfrResult)
+{
+    int status = 1;
 
-//     double result = EXPRESSIONMINE(x0, x1, x2);
-//     mpfr_set_d(mpfrResult, result, MPFR_RNDN);
+    double result = EXPRESSIONMINE(INPUT);
+    mpfr_set_d(mpfrResult, result, MPFR_RNDN);
 
-//     return status;
-// }
+    return status;
+}
 
-struct errorInfo testMultiParallel(int myid, int testNumLocal, int dimension)
+struct errorInfo testMultiParallel(int myid, int testNumLocal)
 {
     // printf("myid = %d\n", myid);
-    double *maxInput = (double *)calloc(dimension, sizeof(double));
-    // double *input = (double *)calloc(dimension, sizeof(double));
-    double *inputData = (double *)calloc(dimension * testNumLocal, sizeof(double));
-    double reUlp, sumError, aveReUlp, maxReUlp;
-    unsigned long inputTmp;
-    PARA_DEF
-    MAXINPUT_PARA_DEF
+    // init
+    double *inputData = (double *)calloc(DIMENSION * testNumLocal, sizeof(double));
+    PARA_DEF // declare variables x0, x1, ...
+    MAXINPUT_PARA_DEF // declare variables maxInputx0, maxInputx1, ...
     // mpfr
     mpfr_t mpfrOrcle, mpfrResult;
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr)0);
 
     // file
-    // char *inputFileName = "./inputData.txt";
     char *inputFileName = (char *) calloc(256, sizeof(char));
     sprintf(inputFileName, "inputData_%02d.txt", myid);
     FILE *inputFile;
@@ -77,12 +70,13 @@ struct errorInfo testMultiParallel(int myid, int testNumLocal, int dimension)
     //     exit(0);
     // }
 
-    maxReUlp = 0;
-    sumError = 0;
+    double maxReUlp = 0;
+    double sumError = 0;
     int idxData = 0;
+    unsigned long inputTmp;
     for (int i = 0; i < testNumLocal; i++)
     {
-        for(int j = 0; j < dimension; j++)
+        for(int j = 0; j < DIMENSION; j++)
         {
             fscanf(inputFile, "%lx\t", &inputTmp);
             inputData[idxData] = *((double *)(&inputTmp));
@@ -90,23 +84,19 @@ struct errorInfo testMultiParallel(int myid, int testNumLocal, int dimension)
         }
     }
     idxData = 0;
+    double reUlp;
     for(int i = 0; i < testNumLocal; i++)
     {
-        // for(int idxDim = 0; idxDim < dimension; idxDim++)
-        // {
-        //     input[idxDim] = inputData[idxData];
-        //     idxData++;
-        // }
-        INPUTDATA_TO_INPUT
+        INPUTDATA_TO_INPUT // set input data to x0, x1, ...
 
-        // computeResult(input, mpfrResult);
-        // computeOrcle(input, mpfrOrcle);
-        // #ifdef SINGLE
-        // reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
-        // #else  // compute Double ULP as default
-        // reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
-        // #endif
-        reUlp = 1;
+        computeResult(INPUT, mpfrResult);
+        computeOrcle(INPUT, mpfrOrcle);
+        #ifdef SINGLE
+        reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
+        #else  // compute Double ULP as default
+        reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
+        #endif
+        // reUlp = 2.1 * i;
         // if(reUlp <= 0.5) {
         //     reUlp = 0;
         // }
@@ -114,17 +104,13 @@ struct errorInfo testMultiParallel(int myid, int testNumLocal, int dimension)
         //     printf("happen to NaN or inf\n");
         //     exit(1);
         // }
-        // fprintf(f, "%le\t%le\t%le\t%e\n", x0, x1, x2, reUlp);
+        // fprintf(f, "%le\t%le\t%le\t%e\n", x0, x1, x2, reUlp); // TODO
         sumError += reUlp;
         if(reUlp > maxReUlp)
         {
             // flag = 0;
             maxReUlp = reUlp;
-            INPUT_TO_MAXINPUT
-            // for(int idxDim = 0; idxDim < dimension; idxDim++)
-            // {
-            //     maxInput[idxDim] = input[idxDim];
-            // }
+            INPUT_TO_MAXINPUT // set x0, x1,... to maxInputx0, maxInputx1, ...
         }
     }
 
@@ -142,9 +128,9 @@ struct errorInfo testMultiParallel(int myid, int testNumLocal, int dimension)
     free(inputData);
     struct errorInfo err;
     err.sumError = sumError;
-    printf("myid = %d, sumError = %lf\n", myid, sumError);
+    // printf("myid = %d, sumError = %lf\n", myid, sumError);
     err.maxError = maxReUlp;
-    MAXINPUT_TO_ERR
+    MAXINPUT_TO_ERR // set maxInputx0, maxInputx1,... to err.maxInputx0, err.maxInputx1, ...
     return err; // remember free maxInput OR set errInfo as the parameter of this function
 }
 
@@ -162,7 +148,7 @@ int main(int argc, char **argv)
     // parameters init
     if(argc != 3)
     {
-        printf("please enter filename, testNum.\n");
+        printf("please enter the name of outputfile, the number of input.\n");
         exit(EXIT_FAILURE);
     }
     char *fileNameKernel;
@@ -172,7 +158,8 @@ int main(int argc, char **argv)
     int dimension = PARA_NUM;
     int testNumLocal = testNum / numProcs;
 
-    // // basic initail
+    // useless code
+    // basic initail
     // int i, j;
     // int dimension = (argc - 1) / 2;
     // DL *intervals;
@@ -197,7 +184,7 @@ int main(int argc, char **argv)
     // }
 
     // call the error test function
-    struct errorInfo err = testMultiParallel(myid, testNumLocal, dimension);
+    struct errorInfo err = testMultiParallel(myid, testNumLocal);
 
     // gather errors and find the max
     struct errorInfo *errs;
@@ -219,7 +206,7 @@ int main(int argc, char **argv)
                 maxError = errTmp;
                 maxErrorIdx = i;
             }
-            printf("errs[%d].sumError = %lf\n", i, errs[i].sumError);
+            // printf("errs[%d].sumError = %lf\n", i, errs[i].sumError);
             aveError += errs[i].sumError;
         }
         aveError = aveError / testNum;
