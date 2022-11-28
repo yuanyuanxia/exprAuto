@@ -9,12 +9,11 @@
 echo "start init ${uniqueLabel}"
 path=$(pwd)
 cd ${path}
-rm inputData*txt
-CC=gcc
+# CC=gcc
 PARACC=mpicc
 let TESTNUM=2**19
 let PARALLEL=8
-let TESTNUM_LOCAL=${TESTNUM}/${PARALLEL}
+# let TESTNUM_LOCAL=${TESTNUM}/${PARALLEL}
 
 uniqueLabel=${1} # unique number
 declare -a intervals
@@ -48,20 +47,6 @@ echo "end init ${uniqueLabel}"
 # echo ./geneDataMulti.exe ${uniqueLabel} ${intervals[*]}
 
 
-# ------generate data
-echo "start generating data for ${uniqueLabel}"
-# compile data generation function
-${CC} geneDataMulti.c -DTESTNUM=${TESTNUM} -IincludeTEST -o geneDataMulti.exe
-# the parameters are intervals
-./geneDataMulti.exe ${intervals[*]}
-
-# devide inputData.txt into many files
-split -l ${TESTNUM_LOCAL} -d -a 2 inputData.txt inputData_
-# add ".txt" to files
-find . -name "inputData_*" | xargs -i mv {} {}.txt
-echo "end generating data for ${uniqueLabel}"
-
-
 # ------error detecting
 echo "start detecting ${uniqueLabel}"
 # compile error detecting function
@@ -74,7 +59,7 @@ OUTPUTFILE=${prefix}__${middle}_${suffix}
 mpirun -n ${PARALLEL} ${testFileName}.exe ${OUTPUTFILE} ${TESTNUM}
 
 # end everything
-rm inputData*txt
+# rm inputData*txt
 rm ${testFileName}.exe
 echo "end detecting ${uniqueLabel}"
 echo
