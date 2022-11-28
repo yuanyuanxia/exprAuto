@@ -310,8 +310,8 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         commandStr = commandStr + " " + temp;
     }
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
-    string testName = "./outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
-    string scriptName = "./detectErrorMulti.sh";
+    string testName = "./outputs/" + fileNameKernel + "_error.txt";
+    string scriptName = "./detectErrorMultiPure.sh";
     commandStr = scriptName + commandStr + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
     char command[200] = {0};

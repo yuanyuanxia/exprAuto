@@ -1081,6 +1081,37 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     return maxIdx;
 }
 
+void geneSampleData()
+{
+    // static size_t callCount = 0;
+    // callCount++;
+    // string prompt(callLevel * promtTimes, callLevelChar);
+    // prompt.append(callCount, callCountChar);
+    // prompt += "geneSampleData: ";
+    cout << "geneSampleData start--------" <<endl;
+
+    string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
+    auto intervalData = getIntervalData(filename);
+    auto intervals = intervalData.at(0);
+
+    vector<string> parameters;
+    string commandStr = "./geneDataMulti.sh";
+    for(const auto &interval : intervals)
+    {
+        auto temp = fmt::format("{}", interval);
+        parameters.push_back(temp);
+        commandStr = commandStr + " " + temp;
+    }
+    
+    cout << "command: " << commandStr << endl;
+    // char command[200] = {0};
+    // strcat(command, commandStr.c_str());
+    system(commandStr.c_str());
+
+    cout << "geneSampleData end--------" <<endl;
+    return;
+}
+
 vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
 {
     static size_t callCount = 0;
@@ -1091,6 +1122,9 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
     // cout << prompt << "start--------" <<endl;
     if(callCount == 1) printExpr(expr, prompt + "at the begin: ");
     
+    // generate data for random test
+    // geneSampleData();
+
     vector<ast_ptr> items = extractItems(expr);
     auto itemSize = items.size();
     for(size_t i = itemSize; i > 4; i--) // 从items中每次随机挑2个进行合并，直到只剩下一个 // 或者更成熟的思路：直到剩下4个就不合并了，剩下的可以直接穷举，也就15个
@@ -1281,8 +1315,8 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
     else
     {
         cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
-        results = tryRewrite(std::move(exprNew), addSelf);
-        // results = tryRewriteRandom(std::move(exprNew));
+        // results = tryRewrite(std::move(exprNew), addSelf);
+        results = tryRewriteRandom(std::move(exprNew));
     }
 
     cout << prompt << "at the last: results size = " << results.size() << endl;

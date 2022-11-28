@@ -44,6 +44,8 @@ void sortExpr(ast_ptr &expr);
 
 vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf = true);
 
+void geneSampleData();
+
 vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators);
 
 vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf = true);
