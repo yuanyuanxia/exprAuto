@@ -1049,8 +1049,8 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
         // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
         // cout << BLUE << "rewrite: For NO." << i << ": testError time: " << testError_seconds.count() << " s" << RESET << endl;
         // fTimeout << testError_seconds.count() << endl;
-        cout << "pickTheBest: maxError: " << tempError.maxError << endl;
-        cout << "pickTheBest: aveError: " << tempError.aveError << endl << endl;
+        cout << "pickTheBest: for item No." << i << ": maxError: " << tempError.maxError << endl;
+        cout << "pickTheBest: for item No." << i << ": aveError: " << tempError.aveError << endl << endl;
         if (i == 0)
         {
             maxError = tempError.maxError;
@@ -1060,7 +1060,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
         }
         else
         {
-            if (tempError.maxError < maxError)
+            if ((tempError.maxError < maxError) || ((tempError.maxError == maxError) && (tempError.aveError < aveError)))
             {
                 maxError = tempError.maxError;
                 bestRewriteExpr = item;
@@ -1077,7 +1077,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     tempInfo.maxError = maxError;
     tempInfo.rewriteID = maxIdx;
 
-    cout << "*-*-*-pickTheBest: maxIdx: " << maxIdx << endl;
+    cout << "*-*-*-pickTheBest: after picking, the minimal maxError's Index is " << maxIdx << endl << endl;
     return maxIdx;
 }
 
@@ -1127,16 +1127,20 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
 
     vector<ast_ptr> items = extractItems(expr);
     auto itemSize = items.size();
-    for(size_t i = itemSize; i > 4; i--) // 从items中每次随机挑2个进行合并，直到只剩下一个 // 或者更成熟的思路：直到剩下4个就不合并了，剩下的可以直接穷举，也就15个
+    size_t numOfExhaustion = 4;
+    for(size_t i = itemSize; i > numOfExhaustion; i--) // 从items中每次随机挑2个进行合并，直到剩下4个就不合并了。剩下的可以直接穷举，也就15个
     {
         vector<size_t> randomTwos;
         vector<ast_ptr> randomSet;
-        size_t randomNum = computeRandomNum(i); // 5 should be replaced by the number of terms;
-        for(size_t j = 0; j < randomNum; j++) // 随机randomNum次，调用pickTheBest，从中选出最佳
+        size_t randomNum = computeRandomNum(i); // randomNum = C(2, i) * 20% // the radio 20% is from "20-80 law"
+        for(size_t j = 0; j < randomNum; j++) // 随机randomNum次，然后调用pickTheBest，从中选出最佳
         {
             auto randomTwo = geneRandom(0, items.size() - 1);
             auto &first = randomTwo.at(0);
             auto &second = randomTwo.at(1);
+            cout << prompt << "For random pick NO." << j << endl;
+            cout << "first item index : " << first  << ", item = " << PrintExpression(items.at(first))  << endl;
+            cout << "second item index: " << second << ", item = " << PrintExpression(items.at(second)) << endl;
             randomTwos.push_back(first);
             randomTwos.push_back(second);
             // fprintf(stderr, "combine NO.%ld: random NO.%ld: pick %ld and %ld\n", i, j, first, second);
@@ -1149,7 +1153,7 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
         combineTheTwo(items, first, second); // items.size-- should happen after combining;
     }
     vector<ast_ptr> results;
-    if (items.size() != 4) // exception handling
+    if (items.size() != numOfExhaustion) // exception handling
     {
         fprintf(stderr, "ERROR: size should be 1, not %ld\n", items.size());
         exit(EXIT_FAILURE);
@@ -1190,15 +1194,15 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
                 vector<int> rhsIndex;
                 rhsIndex.assign(lhsIndex.begin() + 2, lhsIndex.end()); // because of special combination, the last element in lhsIndex is rhsIndex.
                 lhsIndex.erase(lhsIndex.begin() + 2, lhsIndex.end());
-                fmt::print("hhh lhsIndex = {}, ", lhsIndex);
-                fmt::print("rhsIndex = {}\n", rhsIndex);
+                // fmt::print("hhh lhsIndex = {}, ", lhsIndex);
+                // fmt::print("rhsIndex = {}\n", rhsIndex);
                 ast_ptr lhsAST = addExpr(items1.at(lhsIndex.at(0)), items1.at(lhsIndex.at(1)));
                 ast_ptr rhsAST = addExpr(items1.at(rhsIndex.at(0)), items1.at(rhsIndex.at(1)));
                 ast_ptr tmpAST = addExpr(lhsAST, rhsAST);
                 candidates.push_back(std::move(tmpAST));
             }
         }
-        printExprs(candidates, "the 4 items: ");
+        printExprs(candidates, prompt + "candidates (4 terms): ");
         pickTheBest(candidates, expr);
         mineAppend(results, candidates);
     }
