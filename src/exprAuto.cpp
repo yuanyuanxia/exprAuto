@@ -829,25 +829,25 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         {
             resultsNew.push_back(result->Clone()); // the key to control the rewrite results
             auto tmps = fmaRewrite(result);
-            mineAppend(resultsNew, tmps);
+            // mineAppend(resultsNew, tmps);
 
             // the following code: checkFma, toPow
             // auto tmps1 = checkFma(tmps);
-            // vector<ast_ptr> tmps1;
-            // for(auto &tmp : tmps)
-            // {
-            //     auto tmp1 = toPow(tmp);
-            //     tmps1.push_back(std::move(tmp->Clone()));
-            //     tmps1.push_back(std::move(tmp1));
-            // }
-            // if(tmps1.empty())
-            // {
-            //     resultsNew.push_back(std::move(result));
-            // }
-            // else
-            // {
-            //     mineAppend(resultsNew, tmps1);
-            // }
+            vector<ast_ptr> tmps1;
+            for(auto &tmp : tmps)
+            {
+                auto tmp1 = toPow(tmp);
+                tmps1.push_back(std::move(tmp->Clone()));
+                tmps1.push_back(std::move(tmp1));
+            }
+            if(tmps1.empty())
+            {
+                resultsNew.push_back(std::move(result));
+            }
+            else
+            {
+                mineAppend(resultsNew, tmps1);
+            }
         }
         // cout << prompt << "end--------" <<endl;
         callCount--;

@@ -251,8 +251,16 @@ string PrintExpression(const ast_ptr &expr, const size_t PRECISION)
 #ifdef DEBUG
         fprintf(stderr, "number: %f\n", number);
 #endif
-        string numberString = fmt::format("{}", number);
-        return numberString; // better than stringstream && setprecision. For example, return 0.1 as 0.100...001, or return 10 as 10.1
+        string numberString;
+        if(number - int(number) == 0) // to avoid situations like 1 / 6 = 0
+        {
+            numberString = fmt::format("{:.1f}", number);
+        }
+        else
+        {
+            numberString = fmt::format("{}", number);
+        }
+        return numberString;  // better than stringstream && setprecision. For example, return 0.1 as 0.100...001, or return 10 as 10.1
         // std::stringstream ss;
         // if(number - int(number) == 0)
         // {

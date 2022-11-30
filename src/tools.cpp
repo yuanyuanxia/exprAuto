@@ -543,7 +543,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
             }
             else
             {
-                if (tempError.maxError < maxError)
+                if ((tempError.maxError < maxError) || ((tempError.maxError == maxError) && (tempError.aveError < aveError)))
                 {
                     maxError = tempError.maxError;
                     bestRewriteExpr = newExpr;

@@ -12,6 +12,8 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+#define THRESHOLD 2
+
 //===----------------------------------------------------------------------===//
 // Equivalent transformation of mathematical function
 //===----------------------------------------------------------------------===//
@@ -825,9 +827,13 @@ vector<size_t> getVariablesCount(const ast_ptr &expr, vector<string> &vars)
     // printExpr(expr, "getVariablesCount: before countVariablesFromExpr: ");
     countVariablesFromExpr(expr, varsInit);
     // cout << "getVariablesCount: varsInit.size() = " << varsInit.size() << endl;
+    vector<size_t> countVars;
+    if(varsInit.size() == 0)
+    {
+        return countVars;
+    }
     string key = varsInit.at(0);
     vars.push_back(key);
-    vector<size_t> countVars;
     size_t count = 0;
     for(size_t i = 0; i < varsInit.size(); i++)
     {
@@ -928,7 +934,7 @@ ast_ptr ToPowKernel(const ast_ptr &expr)
     vector<string> vars;
     auto countVars = getVariablesCount(expr, vars);
     
-    size_t threshold = 4; // if the number of '*' >= 4, then convert '*' to pow()
+    size_t threshold = THRESHOLD; // if the number of '*' >= 4, then convert '*' to pow()
     auto exprNew = expr->Clone();
     for(size_t i = 0; i < vars.size(); i++)
     {
@@ -1066,12 +1072,16 @@ ast_ptr toPow(const ast_ptr &expr)
     {
         vector<string> vars;
         auto countVars = getVariablesCount(expr, vars);
+        if(countVars.size() == 0)
+        {
+            return expr->Clone();
+        }
         // cout << "toPow: vars.size() = " << vars.size() << endl;
         // for(size_t i = 0; i < vars.size(); i++)
         // {
         //     cout << "toPow: " << vars.at(i) << " " << countVars.at(i) << endl;
         // }
-        size_t threshold = 2; // if the number of '*' >= threshold, then convert '*' to pow()
+        size_t threshold = THRESHOLD; // if the number of '*' >= threshold, then convert '*' to pow()
         auto exprNew = expr->Clone();
         for(size_t i = 0; i < vars.size(); i++)
         {
