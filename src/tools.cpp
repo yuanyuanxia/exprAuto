@@ -510,7 +510,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
         double maxError = -1;
         double aveError = 0;
         size_t maxIdx = -1;
-        size_t jEnd = min(newTempExprs.size(), size_t(300));
+        size_t jEnd = min(newTempExprs.size(), size_t(10000));
         // std::ofstream fTimeout;
         // fTimeout.open("./tmpTimeResult.txt");
         // if (!fTimeout.is_open())

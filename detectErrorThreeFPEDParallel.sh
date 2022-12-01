@@ -31,7 +31,7 @@ else
     exit
 fi
 testFileName=test3paramFPEDParallel
-numProcs=4
+numProcs=32
 
 echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x2Start} ${x2End} ${x0Size} ${x1Size} ${x2Size} ${prefix} ${middle} ${suffix}"
 

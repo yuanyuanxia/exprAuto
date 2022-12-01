@@ -976,7 +976,7 @@ ast_ptr updateForPowRewrite(const ast_ptr &expr)
         {
             return expr->Clone();
         }
-        printExpr(expr, "updateForPowRewrite: happen to Call: ");
+        // printExpr(expr, "updateForPowRewrite: happen to Call: ");
         auto &args = callPtr->getArgs();
         vector<ast_ptr> argsNew;
         for (auto &arg : args)
@@ -985,7 +985,7 @@ ast_ptr updateForPowRewrite(const ast_ptr &expr)
             argsNew.push_back(std::move(argNew));
         }
         ast_ptr result = makePtr<CallExprAST>(callPtr->getCallee(), std::move(argsNew));
-        printExpr(result, "updateForPowRewrite: result = ");
+        // printExpr(result, "updateForPowRewrite: result = ");
         return result;
     }
     if (expr->type() != "Binary")
