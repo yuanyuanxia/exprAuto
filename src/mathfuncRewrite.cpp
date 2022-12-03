@@ -1112,3 +1112,270 @@ ast_ptr toPow(const ast_ptr &expr)
     // }
     // return result;
 }
+
+ast_ptr sumToProduct(const ast_ptr &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "sumToProduct's input is empty!\n");
+        return nullptr;
+    }
+
+    if(expr->type() != "Binary")
+    {
+        return expr->Clone();
+    }
+
+    BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binPtr->getOp();
+    if(op != '+')
+    {
+        return expr->Clone();
+    }
+    
+    ast_ptr &lhs = binPtr->getLHS();
+    ast_ptr &rhs = binPtr->getRHS();
+    CallExprAST *callPtrA;
+    CallExprAST *callPtrB;
+    bool hasMinus = true;
+    if((lhs->type() == "Call") && (rhs->type() == "Call"))
+    {
+        callPtrA = dynamic_cast<CallExprAST *>(lhs.get());
+        callPtrB = dynamic_cast<CallExprAST *>(rhs.get());
+        hasMinus = false;
+        // at now, the expr is call + call
+    }
+    else if((lhs->type() == "Binary") && (rhs->type() == "Call"))
+    {
+        callPtrA = dynamic_cast<CallExprAST *>(rhs.get());
+
+        BinaryExprAST *binPtrL = dynamic_cast<BinaryExprAST *>(lhs.get());
+        char opL = binPtrL->getOp();
+        if(opL != '*')
+        {
+            return expr->Clone();
+        }
+        // at now, the rhs is a call to cos, the lhs is sth * sth
+        ast_ptr &lhsL = binPtrL->getLHS();
+        ast_ptr &rhsL = binPtrL->getRHS();
+        auto lhsLType = lhsL->type();
+        auto rhsLType = rhsL->type();
+
+        // confirm if number * callPtrB OR callPtrB * number
+        double number;
+        if(lhsLType == "Number" && rhsLType == "Call")
+        {
+            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(lhsL.get());
+            number = (numberPtr->getNumber());
+            callPtrB = dynamic_cast<CallExprAST *>(rhsL.get());
+        }
+        else if(rhsLType == "Number" && lhsLType == "Call")
+        {
+            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(rhsL.get());
+            number = (numberPtr->getNumber());
+            callPtrB = dynamic_cast<CallExprAST *>(lhsL.get());
+        }
+        else
+        {
+            return expr->Clone();
+        }
+
+        if(number != -1)
+        {
+            return expr->Clone();
+        }
+        // at now, the rhs is a call, the lhs is -1 * callee() OR callee() * -1
+    }
+    else if((rhs->type() == "Binary") && (lhs->type() == "Call"))
+    {
+        callPtrA = dynamic_cast<CallExprAST *>(lhs.get());
+
+        BinaryExprAST *binPtrR = dynamic_cast<BinaryExprAST *>(rhs.get());
+        char opR = binPtrR->getOp();
+        if(opR != '*')
+        {
+            return expr->Clone();
+        }
+        // at now, the rhs is a call to cos, the lhs is sth * sth
+        ast_ptr &lhsR = binPtrR->getLHS();
+        ast_ptr &rhsR = binPtrR->getRHS();
+        auto lhsRType = lhsR->type();
+        auto rhsRType = lhsR->type();
+
+        // confirm if number * callPtrB OR callPtrB * number
+        double number;
+        if(lhsRType == "Number" && rhsRType == "Call")
+        {
+            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(lhsR.get());
+            number = (numberPtr->getNumber());
+            callPtrB = dynamic_cast<CallExprAST *>(rhsR.get());
+        }
+        else if(rhsRType == "Number" && lhsRType == "Call")
+        {
+            NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(rhsR.get());
+            number = (numberPtr->getNumber());
+            callPtrB = dynamic_cast<CallExprAST *>(lhsR.get());
+        }
+        else
+        {
+            return expr->Clone();
+        }
+
+        if(number != -1)
+        {
+            return expr->Clone();
+        }
+        // at now, the lhs is a call, the rhs is -1 * callee() OR callee() * -1
+    }
+    else
+    {
+        return expr->Clone();
+    }
+
+    string kind, mode;
+    string calleeA = (callPtrA->getCallee());
+    string calleeB = (callPtrB->getCallee());
+    if(calleeA == "sin" && calleeB == "sin")
+    {
+        kind = "sin";
+        if(hasMinus)
+            mode = "sin-sin";
+        else
+            mode = "sin+sin";
+    }
+    else if(calleeA == "cos" && calleeB == "cos")
+    {
+        kind = "cos";
+        if(hasMinus)
+            mode = "cos-cos";
+        else
+            mode = "cos+cos";
+    }
+    else if(calleeA == "tan" && calleeB == "tan")
+    {
+        kind = "tan";
+        if(hasMinus)
+            mode = "tan-tan";
+        else
+            mode = "tan+tan";
+    }
+    else
+    {
+        return expr->Clone();
+    }
+    // at new, we know if the callee is sin, cos, or tan
+
+    vector<ast_ptr> &argsA = callPtrA->getArgs();
+    if(argsA.size() != 1)
+    {
+        fprintf(stderr, "ERROR: sumToProduct: cos in callPtrA has too much args!\n");
+        exit(EXIT_FAILURE);
+    }
+    ast_ptr &argA = argsA.at(0);
+    // at now, we get the argA from the argsA.at(0) in kind
+
+    vector<ast_ptr> &argsB = callPtrB->getArgs();
+    if(argsB.size() != 1)
+    {
+        fprintf(stderr, "ERROR: sumToProduct: cos in callPtrB has too much args!\n");
+        exit(EXIT_FAILURE);
+    }
+    ast_ptr &argB = argsB.at(0);
+    // at now, we get the argB from the argsB.at(0) in kind
+
+    // init some constants
+    ast_ptr minusOne = makePtr<NumberExprAST>(-1);
+    ast_ptr minusTwo = makePtr<NumberExprAST>(-2);
+    ast_ptr positiveTwo = makePtr<NumberExprAST>(2);
+    ast_ptr halfOne = makePtr<NumberExprAST>(0.5);
+
+    // halfSumAB=(a+b)/2
+    auto sumAB = addExpr(argA, argB);
+    auto halfSumAB = mulExpr(halfOne, sumAB);
+
+    // halfsubAB=(a-b)/2
+    auto minusB = createBinaryExpr(minusOne, argB, '*');
+    auto subAB = addExpr(argA, minusB);
+    auto halfsubAB = mulExpr(halfOne, subAB);
+    ast_ptr result;
+    if(kind == "sin")
+    {
+        // sin(a) - sin(b) = 2*cos((a+b)/2)*sin((a-b)/2)
+        // sin(a) + sin(b) = 2*sin((a+b)/2)*cos((a-b)/2)
+        vector<ast_ptr> args1;
+        args1.push_back(std::move(halfSumAB));
+        vector<ast_ptr> args2;
+        args2.push_back(std::move(halfsubAB));
+        ast_ptr func1;
+        ast_ptr func2;
+        if(hasMinus)
+        {
+            func1 = makePtr<CallExprAST>("cos", std::move(args1));
+            func2 = makePtr<CallExprAST>("sin", std::move(args2));
+        }
+        else
+        {
+            func1 = makePtr<CallExprAST>("sin", std::move(args1));
+            func2 = makePtr<CallExprAST>("cos", std::move(args2));
+        }
+        result = mulExpr(func1, func2);
+        result = mulExpr(positiveTwo, result);
+    }
+    else if(kind == "cos")
+    {
+        // cos(a) - cos(b) = -2*sin((a+b)/2)*sin((a-b)/2)
+        // cos(a) + cos(b) = 2*cos((a+b)/2)*cos((a-b)/2)
+        vector<ast_ptr> args1;
+        args1.push_back(std::move(halfSumAB));
+        vector<ast_ptr> args2;
+        args2.push_back(std::move(halfsubAB));
+        ast_ptr func1;
+        ast_ptr func2;
+        if(hasMinus)
+        {
+            ast_ptr func1 = makePtr<CallExprAST>("sin", std::move(args1));
+            ast_ptr func2 = makePtr<CallExprAST>("sin", std::move(args2));
+            result = mulExpr(func1, func2);
+            result = mulExpr(minusTwo, result);
+        }
+        else
+        {
+            ast_ptr func1 = makePtr<CallExprAST>("cos", std::move(args1));
+            ast_ptr func2 = makePtr<CallExprAST>("cos", std::move(args2));
+            result = mulExpr(func1, func2);
+            result = mulExpr(positiveTwo, result);
+        }
+    }
+    else if(kind == "tan")
+    {
+        // Numerator and denominator
+        // tan(a) + tan(b) = cos(a-b)/(cos(a)cos(b))
+        // tan(a) - tan(b) = cos(a+b)/(cos(a)cos(b))
+        vector<ast_ptr> argsNumerator;
+        vector<ast_ptr> argsDenominator;
+        if(hasMinus){
+            argsNumerator.push_back(std::move(subAB));
+        }
+        else
+        {
+            argsNumerator.push_back(std::move(sumAB));
+        }
+        ast_ptr numerator = makePtr<CallExprAST>("sin", std::move(argsNumerator));
+
+        vector<ast_ptr> argsCos1;
+        argsCos1.push_back(std::move(argA));
+        vector<ast_ptr> argsCos2;
+        argsCos2.push_back(std::move(argB));
+        ast_ptr cos1 = makePtr<CallExprAST>("cos", std::move(argsCos1));
+        ast_ptr cos2 = makePtr<CallExprAST>("cos", std::move(argsCos2));
+        ast_ptr denominator = mulExpr(cos1, cos2);
+
+        result = divExpr(numerator, denominator);
+    }
+    else
+    {
+        return expr->Clone();
+    }
+
+    return result;
+}

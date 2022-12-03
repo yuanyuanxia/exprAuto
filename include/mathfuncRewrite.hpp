@@ -36,4 +36,6 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr);
 
 ast_ptr toPow(const ast_ptr &expr);
 
+ast_ptr sumToProduct(const ast_ptr &expr);
+
 #endif

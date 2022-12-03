@@ -434,38 +434,51 @@ vector<ast_ptr> createAllBinary(vector<ast_ptr> &numerators, vector<ast_ptr> &de
 }
 
 // TODO: Do all the mathFunction rewrite to BinaryAST such as expToexpm1
-ast_ptr dealWithBinOpKernel(const ast_ptr &expr, const char &op)
+vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr, const char &op)
 {
+    vector<ast_ptr> results;
     if(expr == nullptr)
     {
         fprintf(stderr, "ERROR: dealWithBinOpKernel: the input expression is nullptr!\n");
-        return nullptr;
+        exit(EXIT_FAILURE);
     }
-    ast_ptr result;
     if(op == '+')
     {
         // cout << "dealWithBinOpKernel: That is " << op << endl;
-        result = expToexpm1(expr);
+        auto result = expToexpm1(expr);
+        auto result1 = sumToProduct(result);
+        if(isEqual(result, result1))
+        {
+            results.push_back(std::move(result));
+        }
+        else
+        {
+            auto tmps = exprAutoNew(result1, false);
+            mineAppend(results, tmps);
+        }
     }
     else
     {
         // cout << "dealWithBinOpKernel: default: That is " << op << endl;
-        result = expr->Clone();
+        auto result = expr->Clone();
+        results.push_back(std::move(result));
     }
-    return result;
+    return results;
 }
 
-ast_ptr dealWithBinOpKernel(const ast_ptr &expr)
+vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr)
 {
+    vector<ast_ptr> results;
     if(expr == nullptr)
     {
         fprintf(stderr, "ERROR: dealWithBinOpKernel: the input expression is nullptr!\n");
-        return nullptr;
+        exit(EXIT_FAILURE);
     }
     if(expr->type() != "Binary") // May be variable or number or Call
     {
         fprintf(stderr, "WARNING: dealWithBinOpKernel: the input expression is not Binary!\n");
-        return expr->Clone();
+        results.push_back(expr->Clone());
+        return results;
     }
     BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
     const char op = binOpPtr->getOp();
@@ -478,22 +491,22 @@ vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op)
     if(exprs.size() == 0)
     {
         fprintf(stderr, "ERROR: dealWithBinOp: the input exprs is empty\n");
-        return {};
+        exit(EXIT_FAILURE);
     }
     if(op != '+' && op != '-' && op != '*' && op != '/')
     {
         fprintf(stderr, "ERROR: dealWithBinOp: the input op is illegal\n");
-        return {};
+        exit(EXIT_FAILURE);
     }
     for (const auto &expr : exprs)
     {
-        auto result = dealWithBinOpKernel(expr, op);
-        results.push_back(std::move(result));
+        auto tmps = dealWithBinOpKernel(expr, op);
+        mineAppend(results, tmps);
     }
     return results;
 }
 
-vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
+vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
 {
     static size_t callCount = 0;
     callCount++;
@@ -512,7 +525,10 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     // printExpr(expr, "\tmathfuncRewrite: at the beginning: ");
     ast_ptr newexpr = expr->Clone();
     vector<ast_ptr> exprsFinal;
-    exprsFinal.push_back(std::move(newexpr->Clone()));
+    if(addSelf)
+    {
+        exprsFinal.push_back(std::move(newexpr->Clone()));
+    }
 
     if(newexpr->type() == "Call")
     {
@@ -540,8 +556,16 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr)
     char op = binOpPtr->getOp();
     auto &lhs = binOpPtr->getLHS();
     auto &rhs = binOpPtr->getRHS();
-    auto lhsNewASTs = mathfuncRewrite(lhs);
-    auto rhsNewASTs = mathfuncRewrite(rhs);
+    auto lhsNewASTs = mathfuncRewrite(lhs, addSelf);
+    auto rhsNewASTs = mathfuncRewrite(rhs, addSelf);
+    if(lhsNewASTs.size() == 0)
+    {
+        lhsNewASTs.push_back(lhs->Clone());
+    }
+    if(rhsNewASTs.size() == 0)
+    {
+        rhsNewASTs.push_back(rhs->Clone());
+    }
     auto newASTs = createAllBinary(lhsNewASTs, rhsNewASTs, op);
 
     newASTs = dealWithBinOp(newASTs, op);
@@ -868,7 +892,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
     exit(EXIT_FAILURE);
 }
 
-vector<ast_ptr> tryRewrite(ast_ptr expr)
+vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf)
 {
     static size_t callCount = 0;
     callCount++;
@@ -901,7 +925,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
         exit(EXIT_FAILURE);
     }
     // if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
-    auto middles = mathfuncRewrite(exprNew);
+    auto middles = mathfuncRewrite(exprNew, addSelf);
     vector<ast_ptr> results;
     size_t index = 0;
     for(const auto &middle : middles)
@@ -925,9 +949,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr)
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
     for(int i = 0 ;i < (int)results.size();i++){
         ast_ptr &a = results.at(i);
-        // cout << "JJJ" << PrintExpression(a) << endl;
         sortExpr(a);
-        // cout << "WWW" << PrintExpression(a) << endl;
     }
     deleteTheSame(results);
 
@@ -1188,7 +1210,7 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
     }
 }
 
-vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
+vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
 {
     static size_t callCount = 0;
     callCount++;
@@ -1220,11 +1242,11 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
         ast_ptr denominator = getDenominator(exprNew);
 
         cout << prompt << "step3: perform on numerator." << endl;
-        auto numerators = tryRewrite(std::move(numerator));
+        auto numerators = tryRewrite(std::move(numerator), addSelf);
         cout << prompt << "step3: end perform on numerator." << endl;
         
         cout << prompt << "step3: perform on denominator." << endl;
-        auto denominators = tryRewrite(std::move(denominator));
+        auto denominators = tryRewrite(std::move(denominator), addSelf);
         cout << prompt << "step3: end perform on denominator." << endl;
         
         cout << prompt << "step4: combine numerator and denominator." << endl;
@@ -1259,7 +1281,7 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr)
     else
     {
         cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
-        results = tryRewrite(std::move(exprNew));
+        results = tryRewrite(std::move(exprNew), addSelf);
         // results = tryRewriteRandom(std::move(exprNew));
     }
 

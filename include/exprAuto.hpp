@@ -25,9 +25,9 @@ ast_ptr dealWithCallsKernel(const ast_ptr &expr);
 
 vector<ast_ptr> createAllBinary(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators, const char op);
 
-ast_ptr dealWithBinOpKernel(const ast_ptr &expr, const char &op);
+vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr, const char &op);
 
-ast_ptr dealWithBinOpKernel(const ast_ptr &expr);
+vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr);
 
 vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op);
 
@@ -36,17 +36,17 @@ void deleteTheSame(vector<ast_ptr> &exprs);
 
 vector<ast_ptr> dealWithCalls(const ast_ptr &expr);
 
-vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr);
+vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf = true);
 
 vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identifier);
 
 void sortExpr(ast_ptr &expr);
 
-vector<ast_ptr> tryRewrite(ast_ptr expr);
+vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf = true);
 
 vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators);
 
-vector<ast_ptr> exprAutoNew(const ast_ptr &expr);
+vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf = true);
 
 vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &intervals = {0, 1}, const std::vector<int> &scales = {100});
 
