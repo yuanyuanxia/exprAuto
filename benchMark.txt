@@ -21,7 +21,7 @@ NMSEproblem343 log((1 - eps)/(1+eps))
 NMSEproblem344 sqrt((exp(2*x) - 1)/(exp(x) - 1))
 NMSEproblem345 (x - sin(x))/(x - tan(x))
 NMSEsection311 exp(x)/(exp(x) - 1)
-predatorPrey (4*x*x)/(1+x/1.11*x/1.11)
+predatorPrey ((4.0 * x) * x) / (1.0 + ((x / 1.11) * (x / 1.11)))
 sine x - (1.0/6.0)*x*x*x+(1.0/120.0)*x*x*x*x*x - (1.0/5040.0)*x*x*x*x*x*x*x
 sineorder3 (238732414637843.0/250000000000000.0)*x - (6450306886639899.0/50000000000000000.0)*x*x*x
 sqroot 1.0 + 0.5*x - 0.125*x*x + 0.0625*x*x*x - 0.0390625*x*x*x*x
@@ -37,7 +37,7 @@ doppler3 ((-(1657/5+3/5*T))*v)/(((1657/5+3/5*T)+u)*((1657/5+3/5*T)+u))
 hypot32 sqrt(x1*x1+x2*x2)
 i4 sqrt(x+y*y)
 i6 sin(x*y)
-NMSEexample33 sin(x*eps) - sin(x)
+NMSEexample33 sin(x+eps) - sin(x)
 NMSEproblem332 tan(x+eps) - tan(x)
 NMSEproblem335 cos(x+eps) - cos(x)
 NMSEproblem346 pow((x+1),1/n) - pow(x,1/n)
@@ -81,4 +81,5 @@ sinhTaylorPoly7 x + 1.0 / 6.0 * x * x * x + 1.0 / 120.0 * x * x * x * x * x + 1.
 coshTaylorPoly7 1 + 0.5 * x * x  + 1.0 / 24.0 * x * x * x * x + 1.0 / 720.0 * x * x * x * x * x * x
 tanhTaylorPoly7 x + -1.0 / 3.0 * x * x * x + 2.0 / 15.0 * x * x * x * x * x + -17.0 / 315.0 * x * x * x * x * x * x * x
 asinhTaylorPoly7 x + -1.0 / 6.0 * x * x * x + 3.0 / 40.0 * x * x * x * x * x + -5.0 / 112.0 * x * x * x * x * x * x * x
+acoshTaylorPoly7 -10.93051753399604 + 29.957916712389473 * x + -35.58080559049901 * x * x +25.219476933674876 * x * x * x + -11.066799860894648 * x * x * x * x + 2.970361895278266 * x * x * x * x * x + -0.44893622077214135 * x * x * x * x * x * x + 0.029376877759354054 * x * x * x * x * x * x * x
 atanhTaylorPoly7 x + 1.0 / 3.0 * (x * x) * x + 1.0 / 5.0 * (x * x) * x * x * x + 1.0 / 7.0 * (x * x) * x * x * x * x * x

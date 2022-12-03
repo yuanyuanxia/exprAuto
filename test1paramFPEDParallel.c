@@ -97,11 +97,14 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         //     exit(1);
         // }
         // fprintf(f, "%le\t%e\n", x0, reUlp);
-        sumError += reUlp;
-        if (reUlp > maxReUlp) {
-            // flag = 0;
-            maxInputX0.d = x0;
-            maxReUlp = reUlp;
+        if (isnormal(reUlp) != 0)
+        {
+            sumError += reUlp;
+            if (reUlp > maxReUlp) {
+                // flag = 0;
+                maxInputX0.d = x0;
+                maxReUlp = reUlp;
+            }
         }
     }
     // fprintf(f, "\n");
