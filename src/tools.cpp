@@ -79,7 +79,6 @@ vector<int> getScales(string scale, const char *split)
     return scaleVector;
 }
 
-// TODO: set the return value as a exprInfo object
 // test error
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int x0Size)
 {
@@ -360,26 +359,85 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     exprInfo tempError;
     size_t size = scales.size();
 
-    switch (size)
+    if (size < 4)
     {
-    case 1:
-        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), scales.at(0));
-        break;
+        string prefix = "expr_" + uniqueLabel;
+        vector<string> params;
+        for(const auto &interval : intervals)
+        {
+            auto paraTmp = fmt::format("{}", interval);
+            params.push_back(paraTmp);
+        }
+        for(const auto &scale : scales)
+        {
+            auto scaleTmp = fmt::format("{}", scale);
+            params.push_back(scaleTmp);
+        }
+        string middle;
+        for(size_t i = 0; i < params.size(); ++i)
+        {
+            if(i == 0)
+            {
+                middle = params.at(i);
+            }
+            else
+            {
+                middle = middle + "_" + params.at(i);
+            }
+        }
+        string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+        string testName = "./outputs/" + fileNameKernel + "_error.txt";
+        string number[3] = {"One", "Two", "Three"};
+        string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
+        string commandStr = scriptName + " " + uniqueLabel;
+        for(const auto & param : params)
+        {
+            commandStr = commandStr + " " + param;
+        }
+        commandStr = commandStr + " " + prefix + " " + middle + " " + suffix;
 
-    case 2:
-        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), intervals.at(2), intervals.at(3), scales.at(0), scales.at(1));
-        break;
+        cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
+        char command[200] = {0};
+        strcat(command, commandStr.c_str());
+        system(command);
 
-    case 3:
-        tempError = testError(uniqueLabel, suffix, intervals.at(0), intervals.at(1), intervals.at(2), intervals.at(3), intervals.at(4), intervals.at(5), scales.at(0), scales.at(1), scales.at(2));
-        break;
-    case 4:
+        std::ifstream ifs(testName, std::ios::in);
+        if(ifs.eof())
+        {
+            std::cout << "is null" << std::endl;
+            ifs.close();
+
+            tempError.intervals = intervals;
+            tempError.aveError = 0;
+            tempError.maxError = 0;
+        }
+        else
+        {
+            std::string lineStr;
+            std::getline(ifs, lineStr);  // discard first line
+            std::getline(ifs, lineStr);  // get the second line
+            char *line = (char *)calloc(lineStr.length(), sizeof(char));
+            strcpy(line, lineStr.c_str());
+            const char *delim = " ,\t";  // Sets the delimiter for the string to be decomposed
+            string aveErrorTemp = strtok(line, delim);
+            string maxErrorTemp = strtok(NULL, delim);
+            // cout << "aveError: " << aveErrorTemp << "\tmaxError: " << maxErrorTemp << endl;
+
+            tempError.intervals = intervals;
+            tempError.aveError = atof(aveErrorTemp.c_str());
+            tempError.maxError = atof(maxErrorTemp.c_str());
+        }
+
+        return tempError;
+    }
+    else if (size == 4)
+    {
         tempError = testError(uniqueLabel, suffix, intervals);
-        break;
-    default:
+    }
+    else
+    {
         fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
-        break;
     }
 
     return tempError;
