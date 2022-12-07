@@ -100,13 +100,15 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
                 exit(1);
             }
             // fprintf(f, "%le\t%le\t%e\n", x0, x1, reUlp);
-            sumError += reUlp;
-            if (reUlp > maxReUlp)
+            if (isnormal(reUlp) != 0)
             {
-                // flag = 0;
-                maxInputX1.d = x1;
-                maxInputX0.d = x0;
-                maxReUlp = reUlp;
+                sumError += reUlp;
+                if (reUlp > maxReUlp) {
+                    // flag = 0;
+                    maxInputX1.d = x1;
+                    maxInputX0.d = x0;
+                    maxReUlp = reUlp;
+                }
             }
         }
     }

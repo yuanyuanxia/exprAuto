@@ -99,13 +99,16 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
                 //     exit(1);
                 // }
                 // fprintf(f, "%le\t%le\t%le\t%e\n", x0, x1, x2, reUlp);
-                sumError += reUlp;
-                if (reUlp > maxReUlp) {
-                    // flag = 0;
-                    maxInputX2.d = x2;
-                    maxInputX1.d = x1;
-                    maxInputX0.d = x0;
-                    maxReUlp = reUlp;
+                if (isnormal(reUlp) != 0)
+                {
+                    sumError += reUlp;
+                    if (reUlp > maxReUlp) {
+                        // flag = 0;
+                        maxInputX2.d = x2;
+                        maxInputX1.d = x1;
+                        maxInputX0.d = x0;
+                        maxReUlp = reUlp;
+                    }
                 }
             }
         }   
