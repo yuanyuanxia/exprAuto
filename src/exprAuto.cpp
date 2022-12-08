@@ -1321,8 +1321,8 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
     else
     {
         cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
-        // results = tryRewrite(std::move(exprNew), addSelf);
-        results = tryRewriteRandom(std::move(exprNew));
+        results = tryRewrite(std::move(exprNew), addSelf);
+        // results = tryRewriteRandom(std::move(exprNew));
     }
 
     cout << prompt << "at the last: results size = " << results.size() << endl;

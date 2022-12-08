@@ -182,7 +182,7 @@ int main()
             
             cout << BLUE << "main: start  testError for origin: " << inputStr << RESET << endl;
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
-            geneSampleData();
+            // geneSampleData();
             auto infoTmp = testError(uniqueLabel, "origin", intervals, scales);
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
             cout << BLUE << "main: ending testError for origin: " << inputStr << RESET << endl;
