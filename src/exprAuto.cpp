@@ -1320,6 +1320,8 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
         {
         // pick the better one from expr and expr1
         string uniqueLabel = "pickBetter";
+        string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
+        system(mkdirCommand.c_str());
         vector<string> vars;
         getVariablesFromExpr(expr, vars);
         

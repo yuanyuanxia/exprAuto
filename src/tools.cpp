@@ -80,6 +80,7 @@ vector<int> getScales(string scale, const char *split)
 }
 
 // test error
+// old method, useless
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int x0Size)
 {
     string param1 = fmt::format("{}", x0Start);
@@ -141,7 +142,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
     return tempError;
 }
-
+// old method, useless
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, int x0Size, int x1Size)
 {
     string param1 = fmt::format("{}", x0Start);
@@ -211,7 +212,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
     return tempError;
 }
-
+// old method, useless
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size)
 {
     string param1 = fmt::format("{}", x0Start);
@@ -287,7 +288,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
     return tempError;
 }
-
+// for multi parameters, will be useless
 exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals)
 {
     vector<string> parameters;
@@ -309,7 +310,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         commandStr = commandStr + " " + temp;
     }
     string fileNameKernel = prefix + "__" + middle + "_" + suffix;
-    string testName = "./outputs/" + fileNameKernel + "_error.txt";
+    string testName = "./outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
     string scriptName = "./detectErrorMulti.sh";
     commandStr = scriptName + commandStr + " " + prefix + " " + middle + " " + suffix;
     cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
@@ -386,7 +387,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
             }
         }
         string fileNameKernel = prefix + "__" + middle + "_" + suffix;
-        string testName = "./outputs/" + fileNameKernel + "_error.txt";
+        string testName = "./outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
         string number[3] = {"One", "Two", "Three"};
         string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
         string commandStr = scriptName + " " + uniqueLabel;
@@ -448,7 +449,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
 void geneBoundaryData(string uniqueLabel, string suffix)
 {
     suffix = "origin";
-    string filename = "expr_" + uniqueLabel + "_" + suffix + "_boudary.txt";
+    string filename = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel + "_" + suffix + "_boudary.txt";
     std::ofstream ofs;
     ofs.open(filename, std::ios::out);
     ofs << "123" << std::endl;
@@ -470,7 +471,7 @@ void geneIntervalData(string uniqueLabel, vector<string> &intervals, vector<doub
     for (size_t i = 0; i < threholds.size(); i++)
     {
         string fileName;
-        string prefix = "./outputs/expr_" + uniqueLabel;
+        string prefix = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel;
         string middle = "_" + intervals.at(i * 2) + "_" + intervals.at(i * 2 + 1) + "_" + to_string(threholds.at(i));
         string suffix = "_interval.txt";
         fileName = prefix + middle + suffix;

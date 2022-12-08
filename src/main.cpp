@@ -168,6 +168,8 @@ int main()
                 uniqueLabel = name;
             }
             cout << BLUE << "uniqueLabel: " << uniqueLabel << RESET << endl;
+            string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
+            system(mkdirCommand.c_str());
 
             auto funcNameOrigin = geneOriginCodeKernel(inputStr, vars, uniqueLabel, "origin");
             // auto funcNameOrigin = geneOriginCode(inputStr, uniqueLabel, "origin");
@@ -204,6 +206,20 @@ int main()
             // continue;
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
             auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
+
+
+            // write the results to file
+            // auto results = exprAutoWrapper(inputStr, intervals, scales);
+            // for (size_t i = 0; i < results.size(); i++)
+            // {
+            //     auto &result = results.at(i);
+            //     // string treeStr;
+            //     // printAST(result, treeStr, MAIN_PRECISION);
+            //     fout << PrintExpression(result, MAIN_PRECISION) << endl;
+            //     // fout << "*resultPtr = " << PrintExpression(result, DOUBLE_PRECISION) << ";" << endl;
+            //     // fout << treeStr << endl;
+            // }
+            // fout << endl;
         } // the whole process end
         else
         { // only rewrite

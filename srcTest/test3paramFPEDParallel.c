@@ -159,7 +159,9 @@ int main(int argc, char **argv) {
     testNumX2 = TESTNUMX2;
     char *fileNameKernel;
     fileNameKernel = calloc(256, sizeof(char));
-    if(argc == 11) {
+    char *uniqueLabel;
+    uniqueLabel = calloc(256, sizeof(char));
+    if(argc == 12) {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
@@ -170,7 +172,8 @@ int main(int argc, char **argv) {
         testNumX1 = strtod(argv[8], NULL);
         testNumX2 = strtod(argv[9], NULL);
         strcpy(fileNameKernel, argv[10]);
-    } else if(argc == 8) {
+        strcpy(uniqueLabel, argv[11]);
+    } else if(argc == 9) {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
@@ -178,11 +181,13 @@ int main(int argc, char **argv) {
         x2Start.d = strtod(argv[5], NULL);
         x2End.d = strtod(argv[6], NULL);
         strcpy(fileNameKernel, argv[7]);
-    } else if(argc == 5) {
+        strcpy(uniqueLabel, argv[8]);
+    } else if(argc == 6) {
         testNumX0 = strtod(argv[1], NULL);
         testNumX1 = strtod(argv[2], NULL);
         testNumX2 = strtod(argv[3], NULL);
         strcpy(fileNameKernel, argv[4]);
+        strcpy(uniqueLabel, argv[5]);
     } else {
         printf("Usage: ./test3paramFPEDParallel.exe [x0Start x0End x1Start x1End x2Start x2End testNumX0 testNumX1 testNumX2 fileNameKernel]\n");
         printf("Usage: if no correct input:\n");
@@ -237,8 +242,8 @@ int main(int argc, char **argv) {
         char *directory = "./outputs";
         char *suffixErr = "error.txt";
         char *fileNameErr;
-        fileNameErr = (char *) calloc(strlen(directory) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
-        sprintf(fileNameErr, "%s/%s_%s", directory, fileNameKernel, suffixErr);
+        fileNameErr = (char *) calloc(strlen(directory) + strlen(uniqueLabel) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
+        sprintf(fileNameErr, "%s/%s/%s_%s", directory, uniqueLabel, fileNameKernel, suffixErr);
         if ((fErr = fopen(fileNameErr, "w")) == NULL)
         {
             printf("Error opening file %s.\n", fileNameErr);
@@ -252,6 +257,7 @@ int main(int argc, char **argv) {
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
 
         free(fileNameErr);
+        free(uniqueLabel);
         fclose(fErr);
     }
     

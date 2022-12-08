@@ -128,8 +128,9 @@ string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLa
 
     std::ofstream fout;
     // expr_uniquelabel_origin.c
+    string directory = "srcTest/" + uniqueLabel + "/";
     string funcName = "expr_" + uniqueLabel + "_" + tail;
-    string fileName = funcName + ".c";
+    string fileName = directory + funcName + ".c";
     // string fileName = "./outputs/" + funcName + ".c";
     fout.open(fileName);
     fout << "#include <math.h>\n";
@@ -195,8 +196,9 @@ void geneDaisyCode(string exprStr)
 
 string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars)
 {
+    string directory = "srcTest/" + uniqueLabel + "/";
     string funcName = "expr_" + uniqueLabel + "_mpfr";
-    string fileName = funcName + ".c";
+    string fileName = directory + funcName + ".c";
     ofstream file_clean(fileName, ios_base::out);
     ofstream ofs(fileName, ios::app);
 
@@ -280,8 +282,9 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
     }
 
     // generate code to file
+    string directory = "srcTest/" + uniqueLabel + "/";
     string funcName = "expr_" + uniqueLabel + "_final";
-    string fileName = funcName + ".c";
+    string fileName = directory + funcName + ".c";
     std::ofstream fout;
     fout.open(fileName.c_str());
 

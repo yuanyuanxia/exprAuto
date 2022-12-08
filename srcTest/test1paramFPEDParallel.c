@@ -148,23 +148,28 @@ int main(int argc, char **argv) {
 
     char *fileNameKernel;
     fileNameKernel = calloc(256, sizeof(char));
-    if (argc == 5)
+    char *uniqueLabel;
+    uniqueLabel = calloc(256, sizeof(char));
+    if (argc == 6)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         testNumX0 = strtod(argv[3], NULL);
         strcpy(fileNameKernel, argv[4]);
+        strcpy(uniqueLabel, argv[5]);
     }
-    else if (argc == 4)
+    else if (argc == 5)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         strcpy(fileNameKernel, argv[3]);
+        strcpy(uniqueLabel, argv[4]);
     }
-    else if (argc == 3)
+    else if (argc == 4)
     {
         testNumX0 = strtod(argv[1], NULL);
         strcpy(fileNameKernel, argv[2]);
+        strcpy(uniqueLabel, argv[3]);
     }
     else
     {
@@ -220,8 +225,8 @@ int main(int argc, char **argv) {
         char *directory = "./outputs";
         char *suffixErr = "error.txt";
         char *fileNameErr;
-        fileNameErr = (char *) calloc(strlen(directory) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
-        sprintf(fileNameErr, "%s/%s_%s", directory, fileNameKernel, suffixErr);
+        fileNameErr = (char *) calloc(strlen(directory) + strlen(uniqueLabel) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
+        sprintf(fileNameErr, "%s/%s/%s_%s", directory, uniqueLabel, fileNameKernel, suffixErr);
         if ((fErr = fopen(fileNameErr, "w")) == NULL)
         {
             printf("Error opening file %s.\n", fileNameErr);
@@ -235,6 +240,7 @@ int main(int argc, char **argv) {
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxError);
 
         free(fileNameErr);
+        free(uniqueLabel);
         fclose(fErr);
     }
     
