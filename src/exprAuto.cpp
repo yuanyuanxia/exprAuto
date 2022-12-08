@@ -1010,6 +1010,8 @@ size_t computeRandomNum(size_t sum)
 size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
 {
     auto uniqueLabel = getUniqueLabel();
+    string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
+    system(mkdirCommand.c_str());
     vector<string> vars;
     getVariablesFromExpr(originExpr, vars);
     auto funcNameMpfr = geneMpfrCode(originExpr, uniqueLabel, vars);
@@ -1155,7 +1157,7 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
     vector<ast_ptr> results;
     if (items.size() != numOfExhaustion) // exception handling
     {
-        fprintf(stderr, "ERROR: size should be 1, not %ld\n", items.size());
+        fprintf(stderr, "ERROR: size should be 2, not %ld\n", items.size());
         exit(EXIT_FAILURE);
     }
     else

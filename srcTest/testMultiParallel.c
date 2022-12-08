@@ -10,14 +10,14 @@ struct errorInfo
 };
 
 #ifndef SUFFIX
-#define SUFFIX Origin
+#define SUFFIX _origin
 #endif
 #ifndef EXPRESSION
 #define EXPRESSION example // sin(x) + cos(y)
 #endif
 
 #define EXPRESSIONMINE ADDSUFFIX(EXPRESSION, SUFFIX)
-#define SUFFIX1 Mpfr
+#define SUFFIX1 _mpfr
 #define EXPRESSIONMPFR ADDSUFFIX(EXPRESSION, SUFFIX1)
 
 // #define FP

@@ -18,7 +18,8 @@ let TESTNUM_LOCAL=${TESTNUM}/${PARALLEL}
 # echo ./geneDataMulti.exe $@ # $@ is ${intervals[*]}
 echo "start generating data for $@"
 # compile data generation function
-${CC} geneDataMulti.c -DTESTNUM=${TESTNUM} -IincludeTEST -o geneDataMulti.exe
+directory="./srcTest"
+${CC} ${directory}/geneDataMulti.c -DTESTNUM=${TESTNUM} -IincludeTEST -o geneDataMulti.exe
 # the parameters $@ are intervals
 ./geneDataMulti.exe $@
 

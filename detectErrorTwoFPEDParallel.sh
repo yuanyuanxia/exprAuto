@@ -34,7 +34,7 @@ numProcs=32
 echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix}"
 directory="./srcTest"/${uniqueLabel}
 # echo "${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
-${CC} ./srcTest/${testFileName}.c ${directory}/${prefix}_${suffix}.c ${directory}/${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -o ${testFileName}.exe
+${CC} ./srcTest/${testFileName}.c ${directory}/${prefix}_${suffix}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -o ${testFileName}.exe
 # echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x2Start} ${x2End} ${x0Size} ${x1Size} ${x2Size} ${prefix}__${middle}_${suffix}"
 mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix}__${middle}_${suffix} ${uniqueLabel}
 

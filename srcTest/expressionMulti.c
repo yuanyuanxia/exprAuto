@@ -3,7 +3,7 @@
 #include "multi.h"
 
 // example: sin(x) + cos(y)
-double exampleMpfr(double x, double y, mpfr_t orcle)
+double example_mpfr(double x, double y, mpfr_t orcle)
 {
     int status = 0;
     mpfr_t mp1, mp2, mp3, mp4, mp5;
@@ -27,7 +27,7 @@ double exampleMpfr(double x, double y, mpfr_t orcle)
     return status;
 }
 
-double exampleOrigin(double x, double y)
+double example_origin(double x, double y)
 {
     double result = sin(x) + cos(y);
     return result;

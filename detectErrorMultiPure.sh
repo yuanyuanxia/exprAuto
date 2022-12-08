@@ -18,7 +18,7 @@ let PARALLEL=8
 uniqueLabel=${1} # unique number
 declare -a intervals
 declare -a components
-let NUM_BEFORE=1
+let NUM_BEFORE=1 # the first one is uniqueLabel
 let NUM_AFTER=3 # 3 means prefix middle suffix
 let NUM_INTERVALS=$#-${NUM_BEFORE}-${NUM_AFTER}
 idx=0
@@ -52,7 +52,8 @@ echo "start detecting ${uniqueLabel}"
 # compile error detecting function
 let PARA_NUM=2
 testFileName=testMultiParallel
-${PARACC} ${testFileName}.c computeULP.c expressionMulti.c ${prefix}_${suffix}.c ${prefix}_mpfr.c -DPARA_NUM=${PARA_NUM} -IincludeTEST -lmpfr -lm -o ${testFileName}.exe
+directory="./srcTest/"${uniqueLabel}
+${PARACC} ./srcTest/${testFileName}.c ./srcTest/computeULP.c ./srcTest/expressionMulti.c ${directory}/${prefix}_${suffix}.c ${directory}/${prefix}_mpfr.c -DEXPRESSION=${prefix} -DSUFFIX=_${suffix} -DPARA_NUM=${PARA_NUM} -IincludeTEST -lmpfr -lm -o ${testFileName}.exe
 
 # parallel run
 OUTPUTFILE=${prefix}__${middle}_${suffix}
