@@ -1034,7 +1034,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     double maxError = -1;
     double aveError = 0;
     size_t maxIdx = -1;
-    size_t iEnd = min(items.size(), size_t(10000));
+    size_t iEnd = min(items.size(), size_t(100000));
     for (size_t i = 0; i < iEnd; i++)
     {
         string item = PrintExpression(items.at(i));
