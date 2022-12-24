@@ -36,6 +36,8 @@ extern const size_t promtTimes;
 /// ExprAST - Base class for all expression nodes.
 class ExprAST
 {
+    int order = 0;
+    string opType = "double";
 public:
     virtual ~ExprAST() = default;
 
@@ -44,6 +46,14 @@ public:
     virtual string type() { return "Base"; }
 
     virtual std::unique_ptr<ExprAST> Clone() { return makePtr<ExprAST>(); }
+
+    virtual int getOrder() { return order; }
+
+    virtual void setOrder(int input) { order = input; }
+
+    virtual string getOpType() { return opType; }
+
+    virtual void setOpType(string input) { opType = input; }
 };
 
 /// NumberExprAST - Expression class for numeric literals like "1.0".
