@@ -356,9 +356,9 @@ string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprIn
     return funcName;
 }
 
-void getDepth(ast_ptr &expr, size_t &depth)
+void getDepth(ast_ptr &expr, int &depth)
 {
-    static size_t depthNow = 0;
+    static int depthNow = 0;
     depthNow++;
     auto type = expr->type();
     if(type == "Number" || type == "Variable")
@@ -432,14 +432,14 @@ void setTypeKernel(ast_ptr &expr, const vector<string> &opTypes)
 }
 
 // set opTypes for different tree levels by middle
-void setType(ast_ptr &expr, size_t depth, size_t middle)
+void setType(ast_ptr &expr, int depth, int middle)
 {
     vector<string> opTypes;
-    for(size_t i = 0; i < middle; i++)
+    for(int i = 0; i < middle; i++)
     {
         opTypes.push_back("DD");
     }
-    for(size_t i = middle; i < depth; i++)
+    for(int i = middle; i < depth; i++)
     {
         opTypes.push_back("double");
     }
@@ -508,10 +508,10 @@ static std::map<string, string> callMap = {
     {"cos", "c_dd_cos"},
     {"tan", "c_dd_tan"},
     {"exp", "c_dd_exp"},
-    {"exp2", "c_dd_exp2"},
-    {"exp10", "c_dd_exp10"},
+    // {"exp2", "c_dd_exp2"},
+    // {"exp10", "c_dd_exp10"},
     {"log", "c_dd_log"},
-    {"log2", "c_dd_log2"},
+    // {"log2", "c_dd_log2"},
     {"log10", "c_dd_log10"},
     {"asin", "c_dd_asin"},
     {"acos", "c_dd_acos"},
@@ -521,7 +521,9 @@ static std::map<string, string> callMap = {
     {"tanh", "c_dd_tanh"},
     {"asinh", "c_dd_asinh"},
     {"acosh", "c_dd_acosh"},
-    {"atanh", "c_dd_atanh"}
+    {"atanh", "c_dd_atanh"},
+    {"sqrt", "c_dd_sqrt"},
+    {"pow", "c_dd_pow_mine"}
 };
 
 int codegenKernel(ofstream &ofs, const ast_ptr &expr)
@@ -541,6 +543,7 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
         {
             ofs << "\t" << "double tmp" << order << "[2];\n";
             ofs << "\t" << "tmp" << order << "[0] = " << num << ";\n";
+            ofs << "\t" << "tmp" << order << "[1] = 0.0;\n";
         }
         return order;
     }
@@ -556,6 +559,7 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
         {
             ofs << "\t" << "double tmp" << order << "[2];\n";
             ofs << "\t" << "tmp" << order << "[0] = " << var << ";\n";
+            ofs << "\t" << "tmp" << order << "[1] = 0.0;\n";
         }
         return order;
     }
@@ -712,21 +716,25 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
     }
 }
 
-void codegen(ast_ptr &expr, vector<string> &vars)
+void codegen(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail)
 {
     // AST init
     setOrder(expr);
-    size_t depth = 0;
+    auto order = expr->getOrder();
+    int depth = 0;
     getDepth(expr, depth);
     cout << "depth: " << depth << endl;
-    size_t middle = depth / 2; // !!!
+    // int middle = (depth - 3) > 1 ? (depth - 3) : 1; // !!!
+    int middle = depth - 1;
     setType(expr, depth, middle);
+    auto opType = expr->getOpType();
 
     // generate init
-    string uniqueLabel = "tmp";
     string directory = "srcTest/" + uniqueLabel + "/";
-    string funcName = "expr_" + uniqueLabel + "";
+    // string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(middle);
+    string funcName = "expr_" + uniqueLabel + "_" + tail;
     string fileName = directory + funcName + ".c";
+    cout << "fileName: " << fileName << endl;
     ofstream file_clean(fileName, ios_base::out);
     ofstream ofs(fileName, ios::app);
 
@@ -743,5 +751,15 @@ void codegen(ast_ptr &expr, vector<string> &vars)
     ofs << "double" << " " << vars.back();
     ofs << ") {\n";
     codegenKernel(ofs, expr);
+    ofs << "\t" << "double result;\n";
+    if(opType == "double")
+    {
+        ofs << "\t" << "result = tmp" << order << ";\n"; 
+    }
+    else
+    {
+        ofs << "\t" << "result = tmp" << order << "[0];\n"; 
+    }
+    ofs << "\t" << "return result;\n";
     ofs << "}" << endl;
 }

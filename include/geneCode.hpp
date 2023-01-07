@@ -35,8 +35,8 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, vector<exprInfo> 
 
 string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprInfoVector);
 
-void getDepth(ast_ptr &expr, size_t &depth);
+void getDepth(ast_ptr &expr, int &depth);
 
-void codegen(ast_ptr &expr, vector<string> &vars);
+void codegen(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail);
 
 #endif
