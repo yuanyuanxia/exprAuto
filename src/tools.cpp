@@ -7,6 +7,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -387,7 +388,9 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
             }
         }
         string fileNameKernel = prefix + "__" + middle + "_" + suffix;
-        string testName = "./outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
+        namespace fs = std::filesystem;
+        string currentPath = fs::current_path();
+        string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
         string number[3] = {"One", "Two", "Three"};
         string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
         string commandStr = scriptName + " " + uniqueLabel;
@@ -442,6 +445,66 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     }
 
     return tempError;
+}
+
+double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals)
+{
+    size_t size = intervals.size() / 2;
+    string prefix = "expr_" + uniqueLabel;
+    string fileNameKernel = prefix + "_" + suffix;
+    if (size < 4)
+    {
+        vector<string> params;
+        for(const auto &interval : intervals)
+        {
+            auto paraTmp = fmt::format("{}", interval);
+            params.push_back(paraTmp);
+        }
+
+        string number[3] = {"One", "Two", "Three"};
+        string scriptName = "./testPerformance" + number[size - 1] + ".sh";
+        string commandStr = "taskset -c 0 " +scriptName + " " + uniqueLabel + " " + suffix;
+        for(const auto & param : params)
+        {
+            commandStr = commandStr + " " + param;
+        }
+        commandStr = "cd srcTest; " + commandStr + "; cd -;";
+        cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << endl;
+        char command[200] = {0};
+        strcat(command, commandStr.c_str());
+        system(command);
+    }
+    else if (size == 4)
+    {
+        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        exit(EXIT_FAILURE);
+    }
+
+    namespace fs = std::filesystem;
+    string currentPath = fs::current_path();
+    string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_performance.txt";
+    std::ifstream ifs(testName, std::ios::in);
+    double tempCycles;
+    if(ifs.eof())
+    {
+        std::cout << "is null" << std::endl;
+        ifs.close();
+        tempCycles = 0;
+    }
+    else
+    {
+        std::string lineStr;
+        std::getline(ifs, lineStr);
+        std::istringstream ss(lineStr);
+        ss >> tempCycles;
+    }
+
+    return tempCycles;
 }
 
 // TODO: implement

@@ -8,7 +8,7 @@ LIBS = -lpython3.8 -lfmt
 ECHO = printf
 
 # $(info $(CFLAGS) )
-override CFLAGS += -g -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
+override CFLAGS += -g -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always  --std=c++2a
 # $(info $(CFLAGS) )
 
 EXPRAUTO_ALL_SRCS_CPP  = $(wildcard src/*.cpp)

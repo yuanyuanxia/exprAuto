@@ -35,6 +35,8 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size);
 
+double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals);
+
 void geneBoundaryData(string uniqueLabel, string suffix);
 
 void geneIntervalData(string uniqeuLabel, vector<string> &intervals, vector<double> &threholds);
