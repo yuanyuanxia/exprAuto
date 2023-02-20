@@ -163,6 +163,49 @@ string geneOriginCode(string exprStr, string uniqueLabel, string tail)
     return funcName;
 }
 
+string geneTGenCode(string exprStr, vector<string> vars, string uniqueLabel, string tail)
+{
+    // replace func to func_gen
+    string exprNewStr(exprStr);
+    vector<string> supportFuncList = {"sin", "cos", "tan", "exp", "log", "sinh", "cosh", "tanh"};
+    for(auto replaceFrom : supportFuncList)
+    {
+        string replaceTo(replaceFrom);
+        replaceTo.append("_gen(");
+        replaceFrom += "(";
+        int pos = exprNewStr.find(replaceFrom);
+        while(pos != -1)
+        {
+            exprNewStr.replace(pos, replaceFrom.length(), replaceTo);
+            pos = exprNewStr.find(replaceFrom);
+        }
+    }
+    // generate TGen code
+    std::ofstream fout;
+    string directory = "srcTest/" + uniqueLabel + "/";
+    string funcName = "expr_" + uniqueLabel + "_" + tail;
+    string fileName = directory + funcName + ".c";
+    fout.open(fileName);
+    fout << "#include <math.h>\n";
+    fout << "#include \"tgen.h\"\n"; // this one is important
+    fout << "double " << funcName << "(";
+    for (size_t i = 0; i < vars.size(); ++i)
+    {
+        if (i != vars.size() - 1)
+            fout << "double" << " " << vars.at(i) << ", ";
+        else
+            fout << "double" << " " << vars.at(i);
+    }
+    fout << ")\n";
+    fout << "{\n";
+    fout << "\t" << "double result = " << exprNewStr << ";\n";
+    fout << "\t" << "return result;\n";
+    fout << "}\n";
+    fout.close();
+
+    return funcName;
+}
+
 void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v[], double u[])
 {
     std::ofstream fout;

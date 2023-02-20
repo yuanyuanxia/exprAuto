@@ -35,6 +35,7 @@
 .vscode/
 .history/
 build/
+srcGen/
 main
 *.txt
 __pycache__/
