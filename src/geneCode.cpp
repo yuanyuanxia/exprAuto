@@ -208,14 +208,19 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"*", "mpfr_mul"},
         {"/", "mpfr_div"},
         {"exp", "mpfr_exp"},
+        {"log", "mpfr_log"},
         {"pow", "mpfr_pow"},
         {"sqrt", "mpfr_sqrt"},
         {"sin", "mpfr_sin"},
-        {"log", "mpfr_log"},
         {"cos", "mpfr_cos"},
+        {"tan", "mpfr_tan"},
+        {"asin", "mpfr_asin"},
+        {"acos", "mpfr_acos"},
         {"atan", "mpfr_atan"},
-        {"tan", "mpfr_tan"}};
-    
+        {"sinh", "mpfr_sinh"},
+        {"cosh", "mpfr_cosh"},
+        {"tanh", "mpfr_tanh"},
+    };
     // vector<string> vars;
     // getVariablesFromExpr(exprAst, vars);
     size_t mpfr_variables = 0;
