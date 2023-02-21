@@ -39,6 +39,6 @@ string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprIn
 
 void getDepth(ast_ptr &expr, int &depth);
 
-void codegen(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail);
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail);
 
 #endif

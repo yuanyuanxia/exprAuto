@@ -32,7 +32,7 @@ funcName=expr_${uniqueLabel}_${suffix}
 gcc gccPerformanceTest.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -c -O3
 make binary.o -s # gcc binary.c -I../includeTEST -c -O3
 gcc ${uniqueLabel}/${funcName}.c -I../includeDD -c -O3
-gcc gccPerformanceTest.o binary.c.o ${funcName}.o -lm -lqd -o gccPerformanceTest_${uniqueLabel}.exe -O3
+gcc gccPerformanceTest.o binary.o ${funcName}.o -lm -lqd -o gccPerformanceTest_${uniqueLabel}.exe -O3
 ./gccPerformanceTest_${uniqueLabel}.exe ${resultFileName} ${start} ${end} > /dev/null
 # rm -rf gccPerformanceTest_${uniqueLabel}.exe
 

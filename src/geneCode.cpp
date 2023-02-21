@@ -496,7 +496,81 @@ void setType(ast_ptr &expr, int depth, int middle)
     setTypeKernel(expr, opTypes);
 }
 
-void setOrdersKernel(ast_ptr &expr, int &orderNow)
+// set opTypes for different tree nodes by opTypes
+void setType(ast_ptr &expr, vector<string> opTypes)
+{
+    auto type = expr->type();
+    if(type == "Number" || type == "Variable")
+    {
+        return;
+    }
+    
+    auto order = expr->getOrder();
+    auto opType = opTypes.at(order);
+    // cout << "setType: NO." << order << ", type = " << type << ", opType = " << opType << "\n";
+    expr->setOpType(opType);
+    if(type == "Call")
+    {
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callExpr->getArgs();
+        for(auto& arg : args)
+        {
+            setType(arg, opTypes);
+        }
+    }
+    else if(type == "Binary")
+    {
+        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        ast_ptr &lhs = binPtr->getLHS();
+        ast_ptr &rhs = binPtr->getRHS();
+        setType(lhs, opTypes);
+        setType(rhs, opTypes);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: unknown type %s", type.c_str());
+        exit(EXIT_FAILURE);
+    }
+}
+
+// set opTypes for different tree nodes by opTypes
+void setType(ast_ptr &expr, map<int, string> opTypes)
+{
+    auto type = expr->type();
+    if(type == "Number" || type == "Variable")
+    {
+        return;
+    }
+    
+    auto order = expr->getOrder();
+    auto opType = opTypes.at(order);
+    // cout << "setType: NO." << order << ", type = " << type << ", opType = " << opType << "\n";
+    expr->setOpType(opType);
+    if(type == "Call")
+    {
+        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callExpr->getArgs();
+        for(auto& arg : args)
+        {
+            setType(arg, opTypes);
+        }
+    }
+    else if(type == "Binary")
+    {
+        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        ast_ptr &lhs = binPtr->getLHS();
+        ast_ptr &rhs = binPtr->getRHS();
+        setType(lhs, opTypes);
+        setType(rhs, opTypes);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: unknown type %s", type.c_str());
+        exit(EXIT_FAILURE);
+    }
+}
+
+void setOrdersKernel(ast_ptr &expr, int &orderNow, vector<int> &opOrder)
 {
     auto type = expr->type();
     if(type == "Number")
@@ -511,14 +585,15 @@ void setOrdersKernel(ast_ptr &expr, int &orderNow)
     }
     else if(type == "Call")
     {
-        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
-        auto &args = callExpr->getArgs();
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callPtr->getArgs();
         vector<int> paramOrders;
         for(auto& arg : args)
         {
-            setOrdersKernel(arg, orderNow);
+            setOrdersKernel(arg, orderNow, opOrder);
         }
         expr->setOrder(orderNow);
+        opOrder.push_back(orderNow);
         orderNow++;
     }
     else if(type == "Binary")
@@ -526,9 +601,10 @@ void setOrdersKernel(ast_ptr &expr, int &orderNow)
         BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
         ast_ptr &lhs = binPtr->getLHS();
         ast_ptr &rhs = binPtr->getRHS();
-        setOrdersKernel(lhs, orderNow);
-        setOrdersKernel(rhs, orderNow);
+        setOrdersKernel(lhs, orderNow, opOrder);
+        setOrdersKernel(rhs, orderNow, opOrder);
         expr->setOrder(orderNow);
+        opOrder.push_back(orderNow);
         orderNow++;
     }
     else
@@ -538,11 +614,13 @@ void setOrdersKernel(ast_ptr &expr, int &orderNow)
     }
 }
 
-int setOrder(ast_ptr &expr)
+// set orders for nodes in expr and return the operation nodes' order (aka binary & call)
+vector<int> setOrder(ast_ptr &expr)
 {
     int order = 0;
-    setOrdersKernel(expr, order);
-    return order + 1;
+    vector<int> opOrder;
+    setOrdersKernel(expr, order, opOrder);
+    return opOrder;
 }
 
 static std::map<char, string> opMap = {
@@ -764,29 +842,10 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
     }
 }
 
-void codegen(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail)
+void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstream &ofs)
 {
-    // AST init
-    setOrder(expr);
-    auto order = expr->getOrder();
-    int depth = 0;
-    getDepth(expr, depth);
-    cout << "depth: " << depth << endl;
-    // int middle = (depth - 3) > 1 ? (depth - 3) : 1; // !!!
-    int middle = depth - 1;
-    setType(expr, depth, middle);
     auto opType = expr->getOpType();
-
-    // generate init
-    string directory = "srcTest/" + uniqueLabel + "/";
-    // string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(middle);
-    string funcName = "expr_" + uniqueLabel + "_" + tail;
-    string fileName = directory + funcName + ".c";
-    cout << "fileName: " << fileName << endl;
-    ofstream file_clean(fileName, ios_base::out);
-    ofstream ofs(fileName, ios::app);
-
-    // generate
+    auto order = expr->getOrder();
     ofs << "#include <math.h>\n";
     ofs << "#include <qd/c_dd.h>\n";
     ofs << "#include \"dd.h\"\n";
@@ -810,4 +869,72 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, stri
     }
     ofs << "\t" << "return result;\n";
     ofs << "}" << endl;
+}
+
+// Note: Each operator node has two states, double or double-double. if there are n node in that expression, there are 2^n states. 
+// Generate double-double implementations in all states and return the number of generated codes
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail)
+{
+    // AST init
+    auto opOrder = setOrder(expr);
+    auto lenOp = opOrder.size();
+    
+    // set opTypes: method NO.1
+    // int depth = 0;
+    // getDepth(expr, depth);
+    // cout << "codegen: depth: " << depth << endl;
+    // int middle = (depth - 3) > 1 ? (depth - 3) : 1; // !!!
+    // int middle = depth - 1;
+    // setType(expr, depth, middle);
+    // set opTypes: method NO.2
+    // auto order = expr->getOrder();
+    // vector<string> opTypes;
+    // for(int j = 0; j <= order; j++)
+    // {
+    //     auto tmp = currentNum % 2;
+    //     if(tmp == 0)
+    //     {
+    //         opTypes.push_back("DD");
+    //     }
+    //     else
+    //     {
+    //         opTypes.push_back("double");
+    //     }
+    //     currentNum = currentNum >> 1;
+    // }
+    
+    int maxNum = 1 << lenOp;
+    for(int num = 0; num < maxNum; num++)
+    {
+        // set opTypes: method NO.3
+        auto currentNum = num;
+        std::map<int, string> opTypes;
+        vector<string> dataTypes = {"DD", "double"};
+        for(size_t i = 0; i < lenOp; i++)
+        {
+            auto id = opOrder[i];
+            auto tmp = currentNum % 2;
+            opTypes[id] = dataTypes[tmp];
+            currentNum = currentNum >> 1;
+        }
+        setType(expr, opTypes);
+
+        // init to generate code
+        string directory = "srcTest/" + uniqueLabel + "/";
+        string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
+        string fileName = directory + funcName + ".c";
+        cout << "fileName: " << fileName << "\topTypes: ";
+        for(map<int, string>::iterator it = opTypes.begin(); it != opTypes.end(); it++)
+        {
+            cout << it->first << " " << it->second << ", ";
+        }
+        cout << "\n";
+        ofstream file_clean(fileName, ios_base::out);
+        ofstream ofs(fileName, ios::app);        
+
+        // call codegen to generate code
+        codegen(expr, vars, funcName, ofs);
+    }
+
+    return maxNum;
 }
