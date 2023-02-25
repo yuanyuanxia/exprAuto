@@ -2,7 +2,7 @@
 #include <qd/c_dd.h>
 
 /* Computes fl(a+b) and err(a+b).  */
-static inline double two_sum_mine(double a, double b, double *err)
+static inline double two_add_mine(double a, double b, double *err)
 {
     double s = a + b;
     double bb = s - a;
@@ -11,14 +11,14 @@ static inline double two_sum_mine(double a, double b, double *err)
 }
 
 /* Computes fl(a*b) and err(a*b). */
-static inline double two_prod_mine(double a, double b, double *err)
+static inline double two_mul_mine(double a, double b, double *err)
 {
     double p = a * b;
     *err = fma(a, b, -p);
     return p;
 }
 
-static inline double two_diff_mine(double a, double b, double *err)
+static inline double two_sub_mine(double a, double b, double *err)
 {
     double s = a - b;
     double bb = s - a;
@@ -42,8 +42,8 @@ static inline double div_mine(double a, double b, double *err)
     q1 = a / b;
 
     /* Compute  a - q1 * b */
-    p1 = two_prod_mine(q1, b, &p2);
-    s = two_diff_mine(a, p1, err);
+    p1 = two_mul_mine(q1, b, &p2);
+    s = two_sub_mine(a, p1, err);
     *err -= p2;
 
     /* get next approximation */

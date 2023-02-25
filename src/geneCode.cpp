@@ -3,6 +3,7 @@
 #include "parserASTLY.hpp"
 
 #include <algorithm>
+#include <cmath>
 
 using std::cout;
 using std::endl;
@@ -665,11 +666,20 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
         {
             ofs << "\t" << "double tmp" << order << " = " << num << ";\n";
         }
+        else if(opType == "ld")
+        {
+            ofs << "\t" << "long double tmp" << order << " = " << num << ";\n";
+        }
         else if(opType == "DD")
         {
             ofs << "\t" << "double tmp" << order << "[2];\n";
             ofs << "\t" << "tmp" << order << "[0] = " << num << ";\n";
             ofs << "\t" << "tmp" << order << "[1] = 0.0;\n";
+        }
+        else
+        {
+            fprintf(stderr, "opType %s of number %lf is error\n", opType.c_str(), num);
+            exit(EXIT_FAILURE);
         }
         return order;
     }
@@ -681,15 +691,24 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
         {
             ofs << "\t" << "double tmp" << order << " = " << var << ";\n";
         }
+        else if(opType == "ld")
+        {
+            ofs << "\t" << "long double tmp" << order << " = " << var << ";\n";
+        }
         else if(opType == "DD")
         {
             ofs << "\t" << "double tmp" << order << "[2];\n";
             ofs << "\t" << "tmp" << order << "[0] = " << var << ";\n";
             ofs << "\t" << "tmp" << order << "[1] = 0.0;\n";
         }
+        else
+        {
+            fprintf(stderr, "opType %s of variable %s is error\n", opType.c_str(), var.c_str());
+            exit(EXIT_FAILURE);
+        }
         return order;
     }
-    else if(type == "Call")
+    else if(type == "Call") // the parameters' type should be the same to the return value's type
     {
         CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
         auto callee = (callExpr->getCallee());
@@ -713,6 +732,10 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
                 {
                     ofs << "\t" << "double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
                 }
+                else if(paramOpType == "ld") // ld to double is straight.
+                {
+                    ofs << "\t" << "double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
+                }
                 else if(paramOpType == "DD")
                 {
                     ofs << "\t" << "double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << "[0];\n";
@@ -731,6 +754,38 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
             ofs << "p" << paramOrders.back();
             ofs << ");\n";
         }
+        else if(opType == "ld")
+        {
+            for(size_t i = 0; i < paramOpTypes.size(); i++)
+            {
+                auto &paramOpType = paramOpTypes.at(i);
+                if(paramOpType == "double")
+                {
+                    ofs << "\t" << "long double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
+                }
+                else if(paramOpType == "ld")
+                {
+                    ofs << "\t" << "long double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
+                }
+                else if(paramOpType == "DD")
+                {
+                    ofs << "\t" << "long double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << "[0];\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << " += tmp" << paramOrders.at(i) << "[1];\n";
+                }
+                else
+                {
+                    fprintf(stderr, "ERROR: Unknown paramOpType %s\n", paramOpType.c_str());
+                    exit(EXIT_FAILURE);
+                }
+            }
+            ofs << "\t" << "long double tmp" << order << " = " << callee << "(";
+            for(size_t i = 0; i < paramOrders.size() - 1; i++)
+            {
+                ofs << "p" << paramOrders.at(i) << ", ";
+            }
+            ofs << "p" << paramOrders.back();
+            ofs << ");\n";
+        }
         else if(opType == "DD")
         {
             for(size_t i = 0; i < paramOpTypes.size(); i++)
@@ -741,6 +796,12 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
                     ofs << "\t" << "double p" << paramOrders.at(i) << "[2];\n";
                     ofs << "\t" << "p" << paramOrders.at(i) << "[0] = tmp" << paramOrders.at(i) << ";\n";
                     ofs << "\t" << "p" << paramOrders.at(i) << "[1] = 0.0;\n";
+                }
+                else if(paramOpType == "ld")
+                {
+                    ofs << "\t" << "double p" << paramOrders.at(i) << "[2];\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[0] = tmp" << paramOrders.at(i) << ";\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[1] = tmp" << paramOrders.at(i) << " - p" << paramOrders.at(i) << "[0];\n";
                 }
                 else if(paramOpType == "DD")
                 {
@@ -765,6 +826,11 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
             ofs << "tmp" << order;
             ofs << ");\n";
         }
+        else
+        {
+            fprintf(stderr, "ERROR: Unknown opType %s\n", opType.c_str());
+            exit(EXIT_FAILURE);
+        }
 
         return order;
     }
@@ -780,59 +846,16 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
         auto orderR = codegenKernel(ofs, rhs);
         auto opTypeL = lhs->getOpType();
         auto opTypeR = rhs->getOpType();
-        if(opType == "double")
-        {
-            if(opTypeL == "double" && opTypeR == "double")
-            {
-                ofs << "\t" << opStr << "_d_d_d(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "double" && opTypeR == "DD")
-            {
-                ofs << "\t" << opStr << "_d_dd_d(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "DD" && opTypeR == "double")
-            {
-                ofs << "\t" << opStr << "_dd_d_d(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "DD" && opTypeR == "DD")
-            {
-                ofs << "\t" << opStr << "_dd_dd_d(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: unsupported type: opTypeL = %s, opTypeR = %s\n", opTypeL.c_str(), opTypeR.c_str());
-                exit(EXIT_FAILURE);
-            }
-        }
-        else if(opType == "DD")
-        {
-            if(opTypeL == "double" && opTypeR == "double")
-            {
-                ofs << "\t" << opStr << "_d_d_dd(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "double" && opTypeR == "DD")
-            {
-                ofs << "\t" << opStr << "_d_dd_dd(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "DD" && opTypeR == "double")
-            {
-                ofs << "\t" << opStr << "_dd_d_dd(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else if(opTypeL == "DD" && opTypeR == "DD")
-            {
-                ofs << "\t" << opStr << "_dd_dd_dd(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: unsupported type: opTypeL = %s, opTypeR = %s\n", opTypeL.c_str(), opTypeR.c_str());
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            fprintf(stderr, "ERROR: unsupported type: opType = %s\n", opType.c_str());
-            exit(EXIT_FAILURE);
-        }
+        std::map<string, string> opType2funcType = {
+            {"double", "d"},
+            {"ld", "ld"},
+            {"DD", "dd"},
+        };
+        auto funcType = opType2funcType.at(opType);
+        auto funcTypeL = opType2funcType.at(opTypeL);
+        auto funcTypeR = opType2funcType.at(opTypeR);
+        ofs << "\t" << opStr << "_" << funcTypeL << "_" << funcTypeR << "_" << funcType << "(tmp" << orderL << ", tmp" << orderR << ", tmp" << order << ");\n";
+
         return order;
     }
     else
@@ -858,14 +881,18 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
     ofs << "double" << " " << vars.back();
     ofs << ") {\n";
     codegenKernel(ofs, expr);
-    ofs << "\t" << "double result;\n";
-    if(opType == "double")
+    if(opType == "double" || opType == "ld")
     {
-        ofs << "\t" << "result = tmp" << order << ";\n"; 
+        ofs << "\t" << "double result = tmp" << order << ";\n"; 
+    }
+    else if(opType == "DD")
+    {
+        ofs << "\t" << "double result = tmp" << order << "[0];\n"; 
     }
     else
     {
-        ofs << "\t" << "result = tmp" << order << "[0];\n"; 
+        fprintf(stderr, "ERROR: unsupported opType: opType = %s\n", opType.c_str());
+        exit(EXIT_FAILURE);
     }
     ofs << "\t" << "return result;\n";
     ofs << "}" << endl;
@@ -903,19 +930,20 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     //     currentNum = currentNum >> 1;
     // }
     
-    int maxNum = 1 << lenOp;
+    vector<string> dataTypes = {"DD", "ld", "double"};
+    int lenDataTypes = dataTypes.size();
+    int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
     for(int num = 0; num < maxNum; num++)
     {
         // set opTypes: method NO.3
         auto currentNum = num;
         std::map<int, string> opTypes;
-        vector<string> dataTypes = {"DD", "double"};
         for(size_t i = 0; i < lenOp; i++)
         {
             auto id = opOrder[i];
-            auto tmp = currentNum % 2;
+            auto tmp = currentNum % lenDataTypes;
             opTypes[id] = dataTypes[tmp];
-            currentNum = currentNum >> 1;
+            currentNum = currentNum / lenDataTypes;
         }
         setType(expr, opTypes);
 
