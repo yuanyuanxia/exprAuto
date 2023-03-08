@@ -4,6 +4,7 @@
 #include "basic.hpp"
 #include "geneCode.hpp"
 #include "color.hpp"
+#include "devideUpEdgeData.hpp"
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -18,6 +19,7 @@
 #include <iomanip>
 #include <chrono>
 #include <fmt/core.h>
+#include <unistd.h>
 
 using std::cout;
 using std::endl;
@@ -400,7 +402,9 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         }
         commandStr = commandStr + " " + prefix + " " + middle + " " + suffix;
 
-        cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << "\ntestName: " << testName << endl;
+        // cout << "fileNameKernel: " << fileNameKernel << "\n";
+        cout << "command: " << commandStr << "\n";
+        // cout << "testName: " << testName << "\n";
         char command[200] = {0};
         strcat(command, commandStr.c_str());
         system(command);
@@ -408,7 +412,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         std::ifstream ifs(testName, std::ios::in);
         if(ifs.eof())
         {
-            std::cout << "is null" << std::endl;
+            cout << "is null" << "\n";
             ifs.close();
 
             tempError.intervals = intervals;
@@ -440,7 +444,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     }
     else
     {
-        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        fprintf(stderr, "WRONG: testError: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
     }
 
@@ -468,20 +472,21 @@ double testPerformance(string uniqueLabel, string suffix, const vector<double> &
         {
             commandStr = commandStr + " " + param;
         }
-        commandStr = "cd srcTest; " + commandStr + "; cd -;";
-        cout << "fileNameKernel: " << fileNameKernel << "\ncommand: " << commandStr << endl;
+        commandStr = "cd srcTest; " + commandStr + "; cd - > /dev/null;";
+        // cout << "fileNameKernel: " << fileNameKernel << "\n";
+        cout << "command: " << commandStr << "\n";
         char command[200] = {0};
         strcat(command, commandStr.c_str());
         system(command);
     }
     else if (size == 4)
     {
-        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        fprintf(stderr, "WRONG: testPerformance: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
     }
     else
     {
-        fprintf(stderr, "WRONG: rewrite: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        fprintf(stderr, "WRONG: testPerformance: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
     }
 
@@ -507,46 +512,96 @@ double testPerformance(string uniqueLabel, string suffix, const vector<double> &
     return tempCycles;
 }
 
-// TODO: implement
-// call matlab to generate the boundaryData to file
-void geneBoundaryData(string uniqueLabel, string suffix)
+// TODO: support multiple dimension
+// call matlab to generate the upEdgeData to file
+string geneBoundaryData(string uniqueLabel, string suffix)
 {
-    suffix = "origin";
-    string filename = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel + "_" + suffix + "_boudary.txt";
-    std::ofstream ofs;
-    ofs.open(filename, std::ios::out);
-    ofs << "123" << std::endl;
-    ofs.close();
-    std::cout << "generate boundaryData file:" << filename << std::endl;
+    char *currentPath;
+    if((currentPath = getcwd(NULL, 0)) == NULL)
+    {
+        perror("getcwd error");
+    }
+    string currentPathStr(currentPath);
+    string outputFilesPath = currentPathStr + "/outputs/" + uniqueLabel + "/";
+    string sampleFileName = outputFilesPath + "sample_" + uniqueLabel + "_" + suffix + ".txt";
+    string upEdgeFileName = outputFilesPath + "upEdge_" + uniqueLabel + "_" + suffix + ".txt";
+    string matlabExecutable = "/home/xyy/helloBro/softwares/matlab/R2020a/bin/matlab"; // set to your own matlab executable
+    string matlabCommands = " -batch \"sampleFileName=\'" + sampleFileName + "\'; upEdgeFileName = \'" + upEdgeFileName + "\'; run " + currentPathStr + "/src/getUpEdge\""; // DO NOT need to add the suffix ".m" for matlab file!
+    string commandStr = matlabExecutable + matlabCommands;
+    cout << "Matlab command: " << commandStr << "\n";
+    // cout << "length of commandStr: " << commandStr.size() << "\n";
+    char command[512] = {0};
+    strcat(command, commandStr.c_str());
+    system(command);
+    free(currentPath);
+    // std::cout << "generate upEdge file:" << upEdgeFileName << std::endl;
+
+    return upEdgeFileName;
 }
 
-// TODO: improve
-// generate the interval info to file
-void geneIntervalData(string uniqueLabel, vector<string> &intervals, vector<double> &threholds)
-{
-    // filename = "expr_" + uniqueLabel + "_interval.txt";
-    for (size_t j = 1; j < threholds.size(); j++)
-    {
-        intervals.push_back(to_string(j * 2));
-        intervals.push_back(to_string(j * 2 + 1));
-        threholds.push_back(j + 0.0002);
-    }
-    for (size_t i = 0; i < threholds.size(); i++)
-    {
-        string fileName;
-        string prefix = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel;
-        string middle = "_" + intervals.at(i * 2) + "_" + intervals.at(i * 2 + 1) + "_" + to_string(threholds.at(i));
-        string suffix = "_interval.txt";
-        fileName = prefix + middle + suffix;
-        std::ofstream ofs;
-        ofs.open(fileName, std::ios::out);
-        ofs << "123" << std::endl;
-        ofs.close();
-        std::cout << "generate boudaryDate file:" << fileName << std::endl;
-    }
-}
+// string geneIntervalData1D(string upEdgeFileName, string uniqueLabel, double threshold) // generate the interval info to file at the target dimension
+// {
+//     // init
+//     double thresholdCombine = 101;
+//     string prefix = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel;
+//     string suffix = "_interval.txt";
+//     // call devideUpEdgeData for each dimension
+//     string middle = "_" + to_string(threshold);
+//     string intervalFileName = prefix + middle + suffix;
+//     cout << "generate interval file:" << intervalFileName << endl;
+//     devideUpEdgeData(upEdgeFileName, intervalFileName, threshold, thresholdCombine);
+//     return intervalFileName;
+// }
 
-//生成区间数据
+// vector<double> getIntervalData1D(string filename) // read filename to get vector<double>
+// {
+//     vector<double> intervalData;
+//     std::ifstream ifs;
+//     ifs.open(filename, std::ios::in);
+//     if (!ifs.is_open())
+//     {
+//         std::cout << "ERROR: getIntervalData: fail to open " << filename << std::endl;
+//         exit(EXIT_FAILURE);
+//     }
+//     string currentLine;
+//     while (getline(ifs, currentLine, '\n'))
+//     {
+//         // cout << currentLine << endl;
+//         std::istringstream iss(currentLine);
+//         string tmp;
+//         while(getline(iss, tmp, ' '))
+//         {
+//             intervalData.push_back(atof(tmp.c_str()));
+//         }
+//     }
+//     ifs.close();
+//     return intervalData;
+// }
+
+// vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds) // according the upEdgeFile data, generate the interval info into file
+// {
+//     // init
+//     double thresholdCombine = 101;
+//     vector<string> intervalFilenames;
+//     string prefix = "./outputs/" + uniqueLabel + "/expr_" + uniqueLabel;
+//     string suffix = "_interval.txt";
+//     // call devideUpEdgeData for each dimension
+//     for (size_t i = 0; i < thresholds.size(); i++)
+//     {
+//         auto &upEdgeFileName = upEdgeFileNames.at(i);
+//         auto &threshold = thresholds.at(i);
+//         string middle = "_" + to_string(threshold);
+//         string intervalFileName = prefix + middle + suffix;
+//         cout << "generate interval file:" << intervalFileName << endl;
+//         intervalFilenames.push_back(intervalFileName);
+//         devideUpEdgeData(upEdgeFileName, intervalFileName, threshold, thresholdCombine);
+//     }
+//     return intervalFilenames;
+// }
+
+// may useless, ready to comment it
+// read filename to get vector<vector<double>>.
+// A line is a vector<double>. lines are vector<~> (~ is vector<double>)
 vector<vector<double>> getIntervalData(string filename)
 {
     vector<vector<double>> intervalData;
@@ -558,52 +613,48 @@ vector<vector<double>> getIntervalData(string filename)
         exit(EXIT_FAILURE);
     }
 
-    string buf;
-    while (getline(ifs, buf))
+    string currentLine;
+    while (getline(ifs, currentLine, '\n'))
     {
+        // cout << currentLine << endl;
         vector<double> lineData;
-        // cout << buf << endl;
-        int flag = 1;
-        vector<int> index;
-        for (size_t i = 0; i < buf.length(); i++)
+        std::istringstream iss(currentLine);
+        string tmp;
+        while(getline(iss, tmp, ' '))
         {
-            if (buf[i] == ' ')
-            {
-                flag += 1;
-                index.push_back(i);
-            }
+            lineData.push_back(atof(tmp.c_str()));
         }
-        for (size_t i = 0; i < index.size(); i++)
-        {
-            if (i == 0)
-            {
-                string data = buf.substr(0, index.at(i));
-                lineData.push_back(atof(data.c_str()));
-            }
-            else
-            {
-                int n = index.at(i) - index.at(i - 1) - 1;
-                string data = buf.substr(index.at(i - 1) + 1, n);
-                lineData.push_back(atof(data.c_str()));
-            }
-        }
-        int pos = index.back() + 1;
-        int n = buf.length() - 1 - index.at(index.size() - 1);
-        string last = buf.substr(pos, n);
-        lineData.push_back(atof(last.c_str()));
         intervalData.push_back(lineData);
     }
     ifs.close();
     return intervalData;
 }
 
-// call exprAuto to rewrite the input expression
-vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
+// according to the corresponding intervalData file in each dimension, generate the interval data, and then generate all permutation of all dimensions.
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds)
 {
-    // string filename = "expr_" + uniqueLabel + "_interval.txt";
-    string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
+    vector<vector<double>> intervalDataMultiDim;
+    int dimension = thresholds.size();
+    // auto thresholdCombine = 0;
+    for (int i = 0; i < dimension; i++) // iterate all the dimensions
+    {
+        // call devideUpEdgeData for each dimension: matlab upEdge ==> interval vector
+        auto &upEdgeFileName = upEdgeFileNames.at(i);
+        auto &threshold = thresholds.at(i);
+        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold); // TODO: add the parameter thresholdCombine
+        // push_back interval vector
+        intervalDataMultiDim.push_back(intervalData1D);
+    }
+    // call permuteMultiVec to get all permutation
+    auto results = permuteMultiVec(intervalDataMultiDim);
+    return results;
+}
 
-    auto intervalData = getIntervalData(filename);
+// call exprAuto to rewrite the input expression
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData)
+{
+    // string filename = "expr_" + uniqueLabel + "_interval.txt"; // useless
+    // string filename = "./intervalData.txt"; // TODO-done: get the filename from uniqueLabel. Now we get intervalData from input parameters directly.
 
     auto tempExpr = ParseExpressionFromString(exprStr);
 
@@ -649,7 +700,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
 
             // generate function code and test error
             string suffixTmp = suffix + std::to_string(j);
-            geneOriginCode(newExpr, uniqueLabel, suffixTmp);
+            geneExprCode(newExpr, uniqueLabel, suffixTmp);
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
@@ -696,7 +747,8 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel)
     return exprInfoVector;
 }
 
-vector<vector<double>> zuhe(vector<vector<double>> vec)
+// permute multiple vector
+vector<vector<double>> permuteMultiVec (vector<vector<double>> vec)
 {
     vector<vector<double>> suzu;
     size_t row = vec.size();

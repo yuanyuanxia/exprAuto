@@ -25,7 +25,7 @@ fi
 testFileName=test1paramFPEDParallel
 numProcs=32
 
-echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}"
+# echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}"
 directory="./srcTest"/${uniqueLabel}
 # echo "${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
 ${CC} ./srcTest/${testFileName}.c ${directory}/${prefix}_${suffix}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
@@ -33,5 +33,15 @@ ${CC} ./srcTest/${testFileName}.c ${directory}/${prefix}_${suffix}.c ${directory
 mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix} ${uniqueLabel}
 # mv outputs/${prefix}__${middle}_${suffix}_error.txt ./outputs/${uniqueLabel}/${prefix}__${middle}_${suffix}_error.txt
 rm ${testFileName}.exe
-echo "end detecting ${uniqueLabel}"
+
+# combine files
+cd ./outputs/${uniqueLabel}
+findWord="${prefix}__${middle}_${suffix}_sample_*.txt"
+# echo "For suffix = ${suffix}, Find and combine by shell command cat:  ${findWord}"
+find . -name "${findWord}" | sort -h | xargs cat > sample_${uniqueLabel}_${suffix}.txt
+# echo "sample file: `pwd`/sample_${uniqueLabel}_${suffix}.txt"
+rm ${findWord}
+cd - > /dev/null
+
+echo "end detecting error ${uniqueLabel}"
 echo

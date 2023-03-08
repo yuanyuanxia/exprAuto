@@ -37,16 +37,16 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals);
 
-void geneBoundaryData(string uniqueLabel, string suffix);
+string geneBoundaryData(string uniqueLabel, string suffix);
 
-void geneIntervalData(string uniqeuLabel, vector<string> &intervals, vector<double> &threholds);
-
-vector<string> getIntervalData();
+vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds);
 
 vector<vector<double>> getIntervalData(string filename);
 
-vector<exprInfo> rewrite(string exprSr, string uniqueLabel);
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds);
 
-vector<vector<double>> zuhe(vector<vector<double>> vec);
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData);
+
+vector<vector<double>> permuteMultiVec(vector<vector<double>> vec);
 
 #endif

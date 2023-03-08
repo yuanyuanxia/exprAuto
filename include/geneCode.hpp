@@ -19,13 +19,15 @@ vector<string> getVariablesFromExpr(const ast_ptr &expr);
 
 bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars);
 
-string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLabel,string tail);
+string geneExprCodeKernel(string exprStr, vector<string> vars, string uniqueLabel,string tail);
 
-string geneOriginCode(string exprStr, string uniqueLabel, string tail);
+string geneExprCode(string exprStr, string uniqueLabel, string tail);
 
-string geneTGenCode(string exprStr, vector<string> vars, string uniqueLabel,string tail);
+string geneTGenCode(string exprStr, vector<string> vars, string uniqueLabel, string tail);
 
-void geneHerbieCode(string exprstr, vector<string> cs, string exprname,double v[], double u[]);
+void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v[], double u[]);
+
+string geneHerbieCode(string uniqueLabel);
 
 void geneDaisyCode(string exprStr);
 

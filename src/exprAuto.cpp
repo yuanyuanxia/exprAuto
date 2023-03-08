@@ -1007,6 +1007,32 @@ size_t computeRandomNum(size_t sum)
     return randomNum;
 }
 
+// for main
+string pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales)
+{
+    string bestExpr = "origin";
+    double maxError = INFINITY;
+    double aveError = INFINITY;
+    for (size_t i = 0; i < testSet.size(); i++)
+    {
+        string suffixTmp = testSet.at(i);
+        cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
+
+        // generate function code and test error
+        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales);
+        // cout << "pickTheBest: for item No." << i << ": maxError: " << tempError.maxError << "\n";
+        // cout << "pickTheBest: for item No." << i << ": aveError: " << tempError.aveError << "\n";
+        
+        if ((tempError.maxError < maxError) || ((tempError.maxError == maxError) && (tempError.aveError < aveError)))
+        {
+            bestExpr = suffixTmp;
+            maxError = tempError.maxError;
+            aveError = tempError.aveError;
+        }
+    }
+    return bestExpr;
+}
+
 size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
 {
     auto uniqueLabel = getUniqueLabel();
@@ -1016,8 +1042,8 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     getVariablesFromExpr(originExpr, vars);
     auto funcNameMpfr = geneMpfrCode(originExpr, uniqueLabel, vars);
 
-    string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
-    auto intervalData = getIntervalData(filename);
+    string filename = "./intervalData.txt"; // TODO: (useful for multi parameters) get the filename from uniqueLabel
+    auto intervalData = getIntervalData(filename); // TODO: (useful for multi parameters) update to getInterval(filename, dimension)
     size_t scale;
     auto intervalTmp = intervalData.at(0);
     auto dimension = intervalTmp.size() / 2;
@@ -1044,7 +1070,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
 
         // generate function code and test error
         string suffixTmp = suffix + std::to_string(i);
-        geneOriginCodeKernel(item, vars, uniqueLabel, suffixTmp);
+        geneExprCodeKernel(item, vars, uniqueLabel, suffixTmp);
         // auto timeTmp1 = std::chrono::high_resolution_clock::now();
         auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
         // auto timeTmp2 = std::chrono::high_resolution_clock::now();
@@ -1083,6 +1109,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     return maxIdx;
 }
 
+// be useful for multi parameters test
 void geneSampleData()
 {
     // static size_t callCount = 0;
@@ -1092,8 +1119,8 @@ void geneSampleData()
     // prompt += "geneSampleData: ";
     cout << "geneSampleData start--------" <<endl;
 
-    string filename = "./intervalData.txt"; // TODO: get the filename from uniqueLabel
-    auto intervalData = getIntervalData(filename);
+    string filename = "./intervalData.txt"; // TODO: (useful for multi parameters) get the filename from uniqueLabel
+    auto intervalData = getIntervalData(filename); // TODO: (useful for multi parameters) update to getInterval(filename, dimension)
     auto intervals = intervalData.at(0);
 
     vector<string> parameters;
@@ -1366,9 +1393,9 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
         getVariablesFromExpr(expr, vars);
         
         auto exprStr = PrintExpression(expr);
-        auto funcNameOrigin = geneOriginCodeKernel(exprStr, vars, uniqueLabel, "origin");
+        auto funcNameOrigin = geneExprCodeKernel(exprStr, vars, uniqueLabel, "origin");
         auto expr1Str = PrintExpression(expr1);
-        auto funcNameSympy = geneOriginCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
+        auto funcNameSympy = geneExprCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
         auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
         
         // int scale = 256;

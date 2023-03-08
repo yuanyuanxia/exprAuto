@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <fmt/ranges.h>
 
 using std::cout;
 using std::endl;
@@ -116,7 +117,7 @@ bool getVariablesFromExpr(const ast_ptr &expr, vector<string> &vars)
     return true;
 }
 
-string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLabel, string tail)
+string geneExprCodeKernel(string exprStr, vector<string> vars, string uniqueLabel, string tail)
 {
     // print input info
     // cout << "expression    : " << exprStr << endl;
@@ -153,13 +154,13 @@ string geneOriginCodeKernel(string exprStr, vector<string> vars, string uniqueLa
     return funcName;
 }
 
-string geneOriginCode(string exprStr, string uniqueLabel, string tail)
+string geneExprCode(string exprStr, string uniqueLabel, string tail)
 {
     auto originExpr = ParseExpressionFromString(exprStr);
 
     vector<string> vars;
     getVariablesFromExpr(originExpr, vars);
-    auto funcName = geneOriginCodeKernel(exprStr, vars, uniqueLabel, tail);
+    auto funcName = geneExprCodeKernel(exprStr, vars, uniqueLabel, tail);
 
     return funcName;
 }
@@ -231,6 +232,62 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v
     fout << "(" << endl;
     fout << exprstr << ")" << endl;
     fout.close();
+}
+
+// TODO: not real implementation
+string geneHerbieCode(string uniqueLabel)
+{
+    map<string, string> benchmarkHerbie = {
+        {"Bsplines3", "-pow(x, 3.0) /6.0"},
+        {"exp1x", "expm1(x) / x"},
+        {"exp1x_log", "expm1(x) / x"},
+        {"intro_example", "(x / (1.0 + pow(x, 3.0))) * fma(x, x, (1.0 - x))"},
+        {"logexp", "log1p(exp(x))"},
+        {"NMSEexample31", "(x + (1.0 - x)) / fma(pow(x, 0.25), pow(x, 0.25), sqrt((x + 1.0)))"},
+        {"NMSEexample310", "log1p(-x) / log1p(x)"},
+        {"NMSEexample34", "tan((x / 2.0))"},
+        {"NMSEexample35", "atan2((x + (1.0- x)), (1.0+fma(sqrt(x), sqrt(x), (x * x))))"},
+        {"NMSEexample36", ""},
+        {"NMSEexample37", "expm1(x)"},
+        {"NMSEexample38", "fma(x, log((1.0 + (1.0 / x))), log1p(x)) + -1.0"},
+        {"NMSEexample39", ""},
+        {"NMSEproblem331", "-1.0 / fma(x, x, x)"},
+        {"NMSEproblem333", "((1.0 / (x + -1.0)) + (1.0 / (1.0 + x))) + (-2.0 / x)"},
+        {"NMSEproblem334", ""},
+        {"NMSEproblem336", "log1p((1.0 / x))"},
+        {"NMSEproblem337", ""},
+        {"NMSEproblem341", "(sin(x) / x) * (tan((x / 2.0)) / x)"},
+        {"NMSEproblem343", ""},
+        {"NMSEproblem344", "sqrt((1.0 + exp(x)))"},
+        {"NMSEproblem345", ""},
+        {"NMSEsection311", "(1.0 + expm1(x)) / expm1(x)"},
+        {"predatorPrey", ""},
+        {"sine", ""},
+        {"sineorder3", ""},
+        {"sqroot", ""},
+        {"sqrt_add", ""},
+        {"test05_nonlin1_r4", ""},
+        {"test05_nonlin1_test2", ""},
+        {"verhulst", ""},
+    };
+
+    auto pos = benchmarkHerbie.find(uniqueLabel);
+    if (pos != benchmarkHerbie.end())
+    {
+        string herbieExpr = pos->second;
+        if(herbieExpr != "")
+        {
+            geneExprCode(herbieExpr, uniqueLabel, "herbie");
+            return herbieExpr;
+        }
+        else
+        {
+            fprintf(stderr, "ERROR: geneHerbieCode: we can not handle %s\n", uniqueLabel.c_str());
+            exit(EXIT_FAILURE);
+        }
+    }
+    fprintf(stderr, "ERROR: geneHerbieCode: we can not handle %s\n", uniqueLabel.c_str());
+    exit(EXIT_FAILURE);
 }
 
 void geneDaisyCode(string exprStr)
@@ -323,11 +380,12 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
     cout << "the general information" << endl;
     for (size_t i = 0; i < exprInfoVector.size(); i++)
     {
-        cout << "Interval NO." << i << endl;
-        cout << "\trewriteID: " << exprInfoVector.at(i).rewriteID << endl;
-        cout << "\taveError: " << exprInfoVector.at(i).aveError << "\tmaxError: " << exprInfoVector.at(i).maxError << endl;
-        cout << "\texpr: " << exprInfoVector.at(i).exprStr << endl;
-        // cout << "Interval: [" << exprInfoVector.at(i).start << "," << exprInfoVector.at(i).end << "]" << endl;
+        auto &exprInfoTmp = exprInfoVector.at(i);
+        fmt::print("Interval NO.{}: {}\n", i, exprInfoTmp.intervals);
+        cout << "\trewriteID: " << exprInfoTmp.rewriteID << endl;
+        cout << "\taveError: " << exprInfoTmp.aveError << "\tmaxError: " << exprInfoTmp.maxError << endl;
+        cout << "\texpr: " << exprInfoTmp.exprStr << endl;
+        // cout << "Interval: [" << exprInfoTmp.start << "," << exprInfoTmp.end << "]" << endl;
     }
 
     // generate code to file

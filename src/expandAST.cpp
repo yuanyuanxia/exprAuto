@@ -135,7 +135,7 @@ ast_ptr expandExpr(const ast_ptr &expr)
 
                     return exprFinal;
                 }
-                else if((opL != '+') && (opR == '+'))// TODO: opL or opR is /
+                else if((opL != '+') && (opR == '+'))
                 {
                     ast_ptr &lhsR = binOpR->getLHS();
                     ast_ptr &rhsR = binOpR->getRHS();
@@ -156,7 +156,7 @@ ast_ptr expandExpr(const ast_ptr &expr)
                 // {
 
                 // }
-                // else if((opL != '/') && (opR == '/'))// TODO: opL or opR is /
+                // else if((opL != '/') && (opR == '/'))
                 // {
 
                 // }

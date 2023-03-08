@@ -31,7 +31,7 @@ vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr);
 
 vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op);
 
-// TODO: delete the same expr in exprs using the function 'isEqual'
+// TODO: (not sure) delete the same expr in exprs using the function 'isEqual'
 void deleteTheSame(vector<ast_ptr> &exprs);
 
 vector<ast_ptr> dealWithCalls(const ast_ptr &expr);
@@ -43,6 +43,8 @@ vector<size_t> getCombineOrders(const vector<size_t> widths, const size_t identi
 void sortExpr(ast_ptr &expr);
 
 vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf = true);
+
+string pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales);
 
 void geneSampleData();
 
