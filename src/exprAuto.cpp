@@ -370,10 +370,10 @@ vector<ast_ptr> dealWithCalls(const ast_ptr &expr)
     static size_t callCount = 0;
     callCount++;
     callLevel++;
-    string prompt(callLevel * promtTimes, callLevelChar);
-    prompt.append(callCount, callCountChar);
-    prompt += "dealWithCalls: ";
-    cout << prompt << "start--------" << endl;
+    // string prompt(callLevel * promtTimes, callLevelChar);
+    // prompt.append(callCount, callCountChar);
+    // prompt += "dealWithCalls: ";
+    // cout << prompt << "start--------" << endl;
     CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
     string callee = callExpr->getCallee();
     vector<ast_ptr> &args = callExpr->getArgs();
@@ -399,8 +399,8 @@ vector<ast_ptr> dealWithCalls(const ast_ptr &expr)
     }
 
     deleteTheSame(allResults);
-    printExprs(allResults, prompt + "at the end, ");
-    cout << prompt << "end--------" << endl;
+    // printExprs(allResults, prompt + "at the end, ");
+    // cout << prompt << "end--------" << endl;
     callCount--;
     callLevel--;
     return allResults;
@@ -953,7 +953,7 @@ vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf)
     }
     deleteTheSame(results);
 
-    if(callCount == 1) printExprs(results, prompt + "at the last: ");
+    // if(callCount == 1) printExprs(results, prompt + "at the last: ");
     // cout << prompt << "end--------" <<endl;
     callCount--;
     return results;
@@ -1008,8 +1008,9 @@ size_t computeRandomNum(size_t sum)
 }
 
 // for main
-string pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales)
+exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales)
 {
+    exprInfo result;
     string bestExpr = "origin";
     double maxError = INFINITY;
     double aveError = INFINITY;
@@ -1030,7 +1031,12 @@ string pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> in
             aveError = tempError.aveError;
         }
     }
-    return bestExpr;
+    cout << "pick \'" << bestExpr << "\' as the init expression.\n";
+    result.intervals = intervals;
+    result.suffix = bestExpr;
+    result.exprStr = "";
+    result.maxError = maxError;
+    return result;
 }
 
 size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
@@ -1285,38 +1291,38 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
     prompt += "exprAutoNew: ";
-    cout << prompt << "start-----------" << endl;
+    if(callCount == 1) cout << prompt << "start-----------" << endl;
     if (expr == nullptr)
     {
         cerr << prompt << "ERROR: the input expr is nullptr!" << endl;
         exit(EXIT_FAILURE);
     }
-    cout << prompt << "at the beginning: expr = " << PrintExpression(expr) << endl;
-    cout << prompt << "step1: preprocess" << endl;
+    if(callCount == 1) cout << prompt << "at the beginning: expr = " << PrintExpression(expr) << endl;
+    if(callCount == 1) cout << prompt << "step1: preprocess" << endl;
 
     ast_ptr exprNew = preprocess(expr);
     // exprNew = simplifyExpr(exprNew);
     exprNew = minusRewrite(exprNew);
     combineConstant(exprNew);
-    cout << prompt << "after preprocess: exprNew = " << PrintExpression(exprNew) << endl;
+    if(callCount == 1) cout << prompt << "after preprocess: exprNew = " << PrintExpression(exprNew) << endl;
 
     vector<ast_ptr> results;
-    cout << prompt << "step2: judge if exprNew is a fraction" << endl;
+    if(callCount == 1) cout << prompt << "step2: judge if exprNew is a fraction" << endl;
     if (isFraction(exprNew))
     {
-        cout << prompt << "exprNew is a fraction, so perform step3 and step4" << endl;
+        if(callCount == 1) cout << prompt << "exprNew is a fraction, so perform step3 and step4" << endl;
         ast_ptr numerator = getNumerator(exprNew);
         ast_ptr denominator = getDenominator(exprNew);
 
-        cout << prompt << "step3: perform on numerator." << endl;
+        if(callCount == 1) cout << prompt << "step3: perform on numerator." << endl;
         auto numerators = tryRewrite(std::move(numerator), addSelf);
-        cout << prompt << "step3: end perform on numerator." << endl;
+        if(callCount == 1) cout << prompt << "step3: end perform on numerator." << endl;
         
-        cout << prompt << "step3: perform on denominator." << endl;
+        if(callCount == 1) cout << prompt << "step3: perform on denominator." << endl;
         auto denominators = tryRewrite(std::move(denominator), addSelf);
-        cout << prompt << "step3: end perform on denominator." << endl;
+        if(callCount == 1) cout << prompt << "step3: end perform on denominator." << endl;
         
-        cout << prompt << "step4: combine numerator and denominator." << endl;
+        if(callCount == 1) cout << prompt << "step4: combine numerator and denominator." << endl;
         if(isConstant(denominators)) // only one element, and the element is constant
         {
             if(isConstant(numerators))
@@ -1347,14 +1353,14 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
     }
     else
     {
-        cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
+        if(callCount == 1) cout << prompt << "exprNew is not a fraction, so perform step4" << endl;
         results = tryRewrite(std::move(exprNew), addSelf);
         // results = tryRewriteRandom(std::move(exprNew));
     }
 
-    cout << prompt << "at the last: results size = " << results.size() << endl;
-    printExprs(results, prompt);
-    cout << prompt << "end-----------" << endl;
+    if(callCount == 1) cout << prompt << "at the last: results size = " << results.size() << endl;
+    if(callCount == 1) printExprs(results, prompt);
+    if(callCount == 1) cout << prompt << "end-----------" << endl;
     callCount--;
     callLevel--;
     return results;

@@ -151,7 +151,7 @@ string geneExprCodeKernel(string exprStr, vector<string> vars, string uniqueLabe
     fout << "}\n";
     fout.close();
 
-    return funcName;
+    return exprStr;
 }
 
 string geneExprCode(string exprStr, string uniqueLabel, string tail)
@@ -160,9 +160,9 @@ string geneExprCode(string exprStr, string uniqueLabel, string tail)
 
     vector<string> vars;
     getVariablesFromExpr(originExpr, vars);
-    auto funcName = geneExprCodeKernel(exprStr, vars, uniqueLabel, tail);
+    geneExprCodeKernel(exprStr, vars, uniqueLabel, tail);
 
-    return funcName;
+    return exprStr;
 }
 
 string geneTGenCode(string exprStr, vector<string> vars, string uniqueLabel, string tail)
@@ -243,7 +243,7 @@ string geneHerbieCode(string uniqueLabel)
         {"exp1x_log", "expm1(x) / x"},
         {"intro_example", "(x / (1.0 + pow(x, 3.0))) * fma(x, x, (1.0 - x))"},
         {"logexp", "log1p(exp(x))"},
-        {"NMSEexample31", "(x + (1.0 - x)) / fma(pow(x, 0.25), pow(x, 0.25), sqrt((x + 1.0)))"},
+        {"NMSEexample31", "(x + (1.0 - x)) / fma(pow(x, 0.25), pow(x, 0.25), sqrt(x + 1.0))"},
         {"NMSEexample310", "log1p(-x) / log1p(x)"},
         {"NMSEexample34", "tan((x / 2.0))"},
         {"NMSEexample35", "atan2((x + (1.0- x)), (1.0+fma(sqrt(x), sqrt(x), (x * x))))"},
@@ -321,6 +321,7 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"sinh", "mpfr_sinh"},
         {"cosh", "mpfr_cosh"},
         {"tanh", "mpfr_tanh"},
+        {"fma", "mpfr_fma"},
     };
     // vector<string> vars;
     // getVariablesFromExpr(exprAst, vars);

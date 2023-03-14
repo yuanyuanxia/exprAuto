@@ -6,6 +6,7 @@
 #include <vector>
 #include "basic.hpp"
 #include "preprocess.hpp"
+#include "tools.hpp"
 
 using std::string;
 using std::vector;
@@ -44,7 +45,7 @@ void sortExpr(ast_ptr &expr);
 
 vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf = true);
 
-string pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales);
+exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales);
 
 void geneSampleData();
 

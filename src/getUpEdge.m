@@ -1,4 +1,5 @@
 % disp(sampleFileName);
+tic;
 sampleData = importdata(sampleFileName);
 lenTmp = length(sampleData);
 maxTmp = max(sampleData(:,2));
@@ -186,7 +187,7 @@ if maxTmp > 2
 else
     meanTmp = mean(sampleData(:, 2));
 end
-
+toc
 % compute the threshold for deviding intervals
 % thresholdTmp = (maxTmp + meanTmp) / 2;
 % fprintf("%s: max = %g, average = %g, threshold = %d\n", sampleFileName, maxTmp, meanTmp, thresholdTmp);

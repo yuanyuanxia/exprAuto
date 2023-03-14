@@ -636,6 +636,9 @@ string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std:
         if (call_str == "mpfr_pow") {
             string str1 = argsStr.at(0), str2 = argsStr.at(1);
             callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", " + str2 + ", MPFR_RNDN);";
+        } else if (call_str == "mpfr_fma") {
+            string str1 = argsStr.at(0), str2 = argsStr.at(1), str3 = argsStr.at(2);
+            callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", " + str2 + ", " + str3 + ", MPFR_RNDN);";
         } else {
             string str1 = argsStr.at(0);
             callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", MPFR_RNDN);";

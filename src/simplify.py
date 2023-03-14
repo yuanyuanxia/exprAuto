@@ -36,7 +36,7 @@ def find_index(expr):
 
 
 def find_base(expr, i):
-    op_lst = ['+', '-', '*', '/']
+    op_lst = ['+', '-', '*', '/', ',', ' ']
     if expr[i - 1] == ')':
         flag = 0
         j = i - 2

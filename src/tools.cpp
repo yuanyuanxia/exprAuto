@@ -678,6 +678,16 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
         string suffix = "temp_" + std::to_string(count) + "_";
 
+        // special conditions
+        if(newTempExprs.size() <= 1)
+        {
+            if(isEqual(newTempExprs.at(0), tempExpr))
+            {
+                fprintf(stderr, "rewrite: only %d Equivalent expressions and is equal to inputexpr, so we do not rewrite.\n", newTempExprs.size());
+                continue;
+            }
+        }
+
         // pick the best rewrite expression
         string bestRewriteExpr;
         double maxError = -1;

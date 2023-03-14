@@ -28,10 +28,10 @@ map<string, vector<double>> benchmarkThresholds = {
     {"exp1x", {1}},
     {"exp1x_log", {1}},
     {"intro_example", {1}},
-    {"logexp", {10}},
+    {"logexp", {1}},
     {"NMSEexample31", {2}},
     {"NMSEexample310", {2}},
-    {"NMSEexample34", {2.1}},
+    {"NMSEexample34", {0.5}},
     {"NMSEexample35", {1}},
     {"NMSEexample36", {2}},
     {"NMSEexample37", {0.5}},
@@ -212,30 +212,43 @@ int main()
             string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
             system(mkdirCommand.c_str());
 
-            auto funcNameOrigin = geneExprCodeKernel(inputStr, vars, uniqueLabel, "origin");
+            auto exprOrigin = geneExprCodeKernel(inputStr, vars, uniqueLabel, "origin");
             // auto funcNameOrigin = geneExprCode(inputStr, uniqueLabel, "origin");
             // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
-            auto funcNameHerbie = geneHerbieCode(uniqueLabel);
-            // auto funcNameDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
+            auto exprHerbie = geneHerbieCode(uniqueLabel);
+            // auto exprDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
             // TODO: improve pickTheBest to support more suffix
             // pickTheBest(uniqueLabel, 0, 1, 100);
             vector<string> suffixSet = {"origin", "herbie"};
-            auto suffix = pickTheBest(uniqueLabel, suffixSet, intervals, scales);
+            auto initExprInfo = pickTheBest(uniqueLabel, suffixSet, intervals, scales);
+            auto suffix = initExprInfo.suffix;
             if (suffix == "origin")
             {
-                inputStr = funcNameOrigin;
+                inputStr = exprOrigin;
             }
             else if (suffix == "herbie")
             {
-                inputStr = funcNameHerbie;
+                inputStr = exprHerbie;
             }
             else
             {
                 fprintf(stderr, "ERROR: main: we do not support the suffix %s now\n", suffix.c_str());
                 exit(EXIT_FAILURE);
             }
+            cout << "the pick expr is " << inputStr << "\n";
+            auto timeTmp1 = std::chrono::high_resolution_clock::now(); // init over
+            std::chrono::duration<double> init_seconds = timeTmp1 - timeStart;
+            cout << BLUE << "init time: " << init_seconds.count() << " s" << RESET << endl;
+            auto &initExprMaxError = initExprInfo.maxError;
+            if (initExprMaxError <= 0.5)
+            {
+                fprintf(stderr, "the error of %s is no bigger than 0.5, so do not need precision improvement.\n", inputStr.c_str());
+                fprintf(stderr, GREEN "ready> " RESET);
+                continue;
+            }
+
             // cout << BLUE << "main: start testError for origin: " << inputStr << RESET << endl;
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
             // geneSampleData();
@@ -243,26 +256,31 @@ int main()
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
             // cout << BLUE << "main: ending testError for origin: " << inputStr << RESET << endl;
             // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
-            // cout << BLUE << "testError time: " << testError_seconds.count() << "s" << RESET << endl;
+            // cout << BLUE << "testError time: " << testError_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
             
             // auto infoTmp = testError(uniqueLabel, "origin", intervals, scales); // TODO-done: 完善origin误差测试 // WHY do it? Because no pickTheBest before. So, have to use testError to get the sample data.
             auto upEdgeFileName = geneBoundaryData(uniqueLabel, suffix); // sample data == matlab ==> upEdge data // TODO: support multiple dimension
             cout << "upEdgeFileName: " << upEdgeFileName << "\n";
+            auto timeTmp2 = std::chrono::high_resolution_clock::now(); // matlab over
+            std::chrono::duration<double> matlab_seconds = timeTmp2 - timeTmp1;
+            cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
             vector<string> upEdgeFileNames;
             upEdgeFileNames.push_back(upEdgeFileName);
             auto intervalData = getIntervalData(upEdgeFileNames, thresholds);
             fmt::print("after regime, we have {} intervals: {}\n", intervalData.size(), intervalData);
+            auto timeTmp3 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> regime_seconds = timeTmp3 - timeTmp2;
+            cout << BLUE << "regime time (other part): " << regime_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-            // auto timeTmp3 = std::chrono::high_resolution_clock::now();
             auto exprInfoVector = rewrite(inputStr, uniqueLabel, intervalData);
-            // auto timeTmp4 = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> rewrite_seconds = timeTmp4 - timeTmp3;
-            // cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
+            auto timeTmp4 = std::chrono::high_resolution_clock::now(); // rewrite over
+            std::chrono::duration<double> rewrite_seconds = timeTmp4 - timeTmp3;
+            cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite end   =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
@@ -274,7 +292,9 @@ int main()
             infoTmp.performance = testPerformance(uniqueLabel, "final", intervals);
             cout << "performance: " << infoTmp.performance << "\n\n";
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance end   =-=-=-=-=-=-=-=-=-=-=-=-=\n";
-
+            auto timeTmp5 = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> final_seconds = timeTmp5 - timeTmp4;
+            cout << BLUE << "final time: " << final_seconds.count() << " s" << RESET << endl;
             // write the results to file
             // auto results = exprAutoWrapper(inputStr, intervals, scales);
             // for (size_t i = 0; i < results.size(); i++)
@@ -314,7 +334,7 @@ int main()
 
         auto timeEnd = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
-        cout << BLUE << "elapsed time: " << elapsed_seconds.count() << "s" << RESET << endl;
+        cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
         fprintf(stderr, GREEN "ready> " RESET);
     }
 

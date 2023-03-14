@@ -727,14 +727,14 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
     static size_t callCount = 0;
     callCount++;
     callLevel++;
-    string prompt(callLevel * promtTimes, callLevelChar);
-    prompt.append(callCount, callCountChar);
-    prompt += "fmaRewrite: ";
+    // string prompt(callLevel * promtTimes, callLevelChar);
+    // prompt.append(callCount, callCountChar);
+    // prompt += "fmaRewrite: ";
     // if (callCount == 1) cout << prompt << "start--------" << endl;
 
     if (expr == nullptr)
     {
-        cerr << prompt << "ERROR: expr is nullptr" << endl;
+        // cerr << prompt << "ERROR: expr is nullptr" << endl;
         exit(EXIT_FAILURE);
     }
     // printExpr(expr, "\tfmaRewrite: at the beginning: ");
@@ -743,8 +743,8 @@ vector<ast_ptr> fmaRewrite(const ast_ptr &expr)
     {
         vector<ast_ptr> exprsFinal;
         exprsFinal.push_back(std::move(expr->Clone()));
-        if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
-        if (callCount == 1) cout << prompt << "end--------" << endl;
+        // if (callCount == 1) printExprs(exprsFinal, prompt + "exprsFinal: ");
+        // if (callCount == 1) cout << prompt << "end--------" << endl;
         callCount--;
         callLevel--;
         return exprsFinal;

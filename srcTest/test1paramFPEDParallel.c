@@ -99,11 +99,12 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         //     printf("happen to NaN or inf\n");
         //     exit(1);
         // }
-        #ifdef ERRORFILE
-        fprintf(f, "%le\t%le\n", x0, reUlp);
-        #endif
+        
         if (isnormal(reUlp) != 0)
         {
+            #ifdef ERRORFILE
+            fprintf(f, "%le\t%le\n", x0, reUlp);
+            #endif
             sumError += reUlp;
             if (reUlp > maxReUlp) {
                 // flag = 0;
@@ -111,6 +112,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
                 maxReUlp = reUlp;
             }
         }
+        
     }
     // aveReUlp = aveReUlp / (testNumX0);
     // if(flag == 1) {

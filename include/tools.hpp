@@ -13,6 +13,7 @@ public:
     double start;
     double end;
     vector<double> intervals;
+    string suffix;
     string exprStr;
     double error;
     double aveError;
