@@ -318,6 +318,7 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"asin", "mpfr_asin"},
         {"acos", "mpfr_acos"},
         {"atan", "mpfr_atan"},
+        {"atan2", "mpfr_atan2"},
         {"sinh", "mpfr_sinh"},
         {"cosh", "mpfr_cosh"},
         {"tanh", "mpfr_tanh"},
@@ -410,39 +411,48 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
     fout << "    double result;\n";
 
     // function body
-    for (size_t i = 0; i < exprInfoVector.size(); i++)
+    if (exprInfoVector.size() == 0)
     {
-        std::vector<double> interval = exprInfoVector.at(i).intervals;
+        fout << "    result = " << exprStr << ";" << "\n";
+        fout << "    return result;" << "\n";
+        fout << "}" << "\n";
+    }
+    else
+    {
+        for (size_t i = 0; i < exprInfoVector.size(); i++)
+        {
+            std::vector<double> interval = exprInfoVector.at(i).intervals;
 
-        string &exprStr = exprInfoVector.at(i).exprStr;
-        // generate if statement
-        if (i == 0)
-        {
-            fout << "    if(";
-        }
-        else
-        {
-            fout << "    } else if(";
-        }
-        for(size_t j = 0; j < interval.size(); j +=2)
-        {
-            if(j < interval.size() - 2)
+            string &exprStr = exprInfoVector.at(i).exprStr;
+            // generate if statement
+            if (i == 0)
             {
-                fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ") && ";
+                fout << "    if(";
             }
             else
             {
-                fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ")";
+                fout << "    } else if(";
             }
+            for(size_t j = 0; j < interval.size(); j +=2)
+            {
+                if(j < interval.size() - 2)
+                {
+                    fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ") && ";
+                }
+                else
+                {
+                    fout << "(" << interval.at(j) << " < " << vars.at(j / 2) << " && " << vars.at(j / 2) << " < " << interval.at(j + 1) << ")";
+                }
+            }
+            fout << ") {" << "\n";
+            fout << "        result = " << exprStr << ";" << "\n";
         }
-        fout << ") {" << "\n";
+        fout << "    } else {" << "\n";
         fout << "        result = " << exprStr << ";" << "\n";
+        fout << "    }" << "\n";
+        fout << "    return result;" << "\n";
+        fout << "}" << "\n";
     }
-    fout << "    } else {" << "\n";
-    fout << "        result = " << exprStr << ";" << "\n";
-    fout << "    }" << "\n";
-    fout << "    return result;" << "\n";
-    fout << "}" << "\n";
 
     fout << std::flush;
     fout.close();

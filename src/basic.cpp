@@ -633,7 +633,7 @@ string mpfrCodeGenerator(const ast_ptr &expr, size_t &mpfr_variables, const std:
         auto it = map.find(callee);
         call_str = it->second;
         string callee_str;
-        if (call_str == "mpfr_pow") {
+        if (call_str == "mpfr_pow" || call_str == "mpfr_atan2") {
             string str1 = argsStr.at(0), str2 = argsStr.at(1);
             callee_str = call_str + "(mp" + to_string(mpfr_variables) + ", " + str1 + ", " + str2 + ", MPFR_RNDN);";
         } else if (call_str == "mpfr_fma") {
