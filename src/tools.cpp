@@ -358,7 +358,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     return tempError;
 }
 
-exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales)
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, bool errfile)
 {
     exprInfo tempError;
     size_t size = scales.size();
@@ -395,12 +395,14 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
         string number[3] = {"One", "Two", "Three"};
         string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
-        string commandStr = scriptName + " " + uniqueLabel;
+        stringstream ss;
+        ss << scriptName << " " << uniqueLabel;
         for(const auto & param : params)
         {
-            commandStr = commandStr + " " + param;
+            ss << " " << param;
         }
-        commandStr = commandStr + " " + prefix + " " + middle + " " + suffix;
+        ss << " " << prefix << " " << middle << " " << suffix << " " << errfile;
+        string commandStr = ss.str();
 
         // cout << "fileNameKernel: " << fileNameKernel << "\n";
         cout << "command: " << commandStr << "\n";
@@ -512,6 +514,41 @@ double testPerformance(string uniqueLabel, string suffix, const vector<double> &
     return tempCycles;
 }
 
+// support setting matlab
+string runCommand(string command)
+{
+    const int maxlen = 128;
+    FILE *fp = NULL;
+    char *buff = NULL;
+
+    buff = (char *)malloc(maxlen);
+    if (buff == NULL)
+    {
+        perror("malloc:");
+        exit(EXIT_FAILURE);
+    }
+    memset(buff, 0, maxlen);
+
+    fp = popen(command.c_str(), "r");
+    if (fp == NULL)
+    {
+        perror("popen error:");
+        free(buff);
+        exit(EXIT_FAILURE);
+    }
+    fgets(buff, maxlen, fp);
+    if (buff != nullptr && buff[0] == '\0')
+    {
+        fprintf(stderr, "there is no result returned by %s\n", command.c_str());
+    }
+
+    pclose(fp);
+    string result = buff;
+    result.erase(std::remove(result.begin(), result.end(), '\n'), result.end());
+    free(buff);
+    return result;
+}
+
 // TODO: support multiple dimension
 // call matlab to generate the upEdgeData to file
 string geneBoundaryData(string uniqueLabel, string suffix)
@@ -525,7 +562,7 @@ string geneBoundaryData(string uniqueLabel, string suffix)
     string outputFilesPath = currentPathStr + "/outputs/" + uniqueLabel + "/";
     string sampleFileName = outputFilesPath + "sample_" + uniqueLabel + "_" + suffix + ".txt";
     string upEdgeFileName = outputFilesPath + "upEdge_" + uniqueLabel + "_" + suffix + ".txt";
-    string matlabExecutable = "/home/xyy/helloBro/softwares/matlab/R2020a/bin/matlab"; // set to your own matlab executable
+    string matlabExecutable = runCommand("which matlab"); // find matlab
     string matlabCommands = " -batch \"sampleFileName=\'" + sampleFileName + "\'; upEdgeFileName = \'" + upEdgeFileName + "\'; run " + currentPathStr + "/src/getUpEdge\""; // DO NOT need to add the suffix ".m" for matlab file!
     string commandStr = matlabExecutable + matlabCommands;
     cout << "Matlab command: " << commandStr << "\n";
@@ -681,11 +718,20 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         // special conditions
         if(newTempExprs.size() <= 1)
         {
-            if(isEqual(newTempExprs.at(0), tempExpr))
-            {
-                fprintf(stderr, "rewrite: only %d Equivalent expressions and is equal to inputexpr, so we do not rewrite.\n", newTempExprs.size());
-                continue;
-            }
+            // auto tempError = testError(uniqueLabel, "mpfr", intervalTmp, scales); // use mpfr
+            exprInfo tempInfo;
+            tempInfo.intervals = intervalTmp;
+            tempInfo.exprStr = "mpfr";
+            tempInfo.aveError = 0;
+            tempInfo.maxError = 0;
+            tempInfo.rewriteID = -1;
+            exprInfoVector.push_back(tempInfo);
+            continue;
+            // if(isEqual(newTempExprs.at(0), tempExpr))
+            // {
+            //     fprintf(stderr, "rewrite: only %d Equivalent expressions and is equal to inputexpr, so we do not rewrite.\n", newTempExprs.size());
+            //     continue;
+            // }
         }
 
         // pick the best rewrite expression
@@ -740,14 +786,14 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         }
 
         exprInfo tempInfo;
-        tempInfo.start = 0;
-        tempInfo.end = 1;
+        // tempInfo.start = 0;
+        // tempInfo.end = 1;
         tempInfo.intervals = intervalTmp;
         tempInfo.exprStr = bestRewriteExpr;
-        tempInfo.error = 0.1;
+        // tempInfo.error = 0.1;
         tempInfo.aveError = aveError;
         tempInfo.maxError = maxError;
-        tempInfo.performance = 0.2;
+        // tempInfo.performance = 0.2;
         tempInfo.rewriteID = maxIdx;
 
         exprInfoVector.push_back(tempInfo);

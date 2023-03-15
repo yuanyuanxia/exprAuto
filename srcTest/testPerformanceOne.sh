@@ -1,3 +1,4 @@
+#!/bin/bash
 #example: cd path/to/srcTest; taskset -c 0 ./testPerformanceOne.sh Bsplines3 origin 0 100
 
 if [ $# == 1 ]; then
@@ -30,9 +31,10 @@ funcName=expr_${uniqueLabel}_${suffix}
 
 # make gccPerformanceTest.o -s CFLAGS="-DFUNCNAME=${funcName} -DRUNTIME=${runtime}"
 gcc gccPerformanceTest.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -c -O3
+gcc ${uniqueLabel}/expr_${uniqueLabel}_mpfr.c -c
 make binary.o -s # gcc binary.c -I../includeTEST -c -O3
-gcc ${uniqueLabel}/${funcName}.c -I../includeDD -c -O3
-gcc gccPerformanceTest.o binary.o ${funcName}.o -lm -lqd -o gccPerformanceTest_${uniqueLabel}.exe -O3
+gcc ${uniqueLabel}/${funcName}.c -I../includeTEST -I../includeDD -c -O3
+gcc gccPerformanceTest.o binary.o ${funcName}.o expr_${uniqueLabel}_mpfr.o -lm -lqd -lmpfr -o gccPerformanceTest_${uniqueLabel}.exe -O3
 ./gccPerformanceTest_${uniqueLabel}.exe ${resultFileName} ${start} ${end} > /dev/null
 # rm -rf gccPerformanceTest_${uniqueLabel}.exe
 

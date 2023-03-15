@@ -28,7 +28,7 @@ vector<double> getIntervals(string interval, const char *split);
 
 vector<int> getScales(string scale, const char *split);
 
-exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales);
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, bool errfile = false);
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int scale);
 

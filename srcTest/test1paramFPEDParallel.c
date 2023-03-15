@@ -21,7 +21,9 @@ struct errorInfo {
 #define TESTNUMX0 500000
 // #define FP
 // #define DEBUG
-#define ERRORFILE
+#ifndef ERRFILE
+#define ERRFILE 0
+#endif
 double EXPRESSIONMPFR(double, mpfr_t);
 double EXPRESSIONMINE(double);
 
@@ -51,7 +53,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
 
     // write error data to file
-    #ifdef ERRORFILE
+    #if ERRFILE
     char *directory = "./outputs";
     char *suffix = "sample";
     char *fileNameSample;
@@ -102,7 +104,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         
         if (isnormal(reUlp) != 0)
         {
-            #ifdef ERRORFILE
+            #if ERRFILE
             fprintf(f, "%le\t%le\n", x0, reUlp);
             #endif
             sumError += reUlp;
@@ -122,7 +124,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     //     printf("%le\t%le\n", aveReUlp, maxReUlp);
     //     printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxReUlp);
     // }
-    #ifdef ERRORFILE
+    #if ERRFILE
     // fprintf(f, "\n");
 
     // clear

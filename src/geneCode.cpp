@@ -390,6 +390,9 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
         // cout << "Interval: [" << exprInfoTmp.start << "," << exprInfoTmp.end << "]" << endl;
     }
 
+    // FLAG to if mpfr
+    bool flagMPFR = false;
+
     // generate code to file
     string directory = "srcTest/" + uniqueLabel + "/";
     string funcName = "expr_" + uniqueLabel + "_final";
@@ -398,16 +401,26 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
     fout.open(fileName.c_str());
 
     // function declearation
-    fout << "#include <math.h>\n";
-    fout << "double " << funcName << "(";
+    fout << "#include \"mine.h\"\n";
+    stringstream ss, ss1;
     for (size_t i = 0; i < vars.size(); ++i)
     {
         if (i != vars.size() - 1)
-            fout << "double" << " " << vars.at(i) << ", ";
+        {
+            ss << "double" << " " << vars.at(i) << ", ";
+            ss1 << vars.at(i) << ", ";
+        }
         else
-            fout << "double" << " " << vars.at(i);
+        {
+            ss << "double" << " " << vars.at(i);
+            ss1 << vars.at(i);
+        }
     }
-    fout << ") {\n";
+    const string &paramListWithType = ss.str();
+    const string &paramListNoType = ss1.str();
+
+    // function main body
+    fout << "double expr_" << uniqueLabel << "_final(" << paramListWithType << ") {\n";
     fout << "    double result;\n";
 
     // function body
@@ -423,7 +436,16 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
         {
             std::vector<double> interval = exprInfoVector.at(i).intervals;
 
-            string &exprStr = exprInfoVector.at(i).exprStr;
+            string exprStr;
+            if(exprInfoVector.at(i).exprStr == "mpfr")
+            {
+                exprStr = "expr_" + uniqueLabel + "_mpfr1(" + paramListNoType + ")";
+                flagMPFR = true;
+            }
+            else
+            {
+                exprStr = exprInfoVector.at(i).exprStr;
+            }
             // generate if statement
             if (i == 0)
             {
@@ -457,6 +479,34 @@ string geneFinalCodeKernel(string exprStr, string uniqueLabel, std::vector<exprI
     fout << std::flush;
     fout.close();
     cout << "generate file: " << fileName << endl;
+
+    // write "mine.h"
+    fileName = "includeTEST/mine.h";
+    fout.open(fileName.c_str());
+    if(!fout.is_open())
+    {
+        string tmp = "file open error " + fileName;
+        perror(tmp.c_str());
+        exit(EXIT_FAILURE);
+    }
+    fout << "#include <math.h>\n";
+    // reference to mpfr version
+    if(flagMPFR)
+    {
+        fout << "#include <mpfr.h>\n";
+        fout << "int expr_" << uniqueLabel << "_mpfr(" << paramListWithType << ", mpfr_t mpfrResult);\n";
+        // write expr_uniqueLable_mpfr1
+        fout << "double expr_" << uniqueLabel << "_mpfr1(" << paramListWithType << ")\n";
+        fout << "{\n";
+        fout << "    mpfr_t mpfrResult;\n";
+        fout << "    mpfr_init2(mpfrResult, 128);\n";
+        fout << "    expr_" << uniqueLabel << "_mpfr(" << paramListNoType << ", mpfrResult);\n";
+        fout << "    double result = mpfr_get_d(mpfrResult, MPFR_RNDN);\n";
+        fout << "    return result;\n";
+        fout << "}\n";
+    }
+    fout << std::flush;
+    fout.close();
 
     cout << "&&&&&&&&&&&&&&&&&&&&&&& geneFinalCode &&&&&&&&&&&&&&&&&&&&&&&&&&&&\n" << endl;
 

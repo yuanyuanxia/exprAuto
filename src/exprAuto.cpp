@@ -1020,7 +1020,7 @@ exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> 
         cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
 
         // generate function code and test error
-        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales);
+        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales, true);
         // cout << "pickTheBest: for item No." << i << ": maxError: " << tempError.maxError << "\n";
         // cout << "pickTheBest: for item No." << i << ": aveError: " << tempError.aveError << "\n";
         
@@ -1332,16 +1332,16 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
             }
             else
             {
-                ast_ptr one = makePtr<NumberExprAST>(1.0);
+                // ast_ptr one = makePtr<NumberExprAST>(1.0);
                 NumberExprAST *numberPtr = dynamic_cast<NumberExprAST *>(denominators.at(0).get());
                 ast_ptr denominatorTmp = makePtr<NumberExprAST>(numberPtr->getNumber());
-                auto coefficient = divExpr(one, denominatorTmp);
+                // auto coefficient = divExpr(one, denominatorTmp);
 
                 for(const auto& numerator : numerators)
                 {
-                    auto tmp1 = mulExpr(coefficient, numerator);
+                    // auto tmp1 = mulExpr(coefficient, numerator);
                     auto tmp2 = divExpr(numerator, denominatorTmp);
-                    results.push_back(std::move(tmp1));
+                    // results.push_back(std::move(tmp1));
                     results.push_back(std::move(tmp2));
                 }
             }
