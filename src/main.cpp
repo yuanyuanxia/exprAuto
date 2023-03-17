@@ -268,7 +268,7 @@ int main()
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
             vector<string> upEdgeFileNames;
             upEdgeFileNames.push_back(upEdgeFileName);
-            auto intervalData = getIntervalData(upEdgeFileNames, thresholds);
+            auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals);
             fmt::print("after regime, we have {} intervals: {}\n", intervalData.size(), intervalData);
             auto timeTmp3 = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> regime_seconds = timeTmp3 - timeTmp2;

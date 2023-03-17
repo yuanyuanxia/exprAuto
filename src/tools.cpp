@@ -668,7 +668,7 @@ vector<vector<double>> getIntervalData(string filename)
 }
 
 // according to the corresponding intervalData file in each dimension, generate the interval data, and then generate all permutation of all dimensions.
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds)
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals)
 {
     vector<vector<double>> intervalDataMultiDim;
     int dimension = thresholds.size();
@@ -678,7 +678,8 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
         // call devideUpEdgeData for each dimension: matlab upEdge ==> interval vector
         auto &upEdgeFileName = upEdgeFileNames.at(i);
         auto &threshold = thresholds.at(i);
-        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold); // TODO: add the parameter thresholdCombine
+        auto thresholdCombine = (intervals.at(2 * i + 1) - intervals.at(2 * i)) / 100; // thresholdCombine = 1% of the interval width at the target demision
+        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, thresholdCombine); // TODO: add the parameter thresholdCombine
         // push_back interval vector
         intervalDataMultiDim.push_back(intervalData1D);
     }

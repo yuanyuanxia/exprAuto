@@ -44,7 +44,7 @@ vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLab
 
 vector<vector<double>> getIntervalData(string filename);
 
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds);
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals);
 
 vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData);
 
