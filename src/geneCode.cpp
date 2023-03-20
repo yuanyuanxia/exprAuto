@@ -247,28 +247,28 @@ string geneHerbieCode(string uniqueLabel)
         {"NMSEexample310", "log1p(-x) / log1p(x)"},
         {"NMSEexample34", "tan((x / 2.0))"},
         {"NMSEexample35", "atan2((x + (1.0- x)), (1.0+fma(sqrt(x), sqrt(x), (x * x))))"},
-        {"NMSEexample36", ""},
+        {"NMSEexample36", "1.0 / ((x * (pow(x, -0.5) + pow((1.0 + x), -0.5))) + (x * (x * fma(pow(x, -0.25), pow(x, -0.25), pow((1.0 + x), -0.5)))))"},
         {"NMSEexample37", "expm1(x)"},
         {"NMSEexample38", "fma(x, log((1.0 + (1.0 / x))), log1p(x)) + -1.0"},
-        {"NMSEexample39", ""},
+        {"NMSEexample39", ""}, // if else
         {"NMSEproblem331", "-1.0 / fma(x, x, x)"},
         {"NMSEproblem333", "((1.0 / (x + -1.0)) + (1.0 / (1.0 + x))) + (-2.0 / x)"},
-        {"NMSEproblem334", ""},
+        {"NMSEproblem334", "((x + 1.0) - x) / (pow(cbrt((x + 1.0)), 2.0) + (fma((x + 1.0), cbrt(x), (x * cbrt(x))) / (pow(cbrt((x + 1.0)), 2.0) + (cbrt(x) * (cbrt(x) - cbrt((x + 1.0)))))))"},
         {"NMSEproblem336", "log1p((1.0 / x))"},
-        {"NMSEproblem337", ""},
+        {"NMSEproblem337", ""}, // if else
         {"NMSEproblem341", "(sin(x) / x) * (tan((x / 2.0)) / x)"},
-        {"NMSEproblem343", ""},
+        {"NMSEproblem343", "log1p(-x) - log1p(x)"},
         {"NMSEproblem344", "sqrt((1.0 + exp(x)))"},
-        {"NMSEproblem345", ""},
+        {"NMSEproblem345", ""}, // if else
         {"NMSEsection311", "(1.0 + expm1(x)) / expm1(x)"},
-        {"predatorPrey", ""},
-        {"sine", ""},
-        {"sineorder3", ""},
-        {"sqroot", ""},
-        {"sqrt_add", ""},
-        {"test05_nonlin1_r4", ""},
-        {"test05_nonlin1_test2", ""},
-        {"verhulst", ""},
+        {"predatorPrey", ""}, // x * ((x * 4.0) * exp(-log1p(sqrt(pow((x * 0.9009009009009009), 4.0)))))
+        {"sine", ""}, // x - fma(0.0001984126984126984, pow(x, 7.0), fma(0.16666666666666666, pow(x, 3.0), (-0.008333333333333333 * pow(x, 5.0)))) // this one can not rewrite well, so arfa will use origin
+        {"sineorder3", ""}, // fma(x, 0.954929658551372, (pow(x, 3.0) * -0.12900613773279798)) // this one can not rewrite well, so arfa will use origin
+        {"sqroot", ""}, // fma(x, (0.5 + (x * fma(x, fma(x, -0.0390625, 0.0625), -0.125))), 1.0) // this one can not rewrite well, so arfa will use origin
+        {"sqrt_add", "1.0 / (sqrt((1.0 + x)) + sqrt(x))"},
+        {"test05_nonlin1_r4", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
+        {"test05_nonlin1_test2", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
+        {"verhulst", ""}, // pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333); // this one can not rewrite well, so arfa will use origin
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
@@ -278,15 +278,15 @@ string geneHerbieCode(string uniqueLabel)
         if(herbieExpr != "")
         {
             geneExprCode(herbieExpr, uniqueLabel, "herbie");
-            return herbieExpr;
         }
         else
         {
-            fprintf(stderr, "ERROR: geneHerbieCode: we can not handle %s\n", uniqueLabel.c_str());
-            exit(EXIT_FAILURE);
+            fprintf(stderr, "ERROR: geneHerbieCode: herbie's rewrite result for %s can not be used.\n", uniqueLabel.c_str());
+            // TODO: just write the if-else result to file.
         }
+        return herbieExpr;
     }
-    fprintf(stderr, "ERROR: geneHerbieCode: we can not handle %s\n", uniqueLabel.c_str());
+    fprintf(stderr, "ERROR: geneHerbieCode: we can not support %s now\n", uniqueLabel.c_str());
     exit(EXIT_FAILURE);
 }
 
@@ -310,8 +310,10 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"/", "mpfr_div"},
         {"exp", "mpfr_exp"},
         {"log", "mpfr_log"},
+        {"log1p", "mpfr_log1p"},
         {"pow", "mpfr_pow"},
         {"sqrt", "mpfr_sqrt"},
+        {"cbrt", "mpfr_cbrt"},
         {"sin", "mpfr_sin"},
         {"cos", "mpfr_cos"},
         {"tan", "mpfr_tan"},

@@ -35,18 +35,18 @@ map<string, vector<double>> benchmarkThresholds = {
     {"NMSEexample35", {1}},
     {"NMSEexample36", {2}},
     {"NMSEexample37", {0.5}},
-    {"NMSEexample38", {10}},
+    {"NMSEexample38", {2}},
     {"NMSEexample39", {5}},
     {"NMSEproblem331", {1}},
     {"NMSEproblem333", {1.5}},
-    {"NMSEproblem334", {200}},
+    {"NMSEproblem334", {2}},
     {"NMSEproblem336", {1}},
     {"NMSEproblem337", {1}},
     {"NMSEproblem341", {2}},
     {"NMSEproblem343", {1}},
-    {"NMSEproblem344", {2}},
+    {"NMSEproblem344", {1}},
     {"NMSEproblem345", {2}},
-    {"NMSEsection311", {2}},
+    {"NMSEsection311", {1}},
     {"predatorPrey", {2}},
     {"sine", {1}},
     {"sineorder3", {3}},
@@ -219,9 +219,20 @@ int main()
             // auto exprDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
+            auto originPerformance = testPerformance(uniqueLabel, "origin", intervals);
+            cout << "origin performance: " << originPerformance << "\n\n";
+
             // TODO: improve pickTheBest to support more suffix
             // pickTheBest(uniqueLabel, 0, 1, 100);
-            vector<string> suffixSet = {"origin", "herbie"};
+            vector<string> suffixSet = {"origin"};
+            if (exprHerbie != "")
+            {
+                suffixSet.push_back("herbie");
+            }
+            else
+            {
+                fprintf(stderr, "For exprOrigin, Herbie's rewrite results can not be used.\nSo, we just pick origin as the best.\n");
+            }
             auto initExprInfo = pickTheBest(uniqueLabel, suffixSet, intervals, scales);
             auto suffix = initExprInfo.suffix;
             if (suffix == "origin")

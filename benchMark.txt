@@ -13,11 +13,11 @@ NMSEexample38 (x+1)*log(x+1) - x*log(x) - 1
 NMSEexample39 1/x - 1/tan(x)
 NMSEproblem331 1/(x+1) - 1/x
 NMSEproblem333 1/(1+x) - 2/x + 1/(x - 1)
-NMSEproblem334 pow((x+1),1/3) - pow(x,1/3)
+NMSEproblem334 pow((x+1.0),1.0/3.0) - pow(x,1.0/3.0)
 NMSEproblem336 log(x+1) - log(x)
 NMSEproblem337 exp(x) - 2+exp(-x)
 NMSEproblem341 (1 - cos(x))/(x*x)
-NMSEproblem343 log((1 - eps)/(1+eps))
+NMSEproblem343 log((1 - x)/(1 + x))
 NMSEproblem344 sqrt((exp(2*x) - 1)/(exp(x) - 1))
 NMSEproblem345 (x - sin(x))/(x - tan(x))
 NMSEsection311 exp(x)/(exp(x) - 1)

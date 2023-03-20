@@ -1448,6 +1448,7 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
     {
         sortExpr(result);
     }
+    results.push_back(expr->Clone());
     deleteTheSame(results);
 
     cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
