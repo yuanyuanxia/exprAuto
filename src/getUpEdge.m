@@ -187,7 +187,8 @@ if maxTmp > 2
 else
     meanTmp = mean(sampleData(:, 2));
 end
-toc
+all_time = toc;
+fprintf("%f\n", all_time);
 % compute the threshold for deviding intervals
 % thresholdTmp = (maxTmp + meanTmp) / 2;
 % fprintf("%s: max = %g, average = %g, threshold = %d\n", sampleFileName, maxTmp, meanTmp, thresholdTmp);

@@ -201,9 +201,19 @@ int main()
         }
 
         bool runAllFlag = true;
+        
+        // ready for writing to file
+        double originPerformance = -1;
+        double numOfIntervals = -1;
+        int numOfExprs = -1;
+        exprInfo finalInfo; // ave err, max err, performance
+        std::chrono::duration<double> init_seconds, matlab_seconds, regime_seconds, rewrite_seconds, final_seconds,elapsed_seconds;
+        double matlabKernelTime = -1;
+        string uniqueLabel = "";
+
         if (runAllFlag)
         { // the whole process
-            auto uniqueLabel = getUniqueLabel();
+            uniqueLabel = getUniqueLabel();
             if (isBenchMark)
             {
                 uniqueLabel = name;
@@ -219,7 +229,7 @@ int main()
             // auto exprDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
-            auto originPerformance = testPerformance(uniqueLabel, "origin", intervals);
+            originPerformance = testPerformance(uniqueLabel, "origin", intervals);
             cout << "origin performance: " << originPerformance << "\n\n";
 
             // TODO: improve pickTheBest to support more suffix
@@ -250,7 +260,7 @@ int main()
             }
             cout << "the pick expr is " << inputStr << "\n";
             auto timeTmp1 = std::chrono::high_resolution_clock::now(); // init over
-            std::chrono::duration<double> init_seconds = timeTmp1 - timeStart;
+            init_seconds = timeTmp1 - timeStart;
             cout << BLUE << "init time: " << init_seconds.count() << " s" << RESET << endl;
             auto &initExprMaxError = initExprInfo.maxError;
             if (initExprMaxError <= 0.5)
@@ -272,25 +282,26 @@ int main()
             // continue;
             
             // auto infoTmp = testError(uniqueLabel, "origin", intervals, scales); // TODO-done: 完善origin误差测试 // WHY do it? Because no pickTheBest before. So, have to use testError to get the sample data.
-            auto upEdgeFileName = geneBoundaryData(uniqueLabel, suffix); // sample data == matlab ==> upEdge data // TODO: support multiple dimension
+            auto upEdgeFileName = geneBoundaryData(uniqueLabel, suffix, matlabKernelTime); // sample data == matlab ==> upEdge data // TODO: support multiple dimension
             cout << "upEdgeFileName: " << upEdgeFileName << "\n";
             auto timeTmp2 = std::chrono::high_resolution_clock::now(); // matlab over
-            std::chrono::duration<double> matlab_seconds = timeTmp2 - timeTmp1;
+            matlab_seconds = timeTmp2 - timeTmp1;
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
             vector<string> upEdgeFileNames;
             upEdgeFileNames.push_back(upEdgeFileName);
             auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals);
-            fmt::print("after regime, we have {} intervals: {}\n", intervalData.size(), intervalData);
+            numOfIntervals = intervalData.size();
+            fmt::print("after regime, we have {} intervals: {}\n", numOfIntervals, intervalData);
             auto timeTmp3 = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> regime_seconds = timeTmp3 - timeTmp2;
+            regime_seconds = timeTmp3 - timeTmp2;
             cout << BLUE << "regime time (other part): " << regime_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-            auto exprInfoVector = rewrite(inputStr, uniqueLabel, intervalData);
+            auto exprInfoVector = rewrite(inputStr, uniqueLabel, intervalData, numOfExprs);
             auto timeTmp4 = std::chrono::high_resolution_clock::now(); // rewrite over
-            std::chrono::duration<double> rewrite_seconds = timeTmp4 - timeTmp3;
+            rewrite_seconds = timeTmp4 - timeTmp3;
             cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
@@ -299,12 +310,12 @@ int main()
             auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance start =-=-=-=-=-=-=-=-=-=-=-=-=\n";
-            auto infoTmp = testError(uniqueLabel, "final", intervals, scales);
-            infoTmp.performance = testPerformance(uniqueLabel, "final", intervals);
-            cout << "performance: " << infoTmp.performance << "\n\n";
+            finalInfo = testError(uniqueLabel, "final", intervals, scales);
+            finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
+            cout << "performance: " << finalInfo.performance << "\n\n";
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance end   =-=-=-=-=-=-=-=-=-=-=-=-=\n";
             auto timeTmp5 = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double> final_seconds = timeTmp5 - timeTmp4;
+            final_seconds = timeTmp5 - timeTmp4;
             cout << BLUE << "final time: " << final_seconds.count() << " s" << RESET << endl;
             // write the results to file
             // auto results = exprAutoWrapper(inputStr, intervals, scales);
@@ -344,8 +355,25 @@ int main()
         } // only rewrite end
 
         auto timeEnd = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_seconds = timeEnd - timeStart;
+        elapsed_seconds = timeEnd - timeStart;
         cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
+
+        vector<double> summaryData;
+        summaryData.push_back(originPerformance);
+        summaryData.push_back(numOfIntervals);
+        summaryData.push_back(double(numOfExprs));
+        summaryData.push_back(finalInfo.aveError);
+        summaryData.push_back(finalInfo.maxError);
+        summaryData.push_back(finalInfo.performance);
+        summaryData.push_back(elapsed_seconds.count());
+        summaryData.push_back(init_seconds.count());
+        summaryData.push_back(matlab_seconds.count());
+        summaryData.push_back(regime_seconds.count());
+        summaryData.push_back(rewrite_seconds.count());
+        summaryData.push_back(final_seconds.count());
+        summaryData.push_back(matlabKernelTime);
+        write_to_file(uniqueLabel, summaryData, "run.log");
+
         fprintf(stderr, GREEN "ready> " RESET);
     }
 

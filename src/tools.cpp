@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <chrono>
 #include <fmt/core.h>
+#include <fmt/ranges.h>
 #include <unistd.h>
 
 using std::cout;
@@ -551,7 +552,7 @@ string runCommand(string command)
 
 // TODO: support multiple dimension
 // call matlab to generate the upEdgeData to file
-string geneBoundaryData(string uniqueLabel, string suffix)
+string geneBoundaryData(string uniqueLabel, string suffix, double &costTime)
 {
     char *currentPath;
     if((currentPath = getcwd(NULL, 0)) == NULL)
@@ -569,7 +570,8 @@ string geneBoundaryData(string uniqueLabel, string suffix)
     // cout << "length of commandStr: " << commandStr.size() << "\n";
     char command[512] = {0};
     strcat(command, commandStr.c_str());
-    system(command);
+    auto matlabKernelTime = runCommand(command);
+    costTime = stod(matlabKernelTime);
     free(currentPath);
     // std::cout << "generate upEdge file:" << upEdgeFileName << std::endl;
 
@@ -680,6 +682,7 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
         auto &threshold = thresholds.at(i);
         auto thresholdCombine = (intervals.at(2 * i + 1) - intervals.at(2 * i)) / 100; // thresholdCombine = 1% of the interval width at the target demision
         auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, thresholdCombine); // TODO: add the parameter thresholdCombine
+         // fmt::print("intervalData1D {}\n", intervalData1D);
         // push_back interval vector
         intervalDataMultiDim.push_back(intervalData1D);
     }
@@ -689,7 +692,7 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
 }
 
 // call exprAuto to rewrite the input expression
-vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData)
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs)
 {
     // string filename = "expr_" + uniqueLabel + "_interval.txt"; // useless
     // string filename = "./intervalData.txt"; // TODO-done: get the filename from uniqueLabel. Now we get intervalData from input parameters directly.
@@ -714,10 +717,11 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
             scale = 10;
         vector<int> scales(dimension, scale);
         auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
+        numOfExprs = newTempExprs.size();
         string suffix = "temp_" + std::to_string(count) + "_";
 
         // special conditions
-        if(newTempExprs.size() <= 1)
+        if(numOfExprs <= 1)
         {
             // auto tempError = testError(uniqueLabel, "mpfr", intervalTmp, scales); // use mpfr
             exprInfo tempInfo;
@@ -740,7 +744,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         double maxError = -1;
         double aveError = 0;
         size_t maxIdx = -1;
-        size_t jEnd = min(newTempExprs.size(), size_t(100000));
+        size_t jEnd = min(numOfExprs, 100000);
         // std::ofstream fTimeout;
         // fTimeout.open("./tmpTimeResult.txt");
         // if (!fTimeout.is_open())

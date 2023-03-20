@@ -740,3 +740,26 @@ size_t combination(size_t k, size_t n)
     }
     return factorial(n) / (factorial(k) * factorial(n - k));
 }
+
+void write_to_file(const string &uniqueLabel, const std::vector<double> &data, const std::string &filename)
+{
+    std::ofstream outputFile;
+    outputFile.open(filename, std::ios::out | std::ios::app);
+
+    if (outputFile.is_open())
+    {
+        outputFile << uniqueLabel << " ";
+        for (const auto &val : data)
+        {
+            outputFile << val << " ";
+        }
+        outputFile << std::endl;
+        outputFile.close();
+
+        // std::cout << "Successfully written data to file!" << std::endl;
+    }
+    // else
+    // {
+        // std::cout << "Failed to open file!" << std::endl;
+    // }
+}

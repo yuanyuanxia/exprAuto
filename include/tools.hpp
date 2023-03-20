@@ -38,7 +38,7 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals);
 
-string geneBoundaryData(string uniqueLabel, string suffix);
+string geneBoundaryData(string uniqueLabel, string suffix, double &costTime);
 
 vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds);
 
@@ -46,7 +46,7 @@ vector<vector<double>> getIntervalData(string filename);
 
 vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals);
 
-vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData);
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs);
 
 vector<vector<double>> permuteMultiVec(vector<vector<double>> vec);
 
