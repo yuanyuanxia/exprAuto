@@ -40,3 +40,5 @@ main
 *.txt
 __pycache__/
 expr_*.c
+run.log
+includeTEST/mine.h

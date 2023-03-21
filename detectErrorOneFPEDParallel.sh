@@ -30,22 +30,26 @@ else
     echo "detectErrorOneFPEDParallel: Invalid input parameters"
     exit
 fi
+
 testFileName=test1paramFPEDParallel
 numProcs=32
 
-# echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix}"
+# echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix} ${errfile}"
 directory="./srcTest"/${uniqueLabel}
-# echo "${CC} ${testFileName}.c ${prefix}_${suffix}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
-${CC} ./srcTest/${testFileName}.c ${directory}/${prefix}_${suffix}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
-# echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix}"
-mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${prefix}__${middle}_${suffix} ${uniqueLabel}
-# mv outputs/${prefix}__${middle}_${suffix}_error.txt ./outputs/${uniqueLabel}/${prefix}__${middle}_${suffix}_error.txt
+sourceFile=${prefix}_${suffix}
+fileNameKernel=${prefix}__${middle}_${suffix}
+
+# echo "${CC} ${testFileName}.c ${sourceFile}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
+${CC} ./srcTest/${testFileName}.c ${directory}/${sourceFile}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
+# echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${fileNameKernel}"
+mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${fileNameKernel} ${uniqueLabel}
+# mv outputs/${fileNameKernel}_error.txt ./outputs/${uniqueLabel}/${fileNameKernel}_error.txt
 rm ${testFileName}.exe
 
 # combine files
 if [ ${errfile} -eq 1 ]; then
     cd ./outputs/${uniqueLabel}
-    findWord="${prefix}__${middle}_${suffix}_sample_*.txt"
+    findWord="${fileNameKernel}_sample_*.txt"
     # echo "For suffix = ${suffix}, Find and combine by shell command cat:  ${findWord}"
     find . -name "${findWord}" | sort -h | xargs cat > sample_${uniqueLabel}_${suffix}.txt
     # echo "sample file: `pwd`/sample_${uniqueLabel}_${suffix}.txt"

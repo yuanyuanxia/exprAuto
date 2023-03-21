@@ -139,7 +139,8 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     return err;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     // parallel
     int myid, numProcs;
     MPI_Init(&argc, &argv);
@@ -154,7 +155,7 @@ int main(int argc, char **argv) {
     unsigned long int testNumX0;
     x0Start.d = 1;
     x0End.d = 2;
-    
+
     testNumX0 = TESTNUMX0;
 
     char *fileNameKernel;

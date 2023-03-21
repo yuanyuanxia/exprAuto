@@ -28,6 +28,8 @@ vector<double> getIntervals(string interval, const char *split);
 
 vector<int> getScales(string scale, const char *split);
 
+void sampleError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales);
+
 exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, bool errfile = false);
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int scale);
@@ -39,6 +41,8 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals);
 
 string geneBoundaryData(string uniqueLabel, string suffix, double &costTime);
+
+vector<string> geneBoundaryData(string uniqueLabel, string suffix, vector<string> suffixes, double &costTime);
 
 vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds);
 

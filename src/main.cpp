@@ -12,6 +12,7 @@
 #include <chrono>
 #include <iomanip>
 #include <fmt/ranges.h>
+#include <cstdio>
 
 using std::cin;
 using std::cout;
@@ -54,7 +55,8 @@ map<string, vector<double>> benchmarkThresholds = {
     {"sqrt_add", {1.5}},
     {"test05_nonlin1_r4", {1.2}},
     {"test05_nonlin1_test2", {1.2}},
-    {"verhulst", {2}},
+    {"verhulst", {1}},
+    {"i6", {1.869156e+06, 1.400076e+06}},
 };
 
 //===----------------------------------------------------------------------===//
@@ -113,15 +115,15 @@ int main()
         auto benchMarkData = initalBenchMark();
         auto pos = benchMarkData.find(inputStr);
         bool isBenchMark = false;
-        string name;
+        string uniqueLabel = "";
         vector<double> thresholds;
         if (pos != benchMarkData.end())
         {
-            name = inputStr;
+            uniqueLabel = inputStr;
             inputStr = pos->second.begin()->first;
             cout << "expression := " << inputStr << endl;
 
-            thresholds = benchmarkThresholds.at(name);
+            thresholds = benchmarkThresholds.at(uniqueLabel);
             // fmt::print("thresholds := {}\n", thresholds);
 
             isBenchMark = true;
@@ -209,15 +211,14 @@ int main()
         exprInfo finalInfo; // ave err, max err, performance
         std::chrono::duration<double> init_seconds, matlab_seconds, regime_seconds, rewrite_seconds, final_seconds,elapsed_seconds;
         double matlabKernelTime = -1;
-        string uniqueLabel = "";
 
         if (runAllFlag)
         { // the whole process
-            uniqueLabel = getUniqueLabel();
-            if (isBenchMark)
+            if (!isBenchMark)
             {
-                uniqueLabel = name;
+                uniqueLabel = getUniqueLabel();
             }
+
             cout << BLUE << "uniqueLabel: " << uniqueLabel << RESET << endl;
             string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
             system(mkdirCommand.c_str());
@@ -233,7 +234,6 @@ int main()
             cout << "origin performance: " << originPerformance << "\n\n";
 
             // TODO: improve pickTheBest to support more suffix
-            // pickTheBest(uniqueLabel, 0, 1, 100);
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
             {
@@ -280,15 +280,53 @@ int main()
             // cout << BLUE << "testError time: " << testError_seconds.count() << " s" << RESET << endl;
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
-            
-            // auto infoTmp = testError(uniqueLabel, "origin", intervals, scales); // TODO-done: 完善origin误差测试 // WHY do it? Because no pickTheBest before. So, have to use testError to get the sample data.
-            auto upEdgeFileName = geneBoundaryData(uniqueLabel, suffix, matlabKernelTime); // sample data == matlab ==> upEdge data // TODO: support multiple dimension
-            cout << "upEdgeFileName: " << upEdgeFileName << "\n";
+
+            string upEdgeFileName;
+            vector<string> upEdgeFileNames;
+            if(dimension == 1)
+            {
+                // No sampling is required because for a single parameter, the error test data is equivalent to the sampled data 
+                // Just generate boundary data by matlab
+                upEdgeFileName = geneBoundaryData(uniqueLabel, suffix, matlabKernelTime); // sample data == matlab ==> upEdge data
+                upEdgeFileNames.push_back(upEdgeFileName);
+            }
+            else
+            {
+                // 1. sample for different dimension
+                // 2. generate boundary data by matlab
+                string suffixTmp;
+                vector<string> suffixTmps;
+                if (dimension == 2)
+                {
+                    suffixTmp = suffix + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = suffix + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{8192, 2048};
+                    sampleError(uniqueLabel, suffix, intervals, scales);
+                }
+                else if (dimension == 3)
+                {
+                    suffixTmp = suffix + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = suffix + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = suffix + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{512, 128, 128};
+                }
+                else
+                {
+                    fprintf(stderr, "ERROR: main: we can not handle %d parameters (bigger than 3) now\n", dimension);
+                    exit(EXIT_FAILURE);
+                }
+                upEdgeFileNames = geneBoundaryData(uniqueLabel, suffix, suffixTmps, matlabKernelTime); // sample data == matlab ==> upEdge data
+            }
+            fmt::print("upEdgeFileNames: {}\n", upEdgeFileNames);
             auto timeTmp2 = std::chrono::high_resolution_clock::now(); // matlab over
             matlab_seconds = timeTmp2 - timeTmp1;
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
-            vector<string> upEdgeFileNames;
-            upEdgeFileNames.push_back(upEdgeFileName);
+
             auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals);
             numOfIntervals = intervalData.size();
             fmt::print("after regime, we have {} intervals: {}\n", numOfIntervals, intervalData);

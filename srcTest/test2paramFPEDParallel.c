@@ -24,6 +24,9 @@ struct errorInfo
 #define TESTNUMX1 1024
 // #define FP
 // #define DEBUG
+#ifndef ERRFILE
+#define ERRFILE 0
+#endif
 double EXPRESSIONMPFR(double, double, mpfr_t);
 double EXPRESSIONMINE(double, double);
 
@@ -42,7 +45,7 @@ int computeResult2param(double x0, double x1, mpfr_t mpfrResult)
     return status;
 }
 
-struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char *fileNameKernel, int myid, int i1StartLocal, int i1EndLocal)
+struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char* uniqueLabel, const char *fileNameKernel, int myid, int i1StartLocal, int i1EndLocal)
 {
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d);
     DL maxInputX0, maxInputX1;
@@ -54,18 +57,20 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     mpfr_t mpfrOrcle, mpfrResult;
     mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr)0);
 
-    // file
-    // char *directory = "outputs";
-    // char *suffix = "sample";
-    // char *fileNameSample;
-    // FILE *f;
-    // fileNameSample = (char *) calloc(strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
-    // sprintf(fileNameSample, "./%s/%s_%s_%d.txt", directory, fileNameKernel, suffix, myid);
+    // write error data to file
+    #if ERRFILE
+    char *directory = "outputs";
+    char *suffix = "sample";
+    char *fileNameSample;
+    FILE *f;
+    fileNameSample = (char *) calloc(strlen(directory) + strlen(uniqueLabel) + strlen(fileNameKernel) + strlen(suffix) + 128, sizeof(char));
+    sprintf(fileNameSample, "%s/%s/%s_%s_%02d.txt", directory, uniqueLabel, fileNameKernel, suffix, myid);
     // printf("%s\n", fileNameSample);
-    // if ((f = fopen(fileNameSample, "w")) == NULL) {
-    //     printf("Error opening file %s.\n", fileNameSample);
-    //     exit(0);
-    // }
+    if ((f = fopen(fileNameSample, "w")) == NULL) {
+        printf("Error opening file %s.\n", fileNameSample);
+        exit(0);
+    }
+    #endif
 
     // loop boundary
     lenX0 = x0End.d - x0Start.d;
@@ -75,6 +80,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
 
     // Real number average
     maxReUlp = 0;
+    aveReUlp = 0;
     // flag = 1;
     // size_t testCount = 0;
     sumError = 0;
@@ -86,22 +92,25 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
             x0 = x0Start.d + stepX0 * i0;
             computeResult2param(x0, x1, mpfrResult);
             computeOrcle2param(x0, x1, mpfrOrcle);
-#ifdef SINGLE
+            #ifdef SINGLE
             reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
-#else // compute Double ULP as default
+            #else // compute Double ULP as default
             reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
-#endif
+            #endif
             // if(reUlp <= 0.5) {
             //     reUlp = 0;
             // }
-            if (isfinite(reUlp) == 0)
-            {
-                printf("happen to NaN or inf\n");
-                exit(1);
-            }
-            // fprintf(f, "%le\t%le\t%e\n", x0, x1, reUlp);
+            // if (isfinite(reUlp) == 0)
+            // {
+            //     printf("happen to NaN or inf\n");
+            //     exit(1);
+            // }
+
             if (isnormal(reUlp) != 0)
             {
+                #if ERRFILE
+                fprintf(f, "%le\t%le\n", x0, reUlp);
+                #endif
                 sumError += reUlp;
                 if (reUlp > maxReUlp) {
                     // flag = 0;
@@ -112,7 +121,6 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
             }
         }
     }
-    // fprintf(f, "\n");
     // aveReUlp = sumError / testCount;
     // if(flag == 1) {
     //     printf("all error are 0!!\n");
@@ -120,10 +128,13 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // printf("average ulp\tmax ulp\n");
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxReUlp);
+    #if ERRFILE
+    // fprintf(f, "\n");
 
     // clear
-    // fclose(f);
-    // free(fileNameSample);
+    fclose(f);
+    free(fileNameSample);
+    #endif
     mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr)0);
     struct errorInfo err;
     err.sumError = sumError;
@@ -151,8 +162,10 @@ int main(int argc, char **argv)
     x0End.d = 2;
     x1Start.d = 1;
     x1End.d = 2;
+
     testNumX0 = TESTNUMX0;
     testNumX1 = TESTNUMX1;
+
     char *fileNameKernel;
     fileNameKernel = calloc(256, sizeof(char));
     char *uniqueLabel;
@@ -191,11 +204,11 @@ int main(int argc, char **argv)
         printf("Usage: \tthe fixed inputs [%g %g %g %g %lu %lu] will be used\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1);
     }
 
-    if (myid == 0)
-    {
-        printf("\n---------------------------------------------------start test2paramFPEDParallel\n");
-        printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, testNumX0 = %lu, testNumX1 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1, fileNameKernel);
-    }
+    // if (myid == 0)
+    // {
+    //     printf("\n---------------------------------------------------start test2paramFPEDParallel\n");
+    //     printf("Parameters: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, testNumX0 = %lu, testNumX1 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, x1Start.d, x1End.d, testNumX0, testNumX1, fileNameKernel);
+    // }
 
     // local parameters init
     int lenX1Local = testNumX1 / numProcs;
@@ -212,7 +225,7 @@ int main(int argc, char **argv)
     }
 
     // call the error test function
-    struct errorInfo err = test2paramFPEDParallel(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, fileNameKernel, myid, i1StartLocal, i1EndLocal);
+    struct errorInfo err = test2paramFPEDParallel(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, uniqueLabel, fileNameKernel, myid, i1StartLocal, i1EndLocal);
 
     // gather errors and find the max
     struct errorInfo *errs;
@@ -252,7 +265,7 @@ int main(int argc, char **argv)
         }
         printf("average ulp\tmax ulp\n");
         printf("%lg\t%lg\n", aveError, maxError);
-        printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
+        // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%lg\t%lg\n", aveError, maxError);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);

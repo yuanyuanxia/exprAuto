@@ -1,6 +1,18 @@
-% disp(sampleFileName);
 tic;
-sampleData = importdata(sampleFileName);
+sampleFiles = strcat(outputFilesPath, sampleFileNameKernel);
+namelist = dir(sampleFiles);
+fileNum = length(namelist);
+regexTemplate = '(?<=sample_).*?(?=.txt)';
+
+for i = 1 : fileNum
+
+fileNameTmp = strcat(outputFilesPath, namelist(i).name);
+sampleData = importdata(fileNameTmp);
+
+strTmp = regexp(fileNameTmp, regexTemplate, 'match');
+sampleDataNameTmp = strTmp{1,1};
+upEdgeFileName = strcat(outputFilesPath, "upEdge_", sampleDataNameTmp, ".txt");
+
 lenTmp = length(sampleData);
 maxTmp = max(sampleData(:,2));
 maxIndex = find(sampleData(:,2)>=maxTmp);
@@ -18,7 +30,7 @@ for j = 1:1 % 右端点需要更正为maxIndex的长度
     rateTmp = length(localTmp) / length(wholeTmp);
     edgeIndex = boundary(sampleData(:,1), sampleData(:,2), 1.0);
     edge = [edgeIndex, sampleData(edgeIndex,1), sampleData(edgeIndex,2)];
-    
+    save(upEdgeFileName, 'edge', '-ascii', '-double'); % the 2nd parameter mean the data to save to file
     % simple way
     % upEdgeIndex = edge(:,3)>=2;
     % upEdge = edge(upEdgeIndex,:);
@@ -186,6 +198,7 @@ if maxTmp > 2
     meanTmp = mean(sampleData(indexTmp, 2));
 else
     meanTmp = mean(sampleData(:, 2));
+end
 end
 all_time = toc;
 fprintf("%f\n", all_time);

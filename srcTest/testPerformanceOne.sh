@@ -27,16 +27,16 @@ fi
 resultFileName=result_${uniqueLabel}_${start}_${end}.txt
 funcName=expr_${uniqueLabel}_${suffix}
 
-# gcc gccPerformanceTest.c binary.c ${uniqueLabel}/${funcName}.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -lm -o gccPerformanceTest_${uniqueLabel}.exe -O3
+# gcc testPerformanceOne.c binary.c ${uniqueLabel}/${funcName}.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -lm -o testPerformanceOne_${uniqueLabel}.exe -O3
 
-# make gccPerformanceTest.o -s CFLAGS="-DFUNCNAME=${funcName} -DRUNTIME=${runtime}"
-gcc gccPerformanceTest.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -c -O3
+# make testPerformanceOne.o -s CFLAGS="-DFUNCNAME=${funcName} -DRUNTIME=${runtime}"
+gcc testPerformanceOne.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -c -O3
 gcc ${uniqueLabel}/expr_${uniqueLabel}_mpfr.c -c
 make binary.o -s # gcc binary.c -I../includeTEST -c -O3
 gcc ${uniqueLabel}/${funcName}.c -I../includeTEST -I../includeDD -c -O3
-gcc gccPerformanceTest.o binary.o ${funcName}.o expr_${uniqueLabel}_mpfr.o -lm -lqd -lmpfr -o gccPerformanceTest_${uniqueLabel}.exe -O3
-./gccPerformanceTest_${uniqueLabel}.exe ${resultFileName} ${start} ${end} > /dev/null
-# rm -rf gccPerformanceTest_${uniqueLabel}.exe
+gcc testPerformanceOne.o binary.o ${funcName}.o expr_${uniqueLabel}_mpfr.o -lm -lqd -lmpfr -o testPerformanceOne_${uniqueLabel}.exe -O3
+./testPerformanceOne_${uniqueLabel}.exe ${resultFileName} ${start} ${end} > /dev/null
+# rm -rf testPerformanceOne_${uniqueLabel}.exe
 
 ### compute the cycles of the function ${uniqueLabel}
 make dataClean.exe -s CFLAGS="-DRUNTIME=${runtime}" # gcc dataClean.c -DRUNTIME=${runtime} -o dataClean.exe

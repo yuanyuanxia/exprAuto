@@ -393,7 +393,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         string fileNameKernel = prefix + "__" + middle + "_" + suffix;
         namespace fs = std::filesystem;
         string currentPath = fs::current_path();
-        string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt";
+        string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt"; // get the output of error detecting
         string number[3] = {"One", "Two", "Three"};
         string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
         stringstream ss;
@@ -452,6 +452,65 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     }
 
     return tempError;
+}
+
+void sampleError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales) {
+    exprInfo tempError;
+    size_t size = scales.size();
+
+    if (size < 4)
+    {
+        string prefix = "expr_" + uniqueLabel;
+        vector<string> params;
+        for(const auto &interval : intervals)
+        {
+            auto paraTmp = fmt::format("{}", interval);
+            params.push_back(paraTmp);
+        }
+        for(const auto &scale : scales)
+        {
+            auto scaleTmp = fmt::format("{}", scale);
+            params.push_back(scaleTmp);
+        }
+        string middle;
+        for(size_t i = 0; i < params.size(); ++i)
+        {
+            if(i == 0)
+            {
+                middle = params.at(i);
+            }
+            else
+            {
+                middle = middle + "_" + params.at(i);
+            }
+        }
+        string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+        namespace fs = std::filesystem;
+        string currentPath = fs::current_path();
+        string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt"; // used to get the output of error detecting, not input parameters
+        string number[3] = {"One", "Two", "Three"};
+        string scriptName = "./sampleError" + number[size - 1] + ".sh";
+        stringstream ss;
+        ss << scriptName << " " << uniqueLabel;
+        for(const auto & param : params)
+        {
+            ss << " " << param;
+        }
+        ss << " " << prefix << " " << middle << " " << suffix;
+        string commandStr = ss.str();
+
+        // cout << "fileNameKernel: " << fileNameKernel << "\n";
+        cout << "command: " << commandStr << "\n";
+        // cout << "testName: " << testName << "\n";
+        char command[200] = {0};
+        strcat(command, commandStr.c_str());
+        system(command);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: testError: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        exit(EXIT_FAILURE);
+    }
 }
 
 double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals)
@@ -550,7 +609,6 @@ string runCommand(string command)
     return result;
 }
 
-// TODO: support multiple dimension
 // call matlab to generate the upEdgeData to file
 string geneBoundaryData(string uniqueLabel, string suffix, double &costTime)
 {
@@ -561,10 +619,9 @@ string geneBoundaryData(string uniqueLabel, string suffix, double &costTime)
     }
     string currentPathStr(currentPath);
     string outputFilesPath = currentPathStr + "/outputs/" + uniqueLabel + "/";
-    string sampleFileName = outputFilesPath + "sample_" + uniqueLabel + "_" + suffix + ".txt";
-    string upEdgeFileName = outputFilesPath + "upEdge_" + uniqueLabel + "_" + suffix + ".txt";
+    string sampleFileNameKernel = "sample_" + uniqueLabel + "_" + suffix + ".txt";
     string matlabExecutable = runCommand("which matlab"); // find matlab
-    string matlabCommands = " -batch \"sampleFileName=\'" + sampleFileName + "\'; upEdgeFileName = \'" + upEdgeFileName + "\'; run " + currentPathStr + "/src/getUpEdge\""; // DO NOT need to add the suffix ".m" for matlab file!
+    string matlabCommands = " -batch \"outputFilesPath=\'" + outputFilesPath + "\'; sampleFileNameKernel = \'" + sampleFileNameKernel + "\'; run " + currentPathStr + "/src/getUpEdge\""; // DO NOT need to add the suffix ".m" for matlab file!
     string commandStr = matlabExecutable + matlabCommands;
     cout << "Matlab command: " << commandStr << "\n";
     // cout << "length of commandStr: " << commandStr.size() << "\n";
@@ -575,7 +632,37 @@ string geneBoundaryData(string uniqueLabel, string suffix, double &costTime)
     free(currentPath);
     // std::cout << "generate upEdge file:" << upEdgeFileName << std::endl;
 
+    string upEdgeFileName = outputFilesPath + "upEdge_" + uniqueLabel + "_" + suffix + ".txt";
     return upEdgeFileName;
+}
+
+vector<string> geneBoundaryData(string uniqueLabel, string suffix, vector<string> suffixes, double &costTime)
+{
+    char *currentPath;
+    if((currentPath = getcwd(NULL, 0)) == NULL)
+    {
+        perror("getcwd error");
+    }
+    string currentPathStr(currentPath);
+    string outputFilesPath = currentPathStr + "/outputs/" + uniqueLabel + "/";
+    string sampleFileNameKernel = "sample_" + uniqueLabel + "_" + suffix + "_" + "*.txt";
+    string matlabExecutable = runCommand("which matlab"); // find matlab
+    string matlabCommands = " -batch \"outputFilesPath=\'" + outputFilesPath + "\'; sampleFileNameKernel = \'" + sampleFileNameKernel + "\'; run " + currentPathStr + "/src/getUpEdge\""; // DO NOT need to add the suffix ".m" for matlab file!
+    string commandStr = matlabExecutable + matlabCommands;
+    cout << "Matlab command: " << commandStr << "\n";
+    char command[512] = {0};
+    strcat(command, commandStr.c_str());
+    auto matlabKernelTime = runCommand(command);
+    costTime = stod(matlabKernelTime);
+    free(currentPath);
+    vector<string> upEdgeFileNames;
+    for(auto &suffix : suffixes)
+    {
+        string upEdgeFileName = outputFilesPath + "upEdge_" + uniqueLabel + "_" + suffix + ".txt";
+        upEdgeFileNames.push_back(upEdgeFileName);
+    }
+
+    return upEdgeFileNames;
 }
 
 // string geneIntervalData1D(string upEdgeFileName, string uniqueLabel, double threshold) // generate the interval info to file at the target dimension
@@ -669,21 +756,19 @@ vector<vector<double>> getIntervalData(string filename)
     return intervalData;
 }
 
-// according to the corresponding intervalData file in each dimension, generate the interval data, and then generate all permutation of all dimensions.
+// according to the corresponding upEdgeFile, generate intervalData for each dimension, and then combine all permutation of all dimensions.
 vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals)
 {
     vector<vector<double>> intervalDataMultiDim;
     int dimension = thresholds.size();
-    // auto thresholdCombine = 0;
     for (int i = 0; i < dimension; i++) // iterate all the dimensions
     {
         // call devideUpEdgeData for each dimension: matlab upEdge ==> interval vector
         auto &upEdgeFileName = upEdgeFileNames.at(i);
         auto &threshold = thresholds.at(i);
         auto thresholdCombine = (intervals.at(2 * i + 1) - intervals.at(2 * i)) / 100; // thresholdCombine = 1% of the interval width at the target demision
-        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, thresholdCombine); // TODO: add the parameter thresholdCombine
-         // fmt::print("intervalData1D {}\n", intervalData1D);
-        // push_back interval vector
+        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, thresholdCombine);
+        // fmt::print("intervalData1D {}\n", intervalData1D);
         intervalDataMultiDim.push_back(intervalData1D);
     }
     // call permuteMultiVec to get all permutation

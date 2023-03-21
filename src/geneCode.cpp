@@ -269,6 +269,7 @@ string geneHerbieCode(string uniqueLabel)
         {"test05_nonlin1_r4", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
         {"test05_nonlin1_test2", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
         {"verhulst", ""}, // pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333); // this one can not rewrite well, so arfa will use origin
+        {"i6", ""},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
