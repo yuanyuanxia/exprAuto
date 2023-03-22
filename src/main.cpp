@@ -347,6 +347,7 @@ int main()
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
 
             auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals);
+            // fmt::print("[INFO] main: thresholds {}\n", thresholds);
             numOfIntervals = intervalData.size();
             fmt::print("after regime, we have {} intervals: {}\n", numOfIntervals, intervalData);
             auto timeTmp3 = std::chrono::high_resolution_clock::now();
@@ -419,6 +420,25 @@ int main()
         summaryData.push_back(originPerformance);
         summaryData.push_back(numOfIntervals);
         summaryData.push_back(double(numOfExprs));
+        if(thresholds.size() == 1) {
+            summaryData.push_back(thresholds.at(0));
+            summaryData.push_back(-1);
+            summaryData.push_back(-1);
+        }
+        else if(thresholds.size() == 2) {
+            summaryData.push_back(thresholds.at(0));
+            summaryData.push_back(thresholds.at(1));
+            summaryData.push_back(-1);
+        }
+        else if(thresholds.size() == 3) {
+            summaryData.push_back(thresholds.at(0));
+            summaryData.push_back(thresholds.at(1));
+            summaryData.push_back(thresholds.at(2));
+        }
+        else {
+            fprintf(stderr, "ERROR: we can not support %ld demision now.\n", thresholds.size());
+            exit(EXIT_FAILURE);
+        }
         summaryData.push_back(finalInfo.aveError);
         summaryData.push_back(finalInfo.maxError);
         summaryData.push_back(finalInfo.performance);

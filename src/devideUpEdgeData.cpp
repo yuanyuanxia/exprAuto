@@ -73,6 +73,57 @@ void printRegime(const int &num, vector<double *> &vector, string fintervalName,
     fwidth.close();
 }
 
+double setThreshold(vector<double *> matlabVector)
+{
+    double maxErr = std::numeric_limits<double>::min();
+    double minErr = std::numeric_limits<double>::max();
+    for (auto &elem : matlabVector)
+    {
+        auto &errorTmp = elem[2];
+        if (errorTmp == 0)
+            continue;
+        if (errorTmp > maxErr)
+            maxErr = errorTmp;
+        if (errorTmp < minErr)
+            minErr = errorTmp;
+    }
+    cout << "[INFO] setThreshold: maxErr of UpEdge: " << maxErr << endl;
+    cout << "[INFO] setThreshold: minErr of UpEdge: " << minErr << endl;
+    double threshold = 2;
+    if (threshold < minErr)
+    { // need to get high
+        while (threshold < minErr)
+        {
+            threshold = 0.5 * (threshold + maxErr);
+        }
+    }
+    else if (threshold > maxErr)
+    { // need to get low
+        double l = 0;
+        while ((threshold > maxErr) && (threshold != 0.5))
+        {
+            threshold = 0.5 * (threshold + l);
+        }
+        if (threshold == 0.5)
+        {
+            ;
+        }
+        else if (threshold <= maxErr)
+        {
+            if (threshold < minErr)
+            { // need to get high
+                l = 2;
+                while (threshold < minErr)
+                {
+                    threshold = 0.5 * (threshold + l);
+                }
+            }
+        }
+    }
+    cout << "[INFO] setThreshold: threshold: " << threshold << endl;
+    return threshold;
+}
+
 void ifRegimeulp(const int &num, vector<double *> &vector, std::vector<double *> &store_vector, const double &threshold) {
     double distance;
     double k, b, tmp;
@@ -215,11 +266,11 @@ void interval_merge(vector<double *> in_vector, vector<double *> &out_vector, co
     double *temp = in_vector.front();
     out_vector.push_back(temp);
     // cout << out_vector.size() << endl;
-    for (int i = 2; i < in_vector.size(); i += 2) {
+    for (int i = 2; i < (int)in_vector.size(); i += 2) {
         // cout << i << " " << out_vector.size() << endl;
         // if (in_vector.at(i)[3] < thresholdCombine && in_vector.at(i - 1)[3] > thresholdCombine && in_vector.at(i + 1)[3] > thresholdCombine) {
         if (in_vector.at(i)[3] < thresholdCombine) {
-            if (i == in_vector.size() - 2) {
+            if (i == (int)in_vector.size() - 2) {
                 temp = in_vector.at(i + 1);
                 out_vector.push_back(temp);
             } else {
@@ -232,7 +283,7 @@ void interval_merge(vector<double *> in_vector, vector<double *> &out_vector, co
             out_vector.push_back(temp);
             // temp = in_vector.at(i+1);
             // out_vector.push_back(temp);
-            if (i == in_vector.size() - 2) {
+            if (i == (int)in_vector.size() - 2) {
                 temp = in_vector.at(i + 1);
                 out_vector.push_back(temp);
             }
@@ -261,7 +312,7 @@ vector<double> extractInfo(vector<double *> &origin) {
     return destination;
 }
 
-vector<double> devideUpEdgeData(string upEdgeFileName, double threshold, double thresholdCombine) {
+vector<double> devideUpEdgeData(string upEdgeFileName, double &threshold, double thresholdCombine) {
     vector<double> intervalData;
     // thresholdCombine = 0; // TODO: set thresholdCombine
     // upEdgeFileName 文件中有3列，分别是序号、输入、误差。该文件是由matlab生成，故文件中的序号从1开始，而非0。
@@ -273,7 +324,10 @@ vector<double> devideUpEdgeData(string upEdgeFileName, double threshold, double 
         exit(EXIT_FAILURE);
     }
     
-    // 初步获取区间信息
+    // 获取误差阈值
+    threshold = setThreshold(matlab_vector);
+
+    // 初步划分误差区间
     vector<double *> store_vector;
     ifRegimeulp(matlab_vector.size(), matlab_vector, store_vector, threshold);
     // printRegime(store_vector.size(), store_vector, "intervalTmp.txt", "distanceTmp.txt", "widthTmp.txt");
