@@ -408,7 +408,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         // cout << "fileNameKernel: " << fileNameKernel << "\n";
         cout << "command: " << commandStr << "\n";
         // cout << "testName: " << testName << "\n";
-        char command[200] = {0};
+        char command[512] = {0};
         strcat(command, commandStr.c_str());
         system(command);
 
@@ -456,7 +456,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
 
 void sampleError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales) {
     exprInfo tempError;
-    size_t size = scales.size();
+    size_t size = intervals.size() / 2;
 
     if (size < 4)
     {

@@ -56,7 +56,25 @@ map<string, vector<double>> benchmarkThresholds = {
     {"test05_nonlin1_r4", {1.2}},
     {"test05_nonlin1_test2", {1.2}},
     {"verhulst", {1}},
-    {"i6", {1.869156e+06, 1.400076e+06}},
+    {"ComplexSinCos", {2.861064e+02, 6.019811}},
+    {"ComplexSquareRoot", {1, 1}},
+    {"doppler1", {2.588287, 2, 2.586046}},
+    {"doppler2", {2, 2, 3.107020}},
+    {"doppler3", {2.509605, 2, 2.508455}},
+    {"hypot32", {2, 2}},
+    {"i4", {2, 2}},
+    {"i6", {7.869156e+06, 8.400076e+06}},
+    {"NMSEexample33", {1.678153e+06, 1.540327e+06}},
+    {"NMSEproblem332", {4.957687e+02, 1.740876e+03}},
+    {"NMSEproblem335", {1, 1}},
+    {"NMSEproblem346", {4.068065e+00, 4.041267e+00}},
+    {"NMSEsection35", {0.75, 0.75}},
+    {"polarToCarthesianX", {8.225613e+12, 2}},
+    {"polarToCarthesianY", {2.161373e+12, 1.341743e+12}},
+    {"sec4example", {1.25, 1.25}},
+    {"test03_nonlin2", {1.375, 1.25}},
+    {"theta", {2, 2}},
+    {"turbine1", {3.002278, 2.831004, 2.847586}},
 };
 
 //===----------------------------------------------------------------------===//
@@ -311,9 +329,10 @@ int main()
                     suffixTmps.push_back(suffixTmp);
                     suffixTmp = suffix + "_Y";
                     suffixTmps.push_back(suffixTmp);
-                    suffixTmp = suffix + "_X";
+                    suffixTmp = suffix + "_Z";
                     suffixTmps.push_back(suffixTmp);
-                    vector<int> scales{512, 128, 128};
+                    vector<int> scales{512, 128}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    sampleError(uniqueLabel, suffix, intervals, scales);
                 }
                 else
                 {
@@ -410,7 +429,7 @@ int main()
         summaryData.push_back(rewrite_seconds.count());
         summaryData.push_back(final_seconds.count());
         summaryData.push_back(matlabKernelTime);
-        write_to_file(uniqueLabel, summaryData, "run.log");
+        write_to_file(uniqueLabel, summaryData, "runlog.csv");
 
         fprintf(stderr, GREEN "ready> " RESET);
     }

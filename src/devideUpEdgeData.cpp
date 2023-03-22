@@ -18,7 +18,7 @@ int read_scanf(const string &filename, const int &cols, vector<double *> &_vecto
     bool flag = true;
     double tmp;
     if (!fp) {
-        cout << "File open error!\n";
+        cout << "ERROR: read_scanf: File " << filename << " open error!\n";
         return 0;
     }
     while (flag) {

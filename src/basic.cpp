@@ -748,10 +748,10 @@ void write_to_file(const string &uniqueLabel, const std::vector<double> &data, c
 
     if (outputFile.is_open())
     {
-        outputFile << uniqueLabel << " ";
+        outputFile << uniqueLabel << ", ";
         for (const auto &val : data)
         {
-            outputFile << val << " ";
+            outputFile << val << ", ";
         }
         outputFile << std::endl;
         outputFile.close();

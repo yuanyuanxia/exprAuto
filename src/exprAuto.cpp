@@ -1014,13 +1014,18 @@ exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> 
     string bestExpr = "origin";
     double maxError = INFINITY;
     double aveError = INFINITY;
+    bool isSingleParam = true;
+    if (scales.size() > 1)
+    {
+        isSingleParam = false;
+    }
     for (size_t i = 0; i < testSet.size(); i++)
     {
         string suffixTmp = testSet.at(i);
         cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
 
         // generate function code and test error
-        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales, true);
+        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales, isSingleParam);
         // cout << "pickTheBest: for item No." << i << ": maxError: " << tempError.maxError << "\n";
         // cout << "pickTheBest: for item No." << i << ": aveError: " << tempError.aveError << "\n";
         

@@ -269,7 +269,25 @@ string geneHerbieCode(string uniqueLabel)
         {"test05_nonlin1_r4", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
         {"test05_nonlin1_test2", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
         {"verhulst", ""}, // pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333); // this one can not rewrite well, so arfa will use origin
+        {"ComplexSinCos", ""},
+        {"ComplexSquareRoot", ""},
+        {"doppler1", ""},
+        {"doppler2", ""},
+        {"doppler3", ""},
+        {"hypot32", ""},
+        {"i4", ""},
         {"i6", ""},
+        {"NMSEexample33", ""},
+        {"NMSEproblem332", ""},
+        {"NMSEproblem335", ""},
+        {"NMSEproblem346", ""},
+        {"NMSEsection35", ""},
+        {"polarToCarthesianX", ""},
+        {"polarToCarthesianY", ""},
+        {"sec4example", ""},
+        {"test03_nonlin2", ""},
+        {"theta", ""},
+        {"turbine1", ""},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
