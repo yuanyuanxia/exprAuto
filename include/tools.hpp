@@ -44,13 +44,13 @@ string geneBoundaryData(string uniqueLabel, string suffix, double &costTime);
 
 vector<string> geneBoundaryData(string uniqueLabel, string suffix, vector<string> suffixes, double &costTime);
 
-vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds);
+vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLabel, vector<double> &thresholds, int &numIntervalsBefore);
 
 vector<vector<double>> getIntervalData(string filename);
 
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals);
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore);
 
-vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs);
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs, const vector<double> &intervals);
 
 vector<vector<double>> permuteMultiVec(vector<vector<double>> vec);
 

@@ -438,7 +438,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
             tempError.aveError = atof(aveErrorTemp.c_str());
             tempError.maxError = atof(maxErrorTemp.c_str());
         }
-
+        tempError.suffix = suffix;
         return tempError;
     }
     else if (size == 4)
@@ -757,7 +757,7 @@ vector<vector<double>> getIntervalData(string filename)
 }
 
 // according to the corresponding upEdgeFile, generate intervalData for each dimension, and then combine all permutation of all dimensions.
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals)
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore)
 {
     vector<vector<double>> intervalDataMultiDim;
     int dimension = thresholds.size();
@@ -767,8 +767,8 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
         auto &upEdgeFileName = upEdgeFileNames.at(i);
         auto &threshold = thresholds.at(i);
         auto thresholdCombine = (intervals.at(2 * i + 1) - intervals.at(2 * i)) / 100; // thresholdCombine = 1% of the interval width at the target demision
-        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, thresholdCombine);
-        // fmt::print("intervalData1D {}\n", intervalData1D);
+        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, numIntervalsBefore, thresholdCombine);
+        // fmt::print("thresholdCombine: {}, intervalData1D {}\n", thresholdCombine, intervalData1D);
         intervalDataMultiDim.push_back(intervalData1D);
     }
     // call permuteMultiVec to get all permutation
@@ -777,7 +777,7 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
 }
 
 // call exprAuto to rewrite the input expression
-vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs)
+vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs, const vector<double> &intervals)
 {
     // string filename = "expr_" + uniqueLabel + "_interval.txt"; // useless
     // string filename = "./intervalData.txt"; // TODO-done: get the filename from uniqueLabel. Now we get intervalData from input parameters directly.
@@ -801,6 +801,22 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         else
             scale = 10;
         vector<int> scales(dimension, scale);
+        for (int i = 0; i < dimension; i++)
+        {
+            double width = intervals.at(i * 2 + 1) - intervals.at(i * 2);
+            double step = width / (double)scales.at(i);
+            int stepNum = (intervalTmp.at(i * 2) - intervals.at(i * 2)) / step;
+            int stepNum1 = (intervalTmp.at(i * 2 + 1) - intervals.at(i * 2)) / step;
+            if(stepNum == stepNum1)
+            {
+                stepNum1 += 1;
+            }
+            scales.at(i) = stepNum1 - stepNum;
+
+            intervalTmp.at(i * 2) = intervals.at(i * 2) + stepNum * step;
+            intervalTmp.at(i * 2 + 1) = intervals.at(i * 2) + stepNum1 * step;
+            // scales.at(i) = scales.at(i) * (intervalTmp.at(i * 2 + 1) - intervalTmp.at(i * 2)) / width;
+        }
         auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
         numOfExprs = newTempExprs.size();
         string suffix = "temp_" + std::to_string(count) + "_";

@@ -47,6 +47,8 @@ vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf = true);
 
 exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales);
 
+exprInfo &pickTheBest(const string &uniqueLabel, vector<string> testSet, vector<exprInfo> &initExprInfos, const vector<double> &intervals, const vector<int> &scales);
+
 void geneSampleData();
 
 vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators);

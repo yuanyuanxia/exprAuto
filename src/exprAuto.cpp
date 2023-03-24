@@ -567,7 +567,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
         rhsNewASTs.push_back(rhs->Clone());
     }
     auto newASTs = createAllBinary(lhsNewASTs, rhsNewASTs, op);
-
+    deleteTheSame(newASTs);
     newASTs = dealWithBinOp(newASTs, op);
     exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
     // if(callCount == 1)
@@ -1008,6 +1008,38 @@ size_t computeRandomNum(size_t sum)
 }
 
 // for main
+exprInfo &pickTheBest(const string &uniqueLabel, vector<string> testSet, vector<exprInfo> &initExprInfos, const vector<double> &intervals, const vector<int> &scales)
+{
+    int bestExprIdx = 0;
+    double maxError = INFINITY;
+    double aveError = INFINITY;
+    bool isSingleParam = true;
+    if (scales.size() > 1)
+    {
+        isSingleParam = false;
+    }
+    for (size_t i = 0; i < testSet.size(); i++)
+    {
+        auto &exprInfoTmp = initExprInfos.at(i);
+        string suffixTmp = initExprInfos.at(i).suffix;
+        cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
+
+        // generate function code and test error
+        exprInfoTmp = testError(uniqueLabel, suffixTmp, intervals, scales, isSingleParam);
+        // cout << "pickTheBest: for item No." << i << ": maxError: " << exprInfoTmp.maxError << "\n";
+        // cout << "pickTheBest: for item No." << i << ": aveError: " << exprInfoTmp.aveError << "\n";
+        if ((exprInfoTmp.maxError < maxError) || ((exprInfoTmp.maxError == maxError) && (exprInfoTmp.aveError < aveError)))
+        {
+            bestExprIdx = i;
+            maxError = exprInfoTmp.maxError;
+            aveError = exprInfoTmp.aveError;
+        }
+    }
+    auto &result = initExprInfos.at(bestExprIdx);
+    cout << "pick \'" << result.suffix << "\' as the init expression.\n";
+    return result;
+}
+
 exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> intervals, vector<int> scales)
 {
     exprInfo result;
@@ -1377,9 +1409,10 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
 
     expr = minusRewrite(expr);
     combineConstant(expr);
-    expr = combineConstant1(expr);
-    sortExpr(expr);
     printExpr(expr, "exprAutoWrapper: after parse, expr = ", DOUBLE_PRECISION);
+    auto expr0 = combineConstant1(expr);
+    sortExpr(expr0);
+    printExpr(expr0, "exprAutoWrapper: after some prepare, expr = ", DOUBLE_PRECISION);
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
     combineConstant(expr1);
     sortExpr(expr1);

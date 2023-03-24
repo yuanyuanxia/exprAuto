@@ -244,7 +244,7 @@ vector<vector<int>> combination(const int num, const vector<int>& indexs);
 
 size_t combination(size_t k, size_t n);
 
-void write_to_file(const string &uniqueLabel, const std::vector<double> &data, const std::string &filename);
+void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const std::vector<double> &data, const std::string &filename);
 
 // } // end anonymous namespace
 

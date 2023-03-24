@@ -105,8 +105,8 @@ int main()
 
     fprintf(stderr, GREEN "ready> " RESET);
     string inputStr = "";
-    // while (getline(infile, inputStr)) // read line from file's input
-    while (getline(cin, inputStr)) // read line from keyboard input
+    while (getline(infile, inputStr)) // read line from file's input
+    // while (getline(cin, inputStr)) // read line from keyboard input
     {
         // only rewrite
         // getlineCount++;
@@ -173,29 +173,6 @@ int main()
             intervals = getIntervals(intervalStr, split);
         }
 
-        // For temporary use only . It will be replaced by geneBoundaryData and geneIntervalData
-        // ofstream ofs;
-        // ofs.open("intervalData.txt", ios::out);
-        // TODO-DONE: (but no need do it): judge if intervals.size() == dimension
-        // for (int i = 0; i < dimension; i++)
-        // {
-        //     if (i == dimension - 1)
-        //     {
-        //         ofs << intervals.at(i);
-        //     }
-        //     else
-        //     {
-        //         ofs << intervals.at(i) << " ";
-        //     }
-        // }
-        // ofs.close();
-
-        // Read scale from keyboard
-        // fprintf(stderr, GREEN "scale> " RESET);
-        // string scaleStr;
-        // getline(cin, scaleStr);
-        // vector<int> scales = getScales(scaleStr, split);
-
         // Default scale setting according to the variables' size
         int sampleScale;
         if (dimension == 1)
@@ -223,13 +200,24 @@ int main()
         bool runAllFlag = true;
         
         // ready for writing to file
+        string exprOriginBest = "";
         double originPerformance = -1;
+        int numIntervalsBefore = -1;
         double numOfIntervals = -1;
         int numOfExprs = -1;
         exprInfo finalInfo; // ave err, max err, performance
         std::chrono::duration<double> init_seconds, matlab_seconds, regime_seconds, rewrite_seconds, final_seconds,elapsed_seconds;
         double matlabKernelTime = -1;
-
+        vector<exprInfo> initExprInfos;
+        exprInfo tempExprInfo;
+        tempExprInfo.suffix = "origin";
+        initExprInfos.push_back(tempExprInfo);
+        tempExprInfo.suffix = "herbie";
+        initExprInfos.push_back(tempExprInfo);
+        auto &originExprInfo = initExprInfos.at(0);
+        auto &herbieExprInfo = initExprInfos.at(1);
+        herbieExprInfo.aveError = -1;
+        herbieExprInfo.maxError = -1;
         if (runAllFlag)
         { // the whole process
             if (!isBenchMark)
@@ -261,19 +249,21 @@ int main()
             {
                 fprintf(stderr, "For exprOrigin, Herbie's rewrite results can not be used.\nSo, we just pick origin as the best.\n");
             }
-            auto initExprInfo = pickTheBest(uniqueLabel, suffixSet, intervals, scales);
-            auto suffix = initExprInfo.suffix;
-            if (suffix == "origin")
+            
+            auto &initExprInfo = pickTheBest(uniqueLabel, suffixSet, initExprInfos, intervals, scales);
+            exprOriginBest = initExprInfo.suffix;
+
+            if (exprOriginBest == "origin")
             {
                 inputStr = exprOrigin;
             }
-            else if (suffix == "herbie")
+            else if (exprOriginBest == "herbie")
             {
                 inputStr = exprHerbie;
             }
             else
             {
-                fprintf(stderr, "ERROR: main: we do not support the suffix %s now\n", suffix.c_str());
+                fprintf(stderr, "ERROR: main: we do not support the suffix %s now\n", exprOriginBest.c_str());
                 exit(EXIT_FAILURE);
             }
             cout << "the pick expr is " << inputStr << "\n";
@@ -288,24 +278,13 @@ int main()
                 continue;
             }
 
-            // cout << BLUE << "main: start testError for origin: " << inputStr << RESET << endl;
-            // auto timeTmp1 = std::chrono::high_resolution_clock::now();
-            // geneSampleData();
-            // auto infoTmp = testError(uniqueLabel, "origin", intervals, scales);
-            // auto timeTmp2 = std::chrono::high_resolution_clock::now();
-            // cout << BLUE << "main: ending testError for origin: " << inputStr << RESET << endl;
-            // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
-            // cout << BLUE << "testError time: " << testError_seconds.count() << " s" << RESET << endl;
-            // fprintf(stderr, GREEN "ready> " RESET);
-            // continue;
-
             string upEdgeFileName;
             vector<string> upEdgeFileNames;
             if(dimension == 1)
             {
                 // No sampling is required because for a single parameter, the error test data is equivalent to the sampled data 
                 // Just generate boundary data by matlab
-                upEdgeFileName = geneBoundaryData(uniqueLabel, suffix, matlabKernelTime); // sample data == matlab ==> upEdge data
+                upEdgeFileName = geneBoundaryData(uniqueLabel, exprOriginBest, matlabKernelTime); // sample data == matlab ==> upEdge data
                 upEdgeFileNames.push_back(upEdgeFileName);
             }
             else
@@ -316,37 +295,37 @@ int main()
                 vector<string> suffixTmps;
                 if (dimension == 2)
                 {
-                    suffixTmp = suffix + "_X";
+                    suffixTmp = exprOriginBest + "_X";
                     suffixTmps.push_back(suffixTmp);
-                    suffixTmp = suffix + "_Y";
+                    suffixTmp = exprOriginBest + "_Y";
                     suffixTmps.push_back(suffixTmp);
                     vector<int> scales{8192, 2048};
-                    sampleError(uniqueLabel, suffix, intervals, scales);
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
                 else if (dimension == 3)
                 {
-                    suffixTmp = suffix + "_X";
+                    suffixTmp = exprOriginBest + "_X";
                     suffixTmps.push_back(suffixTmp);
-                    suffixTmp = suffix + "_Y";
+                    suffixTmp = exprOriginBest + "_Y";
                     suffixTmps.push_back(suffixTmp);
-                    suffixTmp = suffix + "_Z";
+                    suffixTmp = exprOriginBest + "_Z";
                     suffixTmps.push_back(suffixTmp);
                     vector<int> scales{512, 128}; // actually are drawNum and findMaxNum, so only need 2 numbers
-                    sampleError(uniqueLabel, suffix, intervals, scales);
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
                 else
                 {
                     fprintf(stderr, "ERROR: main: we can not handle %d parameters (bigger than 3) now\n", dimension);
                     exit(EXIT_FAILURE);
                 }
-                upEdgeFileNames = geneBoundaryData(uniqueLabel, suffix, suffixTmps, matlabKernelTime); // sample data == matlab ==> upEdge data
+                upEdgeFileNames = geneBoundaryData(uniqueLabel, exprOriginBest, suffixTmps, matlabKernelTime); // sample data == matlab ==> upEdge data
             }
             fmt::print("upEdgeFileNames: {}\n", upEdgeFileNames);
             auto timeTmp2 = std::chrono::high_resolution_clock::now(); // matlab over
             matlab_seconds = timeTmp2 - timeTmp1;
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
 
-            auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals);
+            auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals, numIntervalsBefore);
             // fmt::print("[INFO] main: thresholds {}\n", thresholds);
             numOfIntervals = intervalData.size();
             fmt::print("after regime, we have {} intervals: {}\n", numOfIntervals, intervalData);
@@ -357,7 +336,7 @@ int main()
             // continue;
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= rewrite start =-=-=-=-=-=-=-=-=-=-=-=-=" << endl;
-            auto exprInfoVector = rewrite(inputStr, uniqueLabel, intervalData, numOfExprs);
+            auto exprInfoVector = rewrite(inputStr, uniqueLabel, intervalData, numOfExprs, intervals);
             auto timeTmp4 = std::chrono::high_resolution_clock::now(); // rewrite over
             rewrite_seconds = timeTmp4 - timeTmp3;
             cout << BLUE << "rewrite time: " << rewrite_seconds.count() << " s" << RESET << endl;
@@ -417,7 +396,8 @@ int main()
         cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
 
         vector<double> summaryData;
-        summaryData.push_back(originPerformance);
+        summaryData.push_back(dimension);
+        summaryData.push_back(numIntervalsBefore);
         summaryData.push_back(numOfIntervals);
         summaryData.push_back(double(numOfExprs));
         if(thresholds.size() == 1) {
@@ -439,8 +419,13 @@ int main()
             fprintf(stderr, "ERROR: we can not support %ld demision now.\n", thresholds.size());
             exit(EXIT_FAILURE);
         }
+        summaryData.push_back(originExprInfo.aveError);
+        summaryData.push_back(herbieExprInfo.aveError);
         summaryData.push_back(finalInfo.aveError);
+        summaryData.push_back(originExprInfo.maxError);
+        summaryData.push_back(herbieExprInfo.maxError);
         summaryData.push_back(finalInfo.maxError);
+        summaryData.push_back(originPerformance);
         summaryData.push_back(finalInfo.performance);
         summaryData.push_back(elapsed_seconds.count());
         summaryData.push_back(init_seconds.count());
@@ -449,7 +434,7 @@ int main()
         summaryData.push_back(rewrite_seconds.count());
         summaryData.push_back(final_seconds.count());
         summaryData.push_back(matlabKernelTime);
-        write_to_file(uniqueLabel, summaryData, "runlog.csv");
+        write_to_file(uniqueLabel, exprOriginBest, summaryData, "runlog.csv");
 
         fprintf(stderr, GREEN "ready> " RESET);
     }

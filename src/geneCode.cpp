@@ -238,7 +238,7 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v
 string geneHerbieCode(string uniqueLabel)
 {
     map<string, string> benchmarkHerbie = {
-        {"Bsplines3", "-pow(x, 3.0) /6.0"},
+        {"Bsplines3", "-pow(x, 3.0) /6.0"}, // warning, the origin is -x*x*x/6
         {"exp1x", "expm1(x) / x"},
         {"exp1x_log", "expm1(x) / x"},
         {"intro_example", "(x / (1.0 + pow(x, 3.0))) * fma(x, x, (1.0 - x))"},
@@ -250,44 +250,44 @@ string geneHerbieCode(string uniqueLabel)
         {"NMSEexample36", "1.0 / ((x * (pow(x, -0.5) + pow((1.0 + x), -0.5))) + (x * (x * fma(pow(x, -0.25), pow(x, -0.25), pow((1.0 + x), -0.5)))))"},
         {"NMSEexample37", "expm1(x)"},
         {"NMSEexample38", "fma(x, log((1.0 + (1.0 / x))), log1p(x)) + -1.0"},
-        {"NMSEexample39", ""}, // if else
-        {"NMSEproblem331", "-1.0 / fma(x, x, x)"},
-        {"NMSEproblem333", "((1.0 / (x + -1.0)) + (1.0 / (1.0 + x))) + (-2.0 / x)"},
+        {"NMSEexample39", ""}, // herbie is if-else, the origin is 1/x - 1/tan(x)
+        {"NMSEproblem331", "-1.0 / fma(x, x, x)"}, // warning, the origin is 1/(x+1) - 1/x
+        {"NMSEproblem333", "((1.0 / (x + -1.0)) + (1.0 / (1.0 + x))) + (-2.0 / x)"}, // warning, the origin is 1/(1+x) - 2/x + 1/(x - 1)
         {"NMSEproblem334", "((x + 1.0) - x) / (pow(cbrt((x + 1.0)), 2.0) + (fma((x + 1.0), cbrt(x), (x * cbrt(x))) / (pow(cbrt((x + 1.0)), 2.0) + (cbrt(x) * (cbrt(x) - cbrt((x + 1.0)))))))"},
         {"NMSEproblem336", "log1p((1.0 / x))"},
-        {"NMSEproblem337", ""}, // if else
+        {"NMSEproblem337", ""}, // herbie is if-else, the origin is exp(x) + (-2) + exp(-x)
         {"NMSEproblem341", "(sin(x) / x) * (tan((x / 2.0)) / x)"},
         {"NMSEproblem343", "log1p(-x) - log1p(x)"},
         {"NMSEproblem344", "sqrt((1.0 + exp(x)))"},
         {"NMSEproblem345", ""}, // if else
         {"NMSEsection311", "(1.0 + expm1(x)) / expm1(x)"},
-        {"predatorPrey", ""}, // x * ((x * 4.0) * exp(-log1p(sqrt(pow((x * 0.9009009009009009), 4.0)))))
-        {"sine", ""}, // x - fma(0.0001984126984126984, pow(x, 7.0), fma(0.16666666666666666, pow(x, 3.0), (-0.008333333333333333 * pow(x, 5.0)))) // this one can not rewrite well, so arfa will use origin
-        {"sineorder3", ""}, // fma(x, 0.954929658551372, (pow(x, 3.0) * -0.12900613773279798)) // this one can not rewrite well, so arfa will use origin
-        {"sqroot", ""}, // fma(x, (0.5 + (x * fma(x, fma(x, -0.0390625, 0.0625), -0.125))), 1.0) // this one can not rewrite well, so arfa will use origin
+        {"predatorPrey", "x * ((x * 4.0) * exp(-log1p(sqrt(pow((x * 0.9009009009009009), 4.0)))))"}, // warning, the origin is ((4.0 * x) * x) / (1.0 + ((x / 1.11) * (x / 1.11)))
+        {"sine", "x - fma(0.0001984126984126984, pow(x, 7.0), fma(0.16666666666666666, pow(x, 3.0), (-0.008333333333333333 * pow(x, 5.0))))"}, // warning, the origin is x - (1.0/6.0)*x*x*x+(1.0/120.0)*x*x*x*x*x - (1.0/5040.0)*x*x*x*x*x*x*x
+        {"sineorder3", "fma(x, 0.954929658551372, (pow(x, 3.0) * -0.12900613773279798))"}, // warning, the origin is (238732414637843.0/250000000000000.0)*x - (6450306886639899.0/50000000000000000.0)*x*x*x
+        {"sqroot", "fma(x, (0.5 + (x * fma(x, fma(x, -0.0390625, 0.0625), -0.125))), 1.0)"}, // warning, the origin is 1.0 + 0.5*x - 0.125*x*x + 0.0625*x*x*x - 0.0390625*x*x*x*x
         {"sqrt_add", "1.0 / (sqrt((1.0 + x)) + sqrt(x))"},
-        {"test05_nonlin1_r4", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
-        {"test05_nonlin1_test2", ""}, // exp(-log1p(x)) // this one can not rewrite well, so arfa will use origin
-        {"verhulst", ""}, // pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333); // this one can not rewrite well, so arfa will use origin
-        {"ComplexSinCos", ""},
-        {"ComplexSquareRoot", ""},
-        {"doppler1", ""},
-        {"doppler2", ""},
-        {"doppler3", ""},
-        {"hypot32", ""},
-        {"i4", ""},
-        {"i6", ""},
-        {"NMSEexample33", ""},
-        {"NMSEproblem332", ""},
-        {"NMSEproblem335", ""},
-        {"NMSEproblem346", ""},
-        {"NMSEsection35", ""},
-        {"polarToCarthesianX", ""},
-        {"polarToCarthesianY", ""},
-        {"sec4example", ""},
-        {"test03_nonlin2", ""},
-        {"theta", ""},
-        {"turbine1", ""},
+        {"test05_nonlin1_r4", "exp(-log1p(x))"}, // warning, the origin is (x - 1)/(x*x - 1)
+        {"test05_nonlin1_test2", "exp(-log1p(x))"}, // warning, the origin is 1.0/(1+x)
+        {"verhulst", "pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333)"}, // warning, the origin is (4*x)/(1+x/1.11)
+        {"ComplexSinCos", "sin(x1) * ((pow(x2, 3.0) * -0.16666666666666666) - x2)"},
+        {"ComplexSquareRoot", "0.5 * sqrt((2.0 * (x1 + hypot(x1, x2))))"}, 
+        {"doppler1", "(fma(x2, -0.6, -331.4) / pow((331.4 + fma(0.6, x2, x0)), 2.0)) * x1"}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"doppler2", ""}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"doppler3", ""}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"hypot32", "hypotf(x1, x2)"}, // single precision
+        {"i4", "sqrtf(fmaf(f2, f2, f1))"}, // single precision
+        {"i6", "sinf((f1 * f2))"}, // single precision
+        {"NMSEexample33", "fma(x1, fma((x1 * -0.5), sin(x2), (cos(x2) + -1.0)), sin(x2))"},
+        {"NMSEproblem332", "fma(sin(x2) / cos(x2), (x1 * (x1 + (pow(sin(x2), 2.0) / (pow(cos(x2), 2.0) / x1)))), fma((pow(sin(x2), 2.0) / pow(cos(x2), 2.0)), x1, sin(x2) / cos(x2)))"}, // double t_0 = sin(x2) / cos(x2); double t_1 = pow(sin(x2), 2.0); double t_2 = pow(cos(x2), 2.0); *resultPtr = fma(t_0, (x1 * (x1 + (t_1 / (t_2 / x1)))), fma((t_1 / t_2), x1, t_0));
+        {"NMSEproblem335", "-2.0 * (sin(((x2 + (x1 - x1)) * 0.5)) * sin((0.5 * fma(x1, 2.0, x2))))"},
+        {"NMSEproblem346", ""}, // expm1(log1p((exp((log1p(x1) / x2)) - pow(x1, (1.0 / x2)))))
+        {"NMSEsection35", "expm1((a * x))"},
+        {"polarToCarthesianX", "x1 * cos(log((pow(sqrt(exp(0.017453292519944444)), x2) * fma(0.5, (pow(log(sqrt(exp(0.017453292519944444))), 2.0) * (x2 * x2)), fma(log(sqrt(exp(0.017453292519944444))), x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(log(sqrt(exp(0.017453292519944444))), 3.0)), 1.0))))))"}, // double t_1 = sqrt(exp(0.017453292519944444)); double t_2 = log(t_1); *resultPtr = x1 * cos(log((pow(t_1, x2) * fma(0.5, (pow(t_2, 2.0) * (x2 * x2)), fma(t_2, x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(t_2, 3.0)), 1.0))))));
+        {"polarToCarthesianY", "exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(log((x1 * x2)), 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - log((x1 * x2)))))"}, // double t_1 = log((x1 * x2)); *resultPtr = exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(t_1, 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - t_1)));
+        {"sec4example", "pow(fma(x1, x2, 1.0), -1.0)"}, // warning, the origin is ((x1*x2) - 1)/((x1*x2)*(x1*x2) - 1)
+        {"test03_nonlin2", ""}, // for test03_nonlin2, herbie is the same to origin
+        {"theta", "(pow(pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 2.0), 18.0) * pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 18.0)) * pow(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))), 9.0)"}, // double t_0 = cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))); double t_1 = cbrt(t_0); *resultPtr = (pow(pow(t_1, 2.0), 18.0) * pow(t_1, 18.0)) * pow(t_0, 9.0)
+        {"turbine1", "cbrt(pow((2.0 * pow(x2, -2.0)), 3.0)) - fma(fma(x0, -0.25, 0.375), ((x2 / (1.0 - x0)) * (x2 * pow(x1, 2.0))), 1.5)"}, // warning, the origin is (2.0/(r*r)+3.0) - ((3.0 - 2.0*v)*(1.0/8.0)*((w*w)*r*r))/(1.0 - v) - 9.0/2.0
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);

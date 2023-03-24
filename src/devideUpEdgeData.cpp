@@ -312,9 +312,9 @@ vector<double> extractInfo(vector<double *> &origin) {
     return destination;
 }
 
-vector<double> devideUpEdgeData(string upEdgeFileName, double &threshold, double thresholdCombine) {
+vector<double> devideUpEdgeData(string upEdgeFileName, double &threshold, int &numIntervalsBefore, double thresholdCombine) {
     vector<double> intervalData;
-    // thresholdCombine = 0; // TODO: set thresholdCombine
+    // thresholdCombine = 0;
     // upEdgeFileName 文件中有3列，分别是序号、输入、误差。该文件是由matlab生成，故文件中的序号从1开始，而非0。
     // matlab_vector可视为二维数组，保存的是 upEdgeFileName 中的边界点数据，包括序号、输入、误差;输出数组元素：  
     int columns = 3;
@@ -338,6 +338,7 @@ vector<double> devideUpEdgeData(string upEdgeFileName, double &threshold, double
     // printRegime(output_vector.size(), output_vector, "intervalTmp_beforeCombine.txt", "distanceTmp_beforeCombine.txt", "widthTmp_beforeCombine.txt");
     
     // Merge intervals that are close in distance.
+    numIntervalsBefore = output_vector.size() / 2;
     vector<double *> merge_vector;
     interval_merge(output_vector, merge_vector, thresholdCombine);
     // printRegime(merge_vector.size(), merge_vector, intervalFileName, "distanceTmp_afterCombine.txt", "widthTmp_afterCombine.txt");
