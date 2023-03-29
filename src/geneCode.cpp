@@ -269,18 +269,18 @@ string geneHerbieCode(string uniqueLabel)
         {"test05_nonlin1_r4", "exp(-log1p(x))"}, // warning, the origin is (x - 1)/(x*x - 1)
         {"test05_nonlin1_test2", "exp(-log1p(x))"}, // warning, the origin is 1.0/(1+x)
         {"verhulst", "pow(log1p(expm1((64.0 * pow((x / fma(x, 0.9009009009009009, 1.0)), 3.0)))), 0.3333333333333333)"}, // warning, the origin is (4*x)/(1+x/1.11)
-        {"ComplexSinCos", "sin(x1) * ((pow(x2, 3.0) * -0.16666666666666666) - x2)"},
+        {"ComplexSinCos", "sin(r) * ((pow(i, 3.0) * -0.16666666666666666) - i)"},
         {"ComplexSquareRoot", "0.5 * sqrt((2.0 * (x1 + hypot(x1, x2))))"}, 
-        {"doppler1", "(fma(x2, -0.6, -331.4) / pow((331.4 + fma(0.6, x2, x0)), 2.0)) * x1"}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
-        {"doppler2", ""}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
-        {"doppler3", ""}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"doppler1", "(fma(T, -0.6, -331.4) / pow((331.4 + fma(0.6, T, u)), 2.0)) * v"}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"doppler2", "v * (fma(T, -0.6, -331.4) / fma(u, (u + fma(1.2, T, 662.8)), pow(fma(T, 0.6, 331.4), 2.0)));"}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+        {"doppler3", "(fma(T, -0.6, -331.4) / pow((331.4 + fma(0.6, T, u)), 2.0)) * v"}, // warning, the origin is ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
         {"hypot32", "hypotf(x1, x2)"}, // single precision
         {"i4", "sqrtf(fmaf(f2, f2, f1))"}, // single precision
         {"i6", "sinf((f1 * f2))"}, // single precision
-        {"NMSEexample33", "fma(x1, fma((x1 * -0.5), sin(x2), (cos(x2) + -1.0)), sin(x2))"},
-        {"NMSEproblem332", "fma(sin(x2) / cos(x2), (x1 * (x1 + (pow(sin(x2), 2.0) / (pow(cos(x2), 2.0) / x1)))), fma((pow(sin(x2), 2.0) / pow(cos(x2), 2.0)), x1, sin(x2) / cos(x2)))"}, // double t_0 = sin(x2) / cos(x2); double t_1 = pow(sin(x2), 2.0); double t_2 = pow(cos(x2), 2.0); *resultPtr = fma(t_0, (x1 * (x1 + (t_1 / (t_2 / x1)))), fma((t_1 / t_2), x1, t_0));
-        {"NMSEproblem335", "-2.0 * (sin(((x2 + (x1 - x1)) * 0.5)) * sin((0.5 * fma(x1, 2.0, x2))))"},
-        {"NMSEproblem346", ""}, // expm1(log1p((exp((log1p(x1) / x2)) - pow(x1, (1.0 / x2)))))
+        {"NMSEexample33", "fma(x, fma((x * -0.5), sin(eps), (cos(eps) + -1.0)), sin(eps))"},
+        {"NMSEproblem332", "fma(sin(eps) / cos(eps), (x * (x + (pow(sin(eps), 2.0) / (pow(cos(eps), 2.0) / x)))), fma((pow(sin(eps), 2.0) / pow(cos(eps), 2.0)), x, sin(eps) / cos(eps)))"}, // double t_0 = sin(x2) / cos(x2); double t_1 = pow(sin(x2), 2.0); double t_2 = pow(cos(x2), 2.0); *resultPtr = fma(t_0, (x1 * (x1 + (t_1 / (t_2 / x1)))), fma((t_1 / t_2), x1, t_0));
+        {"NMSEproblem335", "-2.0 * (sin(((eps + (x - x)) * 0.5)) * sin((0.5 * fma(x, 2.0, eps))))"},
+        {"NMSEproblem346", "expm1(log1p((exp((log1p(x) / n)) - pow(x, (1.0 / n)))))"},
         {"NMSEsection35", "expm1((a * x))"},
         {"polarToCarthesianX", "x1 * cos(log((pow(sqrt(exp(0.017453292519944444)), x2) * fma(0.5, (pow(log(sqrt(exp(0.017453292519944444))), 2.0) * (x2 * x2)), fma(log(sqrt(exp(0.017453292519944444))), x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(log(sqrt(exp(0.017453292519944444))), 3.0)), 1.0))))))"}, // double t_1 = sqrt(exp(0.017453292519944444)); double t_2 = log(t_1); *resultPtr = x1 * cos(log((pow(t_1, x2) * fma(0.5, (pow(t_2, 2.0) * (x2 * x2)), fma(t_2, x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(t_2, 3.0)), 1.0))))));
         {"polarToCarthesianY", "exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(log((x1 * x2)), 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - log((x1 * x2)))))"}, // double t_1 = log((x1 * x2)); *resultPtr = exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(t_1, 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - t_1)));
