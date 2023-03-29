@@ -263,10 +263,10 @@ int main(int argc, char **argv) {
             exit(0);
         }
         printf("average ulp\tmax ulp\n");
-        printf("%lg\t%lg\n", aveError, maxError);
-        printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
+        printf("%.16le\t%.16le\n", aveError, maxError);
+        // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
-        fprintf(fErr, "%lg\t%lg\n", aveError, maxError);
+        fprintf(fErr, "%.16le\t%.16le\n", aveError, maxError);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxError);
 
         free(fileNameErr);

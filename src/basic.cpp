@@ -748,8 +748,8 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
 
     if (outputFile.is_open())
     {
-        outputFile << uniqueLabel << ", ";
-        outputFile << exprOriginBest << ", ";
+        outputFile << setiosflags(ios::scientific)<< std::setprecision(6) << uniqueLabel << ", ";
+        outputFile << setiosflags(ios::scientific)<< std::setprecision(6) << exprOriginBest << ", ";
         for (const auto &val : data)
         {
             outputFile << val << ", ";
