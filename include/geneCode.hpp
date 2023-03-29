@@ -29,7 +29,7 @@ void geneHerbieCode(string exprstr, vector<string> cs, string exprname, double v
 
 string geneHerbieCode(string uniqueLabel);
 
-void geneDaisyCode(string exprStr);
+string geneDaisyCode(string uniqueLabel);
 
 string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars);
 

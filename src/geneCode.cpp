@@ -309,9 +309,78 @@ string geneHerbieCode(string uniqueLabel)
     exit(EXIT_FAILURE);
 }
 
-void geneDaisyCode(string exprStr)
+string geneDaisyCode(string uniqueLabel)
 {
-    cout << exprStr << endl;
+    map<string, string> benchmarkDaisy = {
+        {"Bsplines3", ""},
+        {"exp1x", ""},
+        {"exp1x_log", ""},
+        {"intro_example", ""},
+        {"logexp", ""},
+        {"NMSEexample31", ""},
+        {"NMSEexample310", ""},
+        {"NMSEexample34", ""},
+        {"NMSEexample35", ""},
+        {"NMSEexample36", ""},
+        {"NMSEexample37", ""},
+        {"NMSEexample38", "(((log((1.0 + x)) * x) + (log((x + 1.0)) - 1.0)) - (x * log(x)))"},
+        {"NMSEexample39", ""},
+        {"NMSEproblem331", ""},
+        {"NMSEproblem333", ""},
+        {"NMSEproblem334", ""},
+        {"NMSEproblem336", ""},
+        {"NMSEproblem337", ""},
+        {"NMSEproblem341", ""},
+        {"NMSEproblem343", ""},
+        {"NMSEproblem344", ""},
+        {"NMSEproblem345", ""},
+        {"NMSEsection311", ""},
+        {"predatorPrey", ""},
+        {"sine", ""},
+        {"sineorder3", ""},
+        {"sqroot", ""},
+        {"sqrt_add", ""},
+        {"test05_nonlin1_r4", ""},
+        {"test05_nonlin1_test2", ""},
+        {"verhulst", ""},
+        {"ComplexSinCos", ""},
+        {"ComplexSquareRoot", ""},
+        {"doppler1", ""},
+        {"doppler2", ""},
+        {"doppler3", ""},
+        {"hypot32", ""},
+        {"i4", ""},
+        {"i6", ""},
+        {"NMSEexample33", ""},
+        {"NMSEproblem332", ""},
+        {"NMSEproblem335", ""},
+        {"NMSEproblem346", ""},
+        {"NMSEsection35", ""},
+        {"polarToCarthesianX", ""},
+        {"polarToCarthesianY", ""},
+        {"sec4example", ""},
+        {"test03_nonlin2", ""},
+        {"theta", ""},
+        {"turbine1", ""},
+    };
+
+    auto pos = benchmarkDaisy.find(uniqueLabel);
+    if (pos != benchmarkDaisy.end())
+    {
+        string daisyExpr = pos->second;
+        if(daisyExpr != "")
+        {
+            geneExprCode(daisyExpr, uniqueLabel, "daisy");
+        }
+        else
+        {
+            fprintf(stderr, "ERROR: geneDaisyCode: daisy's rewrite result for %s can not be used.\n", uniqueLabel.c_str());
+            // TODO: just write the if-else result to file.
+        }
+        return daisyExpr;
+    }
+    fprintf(stderr, "ERROR: geneDaisyCode: we can not support %s now\n", uniqueLabel.c_str());
+    exit(EXIT_FAILURE);
 }
 
 string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars)

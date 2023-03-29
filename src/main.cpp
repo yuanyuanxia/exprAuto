@@ -105,8 +105,8 @@ int main()
 
     fprintf(stderr, GREEN "ready> " RESET);
     string inputStr = "";
-    while (getline(infile, inputStr)) // read line from file's input
-    // while (getline(cin, inputStr)) // read line from keyboard input
+    // while (getline(infile, inputStr)) // read line from file's input
+    while (getline(cin, inputStr)) // read line from keyboard input
     {
         // only rewrite
         // getlineCount++;
@@ -214,10 +214,15 @@ int main()
         initExprInfos.push_back(tempExprInfo);
         tempExprInfo.suffix = "herbie";
         initExprInfos.push_back(tempExprInfo);
+        tempExprInfo.suffix = "daisy";
+        initExprInfos.push_back(tempExprInfo);
         auto &originExprInfo = initExprInfos.at(0);
         auto &herbieExprInfo = initExprInfos.at(1);
+        auto &daisyExprInfo = initExprInfos.at(2);
         herbieExprInfo.aveError = -1;
         herbieExprInfo.maxError = -1;
+        daisyExprInfo.aveError = -1;
+        daisyExprInfo.maxError = -1;
         if (runAllFlag)
         { // the whole process
             if (!isBenchMark)
@@ -233,13 +238,12 @@ int main()
             // auto funcNameOrigin = geneExprCode(inputStr, uniqueLabel, "origin");
             // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
             auto exprHerbie = geneHerbieCode(uniqueLabel);
-            // auto exprDaisy = geneDaisyCode(inputStr, uniqueLabel, "daisy");
+            auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
             originPerformance = testPerformance(uniqueLabel, "origin", intervals);
             cout << "origin performance: " << originPerformance << "\n\n";
 
-            // TODO: improve pickTheBest to support more suffix
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
             {
@@ -247,7 +251,15 @@ int main()
             }
             else
             {
-                fprintf(stderr, "For exprOrigin, Herbie's rewrite results can not be used.\nSo, we just pick origin as the best.\n");
+                fprintf(stderr, "For exprOrigin, Herbie's rewrite results can not be used.\n");
+            }
+            if (exprDaisy != "")
+            {
+                suffixSet.push_back("daisy");
+            }
+            else
+            {
+                fprintf(stderr, "For exprOrigin, Daisy's rewrite results can not be used.\n");
             }
             
             auto &initExprInfo = pickTheBest(uniqueLabel, suffixSet, initExprInfos, intervals, scales);
@@ -260,6 +272,10 @@ int main()
             else if (exprOriginBest == "herbie")
             {
                 inputStr = exprHerbie;
+            }
+            else if (exprOriginBest == "daisy")
+            {
+                inputStr = exprDaisy;
             }
             else
             {
