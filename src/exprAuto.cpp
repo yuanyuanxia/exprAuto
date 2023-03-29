@@ -1410,9 +1410,9 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
     expr = minusRewrite(expr);
     combineConstant(expr);
     printExpr(expr, "exprAutoWrapper: after parse, expr = ", DOUBLE_PRECISION);
-    auto expr0 = combineConstant1(expr);
-    sortExpr(expr0);
-    printExpr(expr0, "exprAutoWrapper: after some prepare, expr = ", DOUBLE_PRECISION);
+    expr = combineConstant1(expr);
+    sortExpr(expr);
+    printExpr(expr, "exprAutoWrapper: after some prepare, expr = ", DOUBLE_PRECISION);
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
     combineConstant(expr1);
     sortExpr(expr1);

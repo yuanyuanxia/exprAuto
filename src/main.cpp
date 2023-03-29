@@ -243,6 +243,9 @@ int main()
 
             originPerformance = testPerformance(uniqueLabel, "origin", intervals);
             cout << "origin performance: " << originPerformance << "\n\n";
+            originPerformance = testPerformance(uniqueLabel, "herbie", intervals);
+            cout << "origin performance: " << originPerformance << "\n\n";
+            
 
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
@@ -436,10 +439,10 @@ int main()
             exit(EXIT_FAILURE);
         }
         summaryData.push_back(originExprInfo.aveError);
-        summaryData.push_back(herbieExprInfo.aveError);
-        summaryData.push_back(finalInfo.aveError);
         summaryData.push_back(originExprInfo.maxError);
+        summaryData.push_back(herbieExprInfo.aveError);
         summaryData.push_back(herbieExprInfo.maxError);
+        summaryData.push_back(finalInfo.aveError);
         summaryData.push_back(finalInfo.maxError);
         summaryData.push_back(originPerformance);
         summaryData.push_back(finalInfo.performance);
