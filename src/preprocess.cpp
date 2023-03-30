@@ -226,16 +226,53 @@ ast_ptr moveDivKernel(const ast_ptr &expr)
     return expr->Clone();
 }
 
+bool checkConstantDenominator(const ast_ptr& expr, ast_ptr& result)
+{
+    if (expr == nullptr)
+    {
+        fprintf(stderr, "\tERROR: checkConstantDenominator: the input expr is nullptr!\n");
+        return false;
+    }
+    if (expr->type() == "Binary")
+    {
+        BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOpPtr->getOp();
+        if (op == '/')
+        {
+            auto &rhs = binOpPtr->getRHS();
+            if(rhs->type() == "Number")
+            {
+                NumberExprAST *numPtr = dynamic_cast<NumberExprAST *>(rhs.get());
+                double num = 1 / numPtr->getNumber();
+                ast_ptr newRhs = makePtr<NumberExprAST>(num);
+                auto &lhs = binOpPtr->getLHS();
+                result = mulExpr(lhs, newRhs);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Now, moveDiv will change the constant denominator to its reciprocal and then multiply its reciprocal.
 vector<ast_ptr> moveDiv(const vector<ast_ptr> &exprs)
 {
     // fprintf(stderr, "moveDiv: start--------\n");
     vector<ast_ptr> items;
-    ast_ptr moveBefore, moveAfter;
+    ast_ptr moveBefore, moveAfter, checkAfter;
     for (long unsigned int i = 0; i < exprs.size(); i++)
     {
         moveBefore = exprs.at(i)->Clone();
         moveAfter = moveDivKernel(moveBefore);
-        items.push_back(std::move(moveAfter));
+        bool checkResult = checkConstantDenominator(moveAfter, checkAfter);
+        if(checkResult)
+        {
+            items.push_back(std::move(checkAfter));
+        }
+        else
+        {
+            items.push_back(std::move(moveAfter));
+        }
     }
     // print info for debug
     // fprintf(stderr, "\tmoveDiv: expr size = %ld\n", items.size());
@@ -409,6 +446,7 @@ ast_ptr preprocessInit(const ast_ptr &expr)
         // {
             // fprintf(stderr, "\tpreprocessInit: after extractItems: No.%lu: %s\n", i, PrintExpression(exprs1[i]).c_str());
         // }
+        // TODO: consider if neccesary to do: for each item, run moveDiv (containing change constant denominator) for each item and then permute them.
         vector<ast_ptr> exprs2 = moveDiv(exprs1);
         // fprintf(stderr, "\tpreprocessInit: after moveDiv: exprs2 size = %ld\n", exprs2.size());
         // for (size_t i = 0; i < exprs2.size(); i++)
