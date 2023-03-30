@@ -285,7 +285,7 @@ string geneHerbieCode(string uniqueLabel)
         {"polarToCarthesianX", "x1 * cos(log((pow(sqrt(exp(0.017453292519944444)), x2) * fma(0.5, (pow(log(sqrt(exp(0.017453292519944444))), 2.0) * (x2 * x2)), fma(log(sqrt(exp(0.017453292519944444))), x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(log(sqrt(exp(0.017453292519944444))), 3.0)), 1.0))))))"}, // double t_1 = sqrt(exp(0.017453292519944444)); double t_2 = log(t_1); *resultPtr = x1 * cos(log((pow(t_1, x2) * fma(0.5, (pow(t_2, 2.0) * (x2 * x2)), fma(t_2, x2, fma(pow(x2, 3.0), (0.16666666666666666 * pow(t_2, 3.0)), 1.0))))));
         {"polarToCarthesianY", "exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(log((x1 * x2)), 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - log((x1 * x2)))))"}, // double t_1 = log((x1 * x2)); *resultPtr = exp((((log(0.017453292519944444) * log(0.017453292519944444)) + (0.0 - pow(pow(t_1, 6.0), 0.3333333333333333))) / (log(0.017453292519944444) - t_1)));
         {"sec4example", "pow(fma(x1, x2, 1.0), -1.0)"}, // warning, the origin is ((x1*x2) - 1)/((x1*x2)*(x1*x2) - 1)
-        {"test03_nonlin2", ""}, // for test03_nonlin2, herbie is the same to origin
+        {"test03_nonlin2", "(x + y)/(x - y)"}, // for test03_nonlin2, herbie is the same to origin
         {"theta", "(pow(pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 2.0), 18.0) * pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 18.0)) * pow(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))), 9.0)"}, // double t_0 = cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))); double t_1 = cbrt(t_0); *resultPtr = (pow(pow(t_1, 2.0), 18.0) * pow(t_1, 18.0)) * pow(t_0, 9.0)
         {"turbine1", "cbrt(pow((2.0 * pow(x2, -2.0)), 3.0)) - fma(fma(x0, -0.25, 0.375), ((x2 / (1.0 - x0)) * (x2 * pow(x1, 2.0))), 1.5)"}, // warning, the origin is (2.0/(r*r)+3.0) - ((3.0 - 2.0*v)*(1.0/8.0)*((w*w)*r*r))/(1.0 - v) - 9.0/2.0
     };
@@ -356,11 +356,11 @@ string geneDaisyCode(string uniqueLabel)
         {"NMSEproblem335", ""},
         {"NMSEproblem346", ""},
         {"NMSEsection35", ""},
-        {"polarToCarthesianX", ""},
-        {"polarToCarthesianY", ""},
+        {"polarToCarthesianX", "radius * cos(theta * 0.017453292519944444)"},
+        {"polarToCarthesianY", "radius * sin(theta * 0.017453292519944444)"},
         {"sec4example", ""},
         {"test03_nonlin2", ""},
-        {"theta", ""},
+        {"theta", "atan((x2 / x1)) * 57.29577951307855"},
         {"turbine1", ""},
     };
 
