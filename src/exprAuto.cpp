@@ -543,8 +543,23 @@ vector<ast_ptr> mathfuncRewriteNew(const ast_ptr &expr)
     char op = binOpPtr->getOp();
     auto &lhs = binOpPtr->getLHS();
     auto &rhs = binOpPtr->getRHS();
-    auto lhsNewASTs = mathfuncRewrite(lhs, false);
-    auto rhsNewASTs = mathfuncRewrite(rhs, false);
+    auto lhsNewASTsInit = mathfuncRewrite(lhs, false);
+    vector<ast_ptr> lhsNewASTs;
+    for(size_t i = 0; i < lhsNewASTsInit.size(); i++)
+    {
+        auto &lhsNewAST = lhsNewASTsInit.at(i);
+        if(!isEqual(lhsNewAST, lhs))
+            lhsNewASTs.push_back(std::move(lhsNewAST));
+    }
+    
+    auto rhsNewASTsInit = mathfuncRewrite(rhs, false);
+    vector<ast_ptr> rhsNewASTs;
+    for(size_t i = 0; i < rhsNewASTsInit.size(); i++)
+    {
+        auto &rhsNewAST = rhsNewASTsInit.at(i);
+        if(!isEqual(rhsNewAST, rhs))
+            rhsNewASTs.push_back(std::move(rhsNewAST));
+    }
     if(lhsNewASTs.size() == 0)
     {
         lhsNewASTs.push_back(lhs->Clone());
@@ -599,6 +614,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
             auto tmps = mathfuncRewriteNew(newAST);
             mineAppend(tmps1, tmps);
         }
+        exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));        
         while(tmps1.size() != 0)
         {
             vector<ast_ptr> tmps3;
