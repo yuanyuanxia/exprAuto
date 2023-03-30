@@ -281,6 +281,11 @@ ast_ptr dealWithCallsKernel(const ast_ptr &expr, const string callee)
         // cout << "dealWithCallsKernel: That is " << callee << endl;
         result = sqrtTohypot(expr);
     }
+    else if(callee == "fma")
+    {
+        // cout << "dealWithCallsKernel: That is " << callee << endl;
+        result = fmaToMulAndAdd(expr);
+    }
     else
     {
         // cout << "dealWithCallsKernel: default: That is " << callee << endl;
@@ -457,6 +462,11 @@ vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr, const char &op)
             mineAppend(results, tmps);
         }
     }
+    else if(op == '*')
+    {
+        auto tmps = powCombine(expr);
+        mineAppend(results, tmps);
+    }
     else
     {
         // cout << "dealWithBinOpKernel: default: That is " << op << endl;
@@ -506,6 +516,54 @@ vector<ast_ptr> dealWithBinOp(vector<ast_ptr> &exprs, const char &op)
     return results;
 }
 
+vector<ast_ptr> mathfuncRewriteNew(const ast_ptr &expr)
+{
+    static size_t callCount = 0;
+    callCount++;
+    callLevel++;
+    string prompt(callLevel * promtTimes, callLevelChar);
+    prompt.append(callCount, callCountChar);
+    prompt += "mathfuncRewrite: ";
+    if(callCount == 1) cout << prompt << "start--------" << endl;
+
+    vector<ast_ptr> exprsFinal;
+    if(expr == nullptr)
+    {
+        cerr << "ERROR: empty" << endl;
+        exit(EXIT_FAILURE);
+    }
+    if(expr->type() != "Binary")  // May be variable or number
+    {
+        callCount--;
+        callLevel--;
+        return exprsFinal;
+    }
+
+    BinaryExprAST *binOpPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    char op = binOpPtr->getOp();
+    auto &lhs = binOpPtr->getLHS();
+    auto &rhs = binOpPtr->getRHS();
+    auto lhsNewASTs = mathfuncRewrite(lhs, false);
+    auto rhsNewASTs = mathfuncRewrite(rhs, false);
+    if(lhsNewASTs.size() == 0)
+    {
+        lhsNewASTs.push_back(lhs->Clone());
+    }
+    if(rhsNewASTs.size() == 0)
+    {
+        rhsNewASTs.push_back(rhs->Clone());
+    }
+    auto newASTs = createAllBinary(lhsNewASTs, rhsNewASTs, op);
+    deleteTheSame(newASTs);
+    newASTs = dealWithBinOp(newASTs, op);
+    exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+    deleteTheSame(exprsFinal);
+
+    callCount--;
+    callLevel--;
+    return exprsFinal;
+}
+
 vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
 {
     static size_t callCount = 0;
@@ -534,7 +592,27 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
     {
         // printExpr(expr, prompt + "before dealWithCalls: newexpr = ");
         auto newASTs = dealWithCalls(newexpr);
-        exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(newASTs.begin()), std::make_move_iterator(newASTs.end()));
+        if(callCount == 1) printExprs(newASTs, "\tmathfuncRewrite: newASTs = ");
+        vector<ast_ptr> tmps1;
+        for(auto &newAST : newASTs)
+        {
+            auto tmps = mathfuncRewriteNew(newAST);
+            mineAppend(tmps1, tmps);
+        }
+        while(tmps1.size() != 0)
+        {
+            vector<ast_ptr> tmps3;
+            for(auto &tmp1 : tmps1)
+            {
+                auto tmps2 = mathfuncRewriteNew(tmp1);
+                if(!(tmps2.size() == 1 && isEqual(tmps2.at(0), tmp1)))
+                    mineAppend(tmps3, tmps2);
+            }
+            exprsFinal.insert(exprsFinal.end(), std::make_move_iterator(tmps1.begin()), std::make_move_iterator(tmps1.end()));
+            tmps1.clear();
+            tmps1.insert(tmps1.end(), std::make_move_iterator(tmps3.begin()), std::make_move_iterator(tmps3.end()));
+        }
+        if(callCount == 1) deleteTheSame(exprsFinal);
 
         // if(callCount == 1) printExprs(exprsFinal, "\tmathfuncRewrite: ");
         // if(callCount == 1) cout << prompt << "end--------" << endl;

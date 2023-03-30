@@ -38,4 +38,8 @@ ast_ptr toPow(const ast_ptr &expr);
 
 ast_ptr sumToProduct(const ast_ptr &expr);
 
+ast_ptr fmaToMulAndAdd(const ast_ptr &expr);
+
+vector<ast_ptr> powCombine(const ast_ptr& expr);
+
 #endif

@@ -1379,3 +1379,109 @@ ast_ptr sumToProduct(const ast_ptr &expr)
 
     return result;
 }
+
+ast_ptr fmaToMulAndAdd(const ast_ptr &expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: fmaToMulAndAdd's input is empty!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(expr->type() != "Call")
+    {
+        return expr->Clone();
+    }
+    
+    CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+    string callee = (callExpr->getCallee());
+    vector<ast_ptr> &args = callExpr->getArgs();
+
+    // fma(a, b, c) := a * b + c
+    if(callee == "fma" && args.size() == 3)
+    {
+        ast_ptr &param1 = args.at(0); 
+        ast_ptr &param2 = args.at(1);
+        ast_ptr &param3 = args.at(2);
+        if(param1 == nullptr || param2 == nullptr || param3 == nullptr)
+        {
+            fprintf(stderr, "ERROR: fmaToMulAndAdd's params is wrong!\n");
+            exit(EXIT_FAILURE);
+        }
+        ast_ptr tmp1 = mulExpr(param1, param2);
+        ast_ptr tmp2 = addExpr(tmp1, param3);
+        return tmp2;
+    }
+    return expr->Clone();
+}
+
+vector<ast_ptr> powCombine(const ast_ptr& expr)
+{
+    vector<ast_ptr> results;
+    // results.push_back(expr->Clone());
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: powCombine's input is empty!\n");
+        exit(EXIT_FAILURE);
+    }
+    if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
+        if((op == '*') && (lhs->type() == "Call") && (rhs->type() == "Call"))  // LHS = "Call" && RHS ='Call'
+        {
+            CallExprAST *callExprLHS = dynamic_cast<CallExprAST *>(lhs.get());
+            string calleeLHS = (callExprLHS->getCallee());
+            CallExprAST *callExprRHS = dynamic_cast<CallExprAST *>(rhs.get());
+            string calleeRHS = (callExprRHS->getCallee());
+
+            if(calleeLHS == "pow" && calleeLHS == "pow")
+            {
+                vector<ast_ptr> &argsLHS = callExprLHS->getArgs();
+                vector<ast_ptr> &argsRHS = callExprRHS->getArgs();
+                auto &base1 = argsLHS.at(0);
+                auto &base2 = argsRHS.at(0);
+                if(isEqual(base1, base2))
+                {
+                    auto &power1 = argsLHS.at(1);
+                    auto &power2 = argsRHS.at(1);
+                    auto typePower1 = power1->type();
+                    auto typePower2 = power2->type();
+                    if(typePower1 == "Number" && typePower2 == "Number")
+                    {
+                        NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(power1.get());
+                        NumberExprAST *numberExpr02 = dynamic_cast<NumberExprAST *>(power2.get());
+                        double number1 = (numberExpr01->getNumber());
+                        double number2 = (numberExpr02->getNumber());
+                        double powerFinal = number1 + number2;
+                        ast_ptr powerFinalExpr = makePtr<NumberExprAST>(powerFinal);
+                        vector<ast_ptr> argsNew;
+                        argsNew.push_back(base1->Clone());
+                        argsNew.push_back(powerFinalExpr->Clone());
+                        ast_ptr result = makePtr<CallExprAST>("pow", std::move(argsNew));
+
+                        // check if the power is equal to 0.5
+                        if(powerFinal == 0.5)
+                        {
+                            vector<ast_ptr> argsNew1;
+                            argsNew1.push_back(base1->Clone());
+                            ast_ptr result1 = makePtr<CallExprAST>("sqrt", std::move(argsNew1));
+                            results.push_back(std::move(result1));
+                        }
+
+                        results.push_back(std::move(result));
+                    }
+                }
+            }
+        }
+    }
+    if(results.size() == 0)
+    {
+        results.push_back(expr->Clone());
+    }
+    return results;
+}
