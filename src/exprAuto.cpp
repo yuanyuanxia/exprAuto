@@ -466,6 +466,8 @@ vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr, const char &op)
     {
         auto tmps = powCombine(expr);
         mineAppend(results, tmps);
+        auto tmps1 = sqrtCombine(expr);
+        mineAppend(results, tmps1);
     }
     else
     {

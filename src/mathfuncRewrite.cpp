@@ -1485,3 +1485,61 @@ vector<ast_ptr> powCombine(const ast_ptr& expr)
     }
     return results;
 }
+
+vector<ast_ptr> sqrtCombine(const ast_ptr& expr)
+{
+    vector<ast_ptr> results;
+    // results.push_back(expr->Clone());
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: sqrtCombine's input is empty!\n");
+        exit(EXIT_FAILURE);
+    }
+    if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
+        if((op == '*') && (lhs->type() == "Call") && (rhs->type() == "Call"))  // LHS = "Call" && RHS ='Call'
+        {
+            CallExprAST *callExprLHS = dynamic_cast<CallExprAST *>(lhs.get());
+            string calleeLHS = (callExprLHS->getCallee());
+            CallExprAST *callExprRHS = dynamic_cast<CallExprAST *>(rhs.get());
+            string calleeRHS = (callExprRHS->getCallee());
+
+            if(calleeLHS == "sqrt" && calleeLHS == "sqrt")
+            {
+                vector<ast_ptr> &argsLHS = callExprLHS->getArgs();
+                vector<ast_ptr> &argsRHS = callExprRHS->getArgs();
+                auto &paramL = argsLHS.at(0);
+                auto &paramR = argsRHS.at(0);
+                auto typeParamL = paramL->type();
+                auto typeParamR = paramL->type();
+                if((typeParamL == "Variable" && typeParamR == "Variable"))
+                {
+                    VariableExprAST *varExpr01 = dynamic_cast<VariableExprAST *>(paramL.get());
+                    VariableExprAST *varExpr02 = dynamic_cast<VariableExprAST *>(paramR.get());
+                    string var1 = (varExpr01->getVariable());
+                    string var2 = (varExpr02->getVariable());
+                    if(var1 == var2)
+                    {
+                        ast_ptr varfinalExpr = makePtr<VariableExprAST>(var1);
+                        results.push_back(std::move(varfinalExpr));
+                    }
+                    else
+                    {
+                        // TODO: sqrt(x)*sqrt(y) ==> sqrt(x*y)
+                    }
+                }
+            }
+        }
+    }
+    if(results.size() == 0)
+    {
+        results.push_back(expr->Clone());
+    }
+    return results;
+}

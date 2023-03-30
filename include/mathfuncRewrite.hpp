@@ -42,4 +42,6 @@ ast_ptr fmaToMulAndAdd(const ast_ptr &expr);
 
 vector<ast_ptr> powCombine(const ast_ptr& expr);
 
+vector<ast_ptr> sqrtCombine(const ast_ptr& expr);
+
 #endif
