@@ -1114,6 +1114,19 @@ exprInfo &pickTheBest(const string &uniqueLabel, vector<string> testSet, vector<
     {
         isSingleParam = false;
     }
+    int dimension = scales.size();
+    vector<int> startNowIdxs(dimension, 0);
+    vector<double> startOriginIntervals;
+    vector<double> steps;
+    for (int i = 0; i < dimension; i++)
+    {
+        auto &startOriginInterval = intervals.at(i * 2);
+        auto &endOriginInterval = intervals.at(i * 2 + 1);
+        startOriginIntervals.push_back(startOriginInterval);
+        double width = endOriginInterval - startOriginInterval;
+        double step = width / (double)scales.at(i);
+        steps.push_back(step);
+    }
     for (size_t i = 0; i < testSet.size(); i++)
     {
         auto &exprInfoTmp = initExprInfos.at(i);
@@ -1121,7 +1134,7 @@ exprInfo &pickTheBest(const string &uniqueLabel, vector<string> testSet, vector<
         cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
 
         // generate function code and test error
-        exprInfoTmp = testError(uniqueLabel, suffixTmp, intervals, scales, isSingleParam);
+        exprInfoTmp = testError(uniqueLabel, suffixTmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, isSingleParam);
         // cout << "pickTheBest: for item No." << i << ": maxError: " << exprInfoTmp.maxError << "\n";
         // cout << "pickTheBest: for item No." << i << ": aveError: " << exprInfoTmp.aveError << "\n";
         if ((exprInfoTmp.maxError < maxError) || ((exprInfoTmp.maxError == maxError) && (exprInfoTmp.aveError < aveError)))
@@ -1147,13 +1160,26 @@ exprInfo pickTheBest(string uniqueLabel, vector<string> testSet, vector<double> 
     {
         isSingleParam = false;
     }
+    int dimension = scales.size();
+    vector<int> startNowIdxs(dimension, 0);
+    vector<double> startOriginIntervals;
+    vector<double> steps;
+    for (int i = 0; i < dimension; i++)
+    {
+        auto &startOriginInterval = intervals.at(i * 2);
+        auto &endOriginInterval = intervals.at(i * 2 + 1);
+        startOriginIntervals.push_back(startOriginInterval);
+        double width = endOriginInterval - startOriginInterval;
+        double step = width / (double)scales.at(i);
+        steps.push_back(step);
+    }
     for (size_t i = 0; i < testSet.size(); i++)
     {
         string suffixTmp = testSet.at(i);
         cout << "*-*-*-pickTheBest: for item No." << i << ": type = " << suffixTmp << endl;
 
         // generate function code and test error
-        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales, isSingleParam);
+        auto tempError = testError(uniqueLabel, suffixTmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, isSingleParam);
         // cout << "pickTheBest: for item No." << i << ": maxError: " << tempError.maxError << "\n";
         // cout << "pickTheBest: for item No." << i << ": aveError: " << tempError.aveError << "\n";
         
@@ -1202,6 +1228,19 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     double aveError = 0;
     size_t maxIdx = -1;
     size_t iEnd = min(items.size(), size_t(100000));
+
+    vector<int> startNowIdxs(dimension, 0);
+    vector<double> startOriginIntervals;
+    vector<double> steps;
+    for (int i = 0; i < dimension; i++)
+    {
+        auto &startOriginInterval = intervalTmp.at(i * 2);
+        auto &endOriginInterval = intervalTmp.at(i * 2 + 1);
+        startOriginIntervals.push_back(startOriginInterval);
+        double width = endOriginInterval - startOriginInterval;
+        double step = width / (double)scales.at(i);
+        steps.push_back(step);
+    }
     for (size_t i = 0; i < iEnd; i++)
     {
         string item = PrintExpression(items.at(i));
@@ -1211,7 +1250,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
         string suffixTmp = suffix + std::to_string(i);
         geneExprCodeKernel(item, vars, uniqueLabel, suffixTmp);
         // auto timeTmp1 = std::chrono::high_resolution_clock::now();
-        auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
+        auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales, startNowIdxs, startOriginIntervals, steps);
         // auto timeTmp2 = std::chrono::high_resolution_clock::now();
         // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
         // cout << BLUE << "rewrite: For NO." << i << ": testError time: " << testError_seconds.count() << " s" << RESET << endl;
@@ -1614,8 +1653,22 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
         // auto info = testError(uniqueLabel, "origin", 0, 1, scale);
         // auto info1 = testError(uniqueLabel, "sympy", 0, 1, scale);
 
-        auto info = testError(uniqueLabel, "origin", intervals, scales);
-        auto info1 = testError(uniqueLabel, "sympy", intervals, scales);
+        int dimension = scales.size();
+        vector<int> startNowIdxs(dimension, 0);
+        vector<double> startOriginIntervals;
+        vector<double> steps;
+        for (int i = 0; i < dimension; i++)
+        {
+            auto &startOriginInterval = intervals.at(i * 2);
+            auto &endOriginInterval = intervals.at(i * 2 + 1);
+            startOriginIntervals.push_back(startOriginInterval);
+            double width = endOriginInterval - startOriginInterval;
+            double step = width / (double)scales.at(i);
+            steps.push_back(step);
+        }
+
+        auto info = testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps);
+        auto info1 = testError(uniqueLabel, "sympy", intervals, scales, startNowIdxs, startOriginIntervals, steps);
         auto maxError = info.maxError;
         auto maxError1 = info1.maxError;
 

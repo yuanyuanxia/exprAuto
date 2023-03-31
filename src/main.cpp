@@ -366,7 +366,19 @@ int main()
             auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance start =-=-=-=-=-=-=-=-=-=-=-=-=\n";
-            finalInfo = testError(uniqueLabel, "final", intervals, scales);
+            vector<int> startNowIdxs(dimension, 0);
+            vector<double> startOriginIntervals;
+            vector<double> steps;
+            for (int i = 0; i < dimension; i++)
+            {
+                auto &startOriginInterval = intervals.at(i * 2);
+                auto &endOriginInterval = intervals.at(i * 2 + 1);
+                startOriginIntervals.push_back(startOriginInterval);
+                double width = endOriginInterval - startOriginInterval;
+                double step = width / (double)scales.at(i);
+                steps.push_back(step);
+            }
+            finalInfo = testError(uniqueLabel, "final", intervals, scales, startNowIdxs, startOriginIntervals, steps);
             finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
             cout << "performance: " << finalInfo.performance << "\n\n";
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance end   =-=-=-=-=-=-=-=-=-=-=-=-=\n";

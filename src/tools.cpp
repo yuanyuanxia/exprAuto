@@ -359,7 +359,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     return tempError;
 }
 
-exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, bool errfile)
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, const vector<int> &startNowIdxs, const vector<double> &startOriginIntervals, const vector<double> &steps, bool errfile)
 {
     exprInfo tempError;
     size_t size = scales.size();
@@ -378,7 +378,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
             auto scaleTmp = fmt::format("{}", scale);
             params.push_back(scaleTmp);
         }
-        string middle;
+        string middle; // do not need to add startNowIdx and startOriginInterval to middle
         for(size_t i = 0; i < params.size(); ++i)
         {
             if(i == 0)
@@ -389,6 +389,21 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
             {
                 middle = middle + "_" + params.at(i);
             }
+        }
+        for(const auto &startNowIdx : startNowIdxs)
+        {
+            auto startNowIdxTmp = fmt::format("{}", startNowIdx);
+            params.push_back(startNowIdxTmp);
+        }
+        for(const auto &startOriginInterval : startOriginIntervals)
+        {
+            auto startOriginIntervalTmp = fmt::format("{}", startOriginInterval);
+            params.push_back(startOriginIntervalTmp);
+        }
+        for(const auto &step : steps)
+        {
+            auto stepTmp = fmt::format("{}", step);
+            params.push_back(stepTmp);
         }
         string fileNameKernel = prefix + "__" + middle + "_" + suffix;
         namespace fs = std::filesystem;
@@ -801,20 +816,30 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
         else
             scale = 10;
         vector<int> scales(dimension, scale);
+        vector<double> startOriginIntervals;
+        vector<double> steps;
+        vector<int> startNowIdxs;
         for (int i = 0; i < dimension; i++)
         {
-            double width = intervals.at(i * 2 + 1) - intervals.at(i * 2);
+            auto &startOriginInterval = intervals.at(i * 2);
+            auto &endOriginInterval = intervals.at(i * 2 + 1);
+            auto &startNowInterval = intervalTmp.at(i * 2);
+            auto &endNowInterval = intervalTmp.at(i * 2 + 1);
+            startOriginIntervals.push_back(startOriginInterval);
+            double width = endOriginInterval - startOriginInterval;
             double step = width / (double)scales.at(i);
-            int stepNum = (intervalTmp.at(i * 2) - intervals.at(i * 2)) / step;
-            int stepNum1 = (intervalTmp.at(i * 2 + 1) - intervals.at(i * 2)) / step;
-            if(stepNum == stepNum1)
+            steps.push_back(step);
+            int startNowIdx = (startNowInterval - startOriginInterval) / step;
+            startNowIdxs.push_back(startNowIdx);
+            int endNowIdx = (endNowInterval - startOriginInterval) / step;
+            if(startNowIdx == endNowIdx)
             {
-                stepNum1 += 1;
+                endNowIdx += 1;
             }
-            scales.at(i) = stepNum1 - stepNum;
+            scales.at(i) = endNowIdx - startNowIdx;
 
-            intervalTmp.at(i * 2) = intervals.at(i * 2) + stepNum * step;
-            intervalTmp.at(i * 2 + 1) = intervals.at(i * 2) + stepNum1 * step;
+            startNowInterval = startOriginInterval + startNowIdx * step;
+            endNowInterval = startOriginInterval + endNowIdx * step;
             // scales.at(i) = scales.at(i) * (intervalTmp.at(i * 2 + 1) - intervalTmp.at(i * 2)) / width;
         }
         auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
@@ -864,7 +889,7 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
             string suffixTmp = suffix + std::to_string(j);
             geneExprCode(newExpr, uniqueLabel, suffixTmp);
             // auto timeTmp1 = std::chrono::high_resolution_clock::now();
-            auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales);
+            auto tempError = testError(uniqueLabel, suffixTmp, intervalTmp, scales, startNowIdxs, startOriginIntervals, steps);
             // auto timeTmp2 = std::chrono::high_resolution_clock::now();
             // std::chrono::duration<double> testError_seconds = timeTmp2 - timeTmp1;
             // cout << BLUE << "rewrite: For NO." << j << ": testError time: " << testError_seconds.count() << " s" << RESET << endl;

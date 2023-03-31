@@ -30,7 +30,7 @@ vector<int> getScales(string scale, const char *split);
 
 void sampleError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales);
 
-exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, bool errfile = false);
+exprInfo testError(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, const vector<int> &startNowIdxs, const vector<double> &startOriginIntervals, const vector<double> &steps, bool errfile = false);
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, int scale);
 

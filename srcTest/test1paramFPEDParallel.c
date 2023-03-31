@@ -42,7 +42,7 @@ int computeResult1param(double x0, mpfr_t mpfrResult)
     return status;
 }
 
-struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int testNumX0, const char* uniqueLabel, const char* fileNameKernel, int myid, int i0StartLocal, int i0EndLocal) {
+struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int testNumX0, const char* uniqueLabel, const char* fileNameKernel, int myid, int i0StartLocal, int i0EndLocal, double x0startOriginInterval, double stepX0) {
     DL maxInputX0;
     int i0;
     // int flag;
@@ -73,20 +73,16 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     // printf("testNum : %lu 0x%lx\n", testNumX0, testNumX0);
     #endif
 
-    // loop boundary
-    lenX0 = x0End.d - x0Start.d;
-    double stepX0 = lenX0 / (double)testNumX0;
-
     // Real number average
     maxReUlp = 0;
     aveReUlp = 0;
     // flag = 1;
     sumError = 0;
     // for(i0 = 0; i0 < testNumX0; i0++) {
-        // ii0.d = x0Start.d + stepX0 * i0;
+        // ii0.d = x0startOriginInterval.d + stepX0 * i0;
         // x0 = ii0.d;
     for(i0 = i0StartLocal; i0 <= i0EndLocal; i0++) {
-        x0 = x0Start.d + stepX0 * i0;
+        x0 = x0startOriginInterval + stepX0 * i0;
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
         #ifdef SINGLE
@@ -155,6 +151,9 @@ int main(int argc, char **argv)
     unsigned long int testNumX0;
     x0Start.d = 1;
     x0End.d = 2;
+    int x0startNowIdx;
+    double x0startOriginInterval;
+    double stepX0;
 
     testNumX0 = TESTNUMX0;
 
@@ -162,26 +161,35 @@ int main(int argc, char **argv)
     fileNameKernel = calloc(256, sizeof(char));
     char *uniqueLabel;
     uniqueLabel = calloc(256, sizeof(char));
-    if (argc == 6)
+    if (argc == 9)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         testNumX0 = strtod(argv[3], NULL);
-        strcpy(fileNameKernel, argv[4]);
-        strcpy(uniqueLabel, argv[5]);
+        x0startNowIdx = atoi(argv[4]);
+        x0startOriginInterval = strtod(argv[5], NULL);
+        stepX0 = strtod(argv[6], NULL);
+        strcpy(fileNameKernel, argv[7]);
+        strcpy(uniqueLabel, argv[8]);
     }
-    else if (argc == 5)
+    else if (argc == 8)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
-        strcpy(fileNameKernel, argv[3]);
-        strcpy(uniqueLabel, argv[4]);
+        x0startNowIdx = atoi(argv[3]);
+        x0startOriginInterval = strtod(argv[4], NULL);
+        stepX0 = strtod(argv[5], NULL);
+        strcpy(fileNameKernel, argv[6]);
+        strcpy(uniqueLabel, argv[7]);
     }
-    else if (argc == 4)
+    else if (argc == 7)
     {
         testNumX0 = strtod(argv[1], NULL);
-        strcpy(fileNameKernel, argv[2]);
-        strcpy(uniqueLabel, argv[3]);
+        x0startNowIdx = atoi(argv[2]);
+        x0startOriginInterval = strtod(argv[3], NULL);
+        stepX0 = strtod(argv[4], NULL);
+        strcpy(fileNameKernel, argv[5]);
+        strcpy(uniqueLabel, argv[6]);
     }
     else
     {
@@ -198,16 +206,16 @@ int main(int argc, char **argv)
     // local parameters init
     int lenX0Local = testNumX0 / numProcs;
     int i0StartLocal;
-    i0StartLocal = myid * lenX0Local;
+    i0StartLocal = x0startNowIdx + myid * lenX0Local;
     int i0EndLocal;
     if(myid != numProcs - 1) {
-        i0EndLocal = (myid + 1) * lenX0Local - 1;
+        i0EndLocal = x0startNowIdx + (myid + 1) * lenX0Local - 1;
     } else {
-        i0EndLocal = testNumX0;
+        i0EndLocal = x0startNowIdx + testNumX0;
     }
 
     // call the error test function
-    struct errorInfo err = test1FPEDparamParallel(x0Start, x0End, testNumX0, uniqueLabel, fileNameKernel, myid, i0StartLocal, i0EndLocal);
+    struct errorInfo err = test1FPEDparamParallel(x0Start, x0End, testNumX0, uniqueLabel, fileNameKernel, myid, i0StartLocal, i0EndLocal, x0startOriginInterval, stepX0);
     
     // gather errors and find the max
     struct errorInfo *errs;

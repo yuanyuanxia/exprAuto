@@ -8,23 +8,32 @@ CC=mpicc
 uniqueLabel=${1} # unique number
 x0Start=${2}
 x0End=${3}
-if [ $# -eq 8 ]; then
+if [ $# -eq 11 ]; then
     x0Size=${4}
-    prefix=${5} # expr_${uniqueLabel}. Eg: expr_20221030155958
-    middle=${6} # intervalsInfo_sizes. Eg: 3.8_7.8_500000
-    suffix=${7} # different version. Eg: herbie daisy origin temp_0_3 final
-    errfile=${8} # 1 or 0: TRUE or False
-elif [ $# -eq 7 ]; then
+    x0startNowIdx=${5} # the index of the start point of the current interval.
+    x0startOriginInterval=${6} # the value of the start point of the origin interval.
+    stepX0=${7} # the step for sampling points.
+    prefix=${8} # expr_${uniqueLabel}. Eg: expr_20221030155958
+    middle=${9} # intervalsInfo_sizes. Eg: 3.8_7.8_500000
+    suffix=${10} # different version. Eg: herbie daisy origin temp_0_3 final
+    errfile=${11} # 1 or 0: TRUE or False
+elif [ $# -eq 10 ]; then
     x0Size=${4}
-    prefix=${5} # expr_${uniqueLabel}. Eg: expr_20221030155958
-    middle=${6} # intervalsInfo_sizes. Eg: 3.8_7.8_500000
-    suffix=${7} # different version. Eg: herbie daisy origin temp_0_3 final
+    x0startNowIdx=${5} # the index of the start point of the current interval.
+    x0startOriginInterval=${6} # the value of the start point of the origin interval.
+    stepX0=${7} # the step for sampling points.
+    prefix=${8} # expr_${uniqueLabel}. Eg: expr_20221030155958
+    middle=${9} # intervalsInfo_sizes. Eg: 3.8_7.8_500000
+    suffix=${10} # different version. Eg: herbie daisy origin temp_0_3 final
     errfile=0
-elif [ $# -eq 6 ]; then
+elif [ $# -eq 9 ]; then
     x0Size=500000
-    prefix=${4}
-    middle=${5}
-    suffix=${6}
+    x0startNowIdx=${5} # the index of the start point of the current interval.
+    x0startOriginInterval=${6} # the value of the start point of the origin interval.
+    stepX0=${7} # the step for sampling points.
+    prefix=${8}
+    middle=${9}
+    suffix=${10}
     errfile=0
 else
     echo "detectErrorOneFPEDParallel: Invalid input parameters"
@@ -42,7 +51,7 @@ fileNameKernel=${prefix}__${middle}_${suffix}
 # echo "${CC} ${testFileName}.c ${sourceFile}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
 ${CC} ./srcTest/${testFileName}.c ${directory}/${sourceFile}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
 # echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${fileNameKernel}"
-mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${fileNameKernel} ${uniqueLabel}
+mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${x0startNowIdx} ${x0startOriginInterval} ${stepX0} ${fileNameKernel} ${uniqueLabel}
 # mv outputs/${fileNameKernel}_error.txt ./outputs/${uniqueLabel}/${fileNameKernel}_error.txt
 rm ${testFileName}.exe
 
