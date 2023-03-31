@@ -1381,6 +1381,60 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
     return results;
 }
 
+ast_ptr moveDivForWard(const ast_ptr &expr, const ast_ptr &denominator)
+{
+    auto type = expr->type();
+    BinaryExprAST* exprPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+    if(type == "Binary")
+    {
+        auto &lhs = exprPtr->getLHS();
+        auto &rhs = exprPtr->getRHS();
+        auto newL = divExpr(lhs, denominator);
+        auto newExpr = mulExpr(newL, rhs);
+        return newExpr;
+    }
+    return nullptr;
+}
+
+vector<ast_ptr> changeMulToDiv(const ast_ptr &numerator, const ast_ptr &denominator)
+{
+    vector<ast_ptr> results;
+    BinaryExprAST* denominatorPtr = dynamic_cast<BinaryExprAST *>(denominator.get());
+    auto &lhs = denominatorPtr->getLHS();
+    auto &rhs = denominatorPtr->getRHS();
+    auto lType = lhs->type();
+    auto rType = rhs->type();
+    if(lType == "Variable")
+    {
+        auto newNumerator = divExpr(numerator, lhs);
+        auto newExpr = divExpr(newNumerator, rhs);
+        if(newExpr != nullptr)
+            results.push_back(std::move(newExpr));
+
+        auto tmp = moveDivForWard(numerator, lhs);
+        auto newExpr1 = divExpr(tmp, rhs);
+        if(newExpr1 != nullptr)
+            results.push_back(std::move(newExpr1));
+    }
+    if(!isEqual(lhs, rhs))
+    {
+        if(rType == "Variable")
+        {
+            auto newNumerator = divExpr(numerator, rhs);
+            auto newExpr = divExpr(newNumerator, lhs);
+            if(newExpr != nullptr)
+                results.push_back(std::move(newExpr));
+            
+            auto tmp = moveDivForWard(numerator, rhs);
+            auto newExpr1 = divExpr(tmp, lhs);
+            if(newExpr1 != nullptr)
+                results.push_back(std::move(tmp));
+        }
+    }
+    deleteTheSame(results);
+    return results;
+}
+
 vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denominators)
 {
     ast_ptr resultsTemp;
@@ -1404,6 +1458,12 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
                 {
                     resultsTemp = divExpr(numerator, denominator);
                     results.push_back(std::move(resultsTemp));
+                    auto type = denominator->type();
+                    if(type == "Binary")
+                    {
+                        auto tmps = changeMulToDiv(numerator, denominator);
+                        mineAppend(results, tmps);
+                    }
                 }
             }
         }
@@ -1482,6 +1542,7 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
         else
         {
             results = createAll(numerators, denominators);
+            
         }
     }
     else
