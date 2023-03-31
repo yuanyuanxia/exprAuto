@@ -1470,7 +1470,7 @@ vector<ast_ptr> changeMulToDiv(const ast_ptr &numerator, const ast_ptr &denomina
                 results.push_back(std::move(tmp));
         }
     }
-    deleteTheSame(results);
+    if(results.size() != 0) deleteTheSame(results);
     return results;
 }
 
@@ -1599,105 +1599,159 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
     return results;
 }
 
+// TODO: the variable name
 vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &intervals, const std::vector<int> &scales)
 {
     cout << "\n>exprAutoWrapper: start-----------" << endl;
-
+    auto exprOrigin = expr->Clone();
+    printExpr(exprOrigin, "exprAutoWrapper: after parse, exprOrigin = ", DOUBLE_PRECISION);
     expr = minusRewrite(expr);
     combineConstant(expr);
-    printExpr(expr, "exprAutoWrapper: after parse, expr = ", DOUBLE_PRECISION);
     expr = combineConstant1(expr);
     sortExpr(expr);
     printExpr(expr, "exprAutoWrapper: after some prepare, expr = ", DOUBLE_PRECISION);
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
     combineConstant(expr1);
     sortExpr(expr1);
-    printExpr(expr1, "\nexprAutoWrapper: after SymPy's simplify, expr = ", DOUBLE_PRECISION);
+    printExpr(expr1, "\nexprAutoWrapper: after SymPy's simplify, expr1 = ", DOUBLE_PRECISION);
     cout << endl;
-    vector<ast_ptr> results;
-    if(isEqual(expr, expr1))
+
+    // pick one from origin, origin1, sympy
+    string uniqueLabel = "pickBetter";
+    string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
+    system(mkdirCommand.c_str());
+    vector<string> vars;
+    getVariablesFromExpr(expr, vars);
+    
+    auto exprOriginStr = PrintExpression(exprOrigin);
+    geneExprCodeKernel(exprOriginStr, vars, uniqueLabel, "origin");
+    auto exprStr = PrintExpression(expr);
+    geneExprCodeKernel(exprStr, vars, uniqueLabel, "origin1");
+    auto expr1Str = PrintExpression(expr1);
+    geneExprCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
+    geneMpfrCode(exprStr, uniqueLabel, vars);
+    std::map<string, int> rewriteOrigins = {
+        {"origin", 0},
+        {"origin1", 1},
+        {"sympy", 2},
+    };
+
+    int dimension = scales.size();
+    vector<int> startNowIdxs(dimension, 0);
+    vector<double> startOriginIntervals;
+    vector<double> steps;
+    for (int i = 0; i < dimension; i++)
     {
-        cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
-        results = exprAutoNew(expr);
+        auto &startOriginInterval = intervals.at(i * 2);
+        auto &endOriginInterval = intervals.at(i * 2 + 1);
+        startOriginIntervals.push_back(startOriginInterval);
+        double width = endOriginInterval - startOriginInterval;
+        double step = width / (double)scales.at(i);
+        steps.push_back(step);
     }
-    else
+    double maxError = std::numeric_limits<double>::max();
+    double aveError = std::numeric_limits<double>::max();
+    string bestOne;
+    for(auto& rewriteOrigin : rewriteOrigins)
     {
-        bool pickOne = true;
-        if(pickOne)
+        auto &currrentOne = rewriteOrigin.first;
+        auto info = testError(uniqueLabel, currrentOne, intervals, scales, startNowIdxs, startOriginIntervals, steps);
+        auto &currrentMaxError = info.maxError;
+        auto &currrentAveError = info.aveError;
+        if(currrentMaxError < maxError)
         {
-        // pick the better one from expr and expr1
-        string uniqueLabel = "pickBetter";
-        string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
-        system(mkdirCommand.c_str());
-        vector<string> vars;
-        getVariablesFromExpr(expr, vars);
-        
-        auto exprStr = PrintExpression(expr);
-        auto funcNameOrigin = geneExprCodeKernel(exprStr, vars, uniqueLabel, "origin");
-        auto expr1Str = PrintExpression(expr1);
-        auto funcNameSympy = geneExprCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
-        auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
-        
-        // int scale = 256;
-        // turbine1
-        // auto info = testError(uniqueLabel, "origin", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
-        // auto info1 = testError(uniqueLabel, "sympy", 3.8, 7.8, -4.5, -0.3, 0.4, 0.9, scale, scale, scale);
-        // doppler1
-        // auto info = testError(uniqueLabel, "origin", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        // auto info1 = testError(uniqueLabel, "sympy", -30, 50, -100, 100, 20, 20000, scale, scale, scale);
-        // int scale = 500000;
-        // sine
-        // auto info = testError(uniqueLabel, "origin", -1.57079632679, 1.57079632679, scale);
-        // auto info1 = testError(uniqueLabel, "sympy", -1.57079632679, 1.57079632679, scale);
-        // sqroot
-        // auto info = testError(uniqueLabel, "origin", 0, 1, scale);
-        // auto info1 = testError(uniqueLabel, "sympy", 0, 1, scale);
-
-        int dimension = scales.size();
-        vector<int> startNowIdxs(dimension, 0);
-        vector<double> startOriginIntervals;
-        vector<double> steps;
-        for (int i = 0; i < dimension; i++)
-        {
-            auto &startOriginInterval = intervals.at(i * 2);
-            auto &endOriginInterval = intervals.at(i * 2 + 1);
-            startOriginIntervals.push_back(startOriginInterval);
-            double width = endOriginInterval - startOriginInterval;
-            double step = width / (double)scales.at(i);
-            steps.push_back(step);
+            maxError = currrentMaxError;
+            aveError = currrentAveError;
+            bestOne = currrentOne;
         }
-
-        auto info = testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps);
-        auto info1 = testError(uniqueLabel, "sympy", intervals, scales, startNowIdxs, startOriginIntervals, steps);
-        auto maxError = info.maxError;
-        auto maxError1 = info1.maxError;
-
-        if(maxError < maxError1)
+        else if(currrentMaxError == maxError)
         {
-            cout << YELLOW << "-------------------------------------origin rewrite is better-------------------------------------" << RESET << endl;
-            results = exprAutoNew(expr);
-        }
-        else
-        {
-            cout << YELLOW << "-------------------------------------sympy rewrite is better-------------------------------------" << RESET << endl;
-            results = exprAutoNew(expr1);
-        }
-        }
-        else
-        {
-        cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
-        results = exprAutoNew(expr);
-        cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
-        vector<ast_ptr> results1 = exprAutoNew(expr1);
-        mineAppend(results, results1);
+            if(currrentAveError < aveError)
+            {
+                maxError = currrentMaxError;
+                aveError = currrentAveError;
+                bestOne = currrentOne;
+            }
         }
     }
+    cout << "exprAutoWrapper: the rewrite object is " << (rewriteOrigins.find(bestOne))->first << endl;
+    auto idx = (rewriteOrigins.find(bestOne))->second;
+    vector<ast_ptr> origins;
+    origins.push_back(std::move(exprOrigin));
+    origins.push_back(expr->Clone());
+    origins.push_back(expr1->Clone());
+    auto &rewriteOrigin = origins.at(idx);
+    auto results = exprAutoNew(rewriteOrigin);
+    
+    // if(isEqual(expr, expr1))
+    // {
+    //     cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
+    //     results = exprAutoNew(expr);
+    // }
+    // else
+    // {
+    //     bool pickOne = true;
+    //     if(pickOne)
+    //     {
+    //     // pick the better one from expr and expr1
+    //     string uniqueLabel = "pickBetter";
+    //     string mkdirCommand = "mkdir -p srcTest/" + uniqueLabel + " outputs/" + uniqueLabel;
+    //     system(mkdirCommand.c_str());
+    //     vector<string> vars;
+    //     getVariablesFromExpr(expr, vars);
+        
+    //     auto exprStr = PrintExpression(expr);
+    //     auto funcNameOrigin = geneExprCodeKernel(exprStr, vars, uniqueLabel, "origin");
+    //     auto expr1Str = PrintExpression(expr1);
+    //     auto funcNameSympy = geneExprCodeKernel(expr1Str, vars, uniqueLabel, "sympy");
+    //     auto funcNameMpfr = geneMpfrCode(exprStr, uniqueLabel, vars);
+
+    //     int dimension = scales.size();
+    //     vector<int> startNowIdxs(dimension, 0);
+    //     vector<double> startOriginIntervals;
+    //     vector<double> steps;
+    //     for (int i = 0; i < dimension; i++)
+    //     {
+    //         auto &startOriginInterval = intervals.at(i * 2);
+    //         auto &endOriginInterval = intervals.at(i * 2 + 1);
+    //         startOriginIntervals.push_back(startOriginInterval);
+    //         double width = endOriginInterval - startOriginInterval;
+    //         double step = width / (double)scales.at(i);
+    //         steps.push_back(step);
+    //     }
+
+    //     auto info = testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps);
+    //     auto info1 = testError(uniqueLabel, "sympy", intervals, scales, startNowIdxs, startOriginIntervals, steps);
+    //     auto maxError = info.maxError;
+    //     auto maxError1 = info1.maxError;
+
+    //     if(maxError < maxError1)
+    //     {
+    //         cout << YELLOW << "-------------------------------------origin rewrite is better-------------------------------------" << RESET << endl;
+    //         results = exprAutoNew(expr);
+    //     }
+    //     else
+    //     {
+    //         cout << YELLOW << "-------------------------------------sympy rewrite is better-------------------------------------" << RESET << endl;
+    //         results = exprAutoNew(expr1);
+    //     }
+    //     }
+    //     else
+    //     {
+    //     cout << YELLOW << "-------------------------------------origin rewrite-------------------------------------" << RESET << endl;
+    //     results = exprAutoNew(expr);
+    //     cout << YELLOW << "-------------------------------------sympy rewrite-------------------------------------" << RESET << endl;
+    //     vector<ast_ptr> results1 = exprAutoNew(expr1);
+    //     mineAppend(results, results1);
+    //     }
+    // }
+    cout << YELLOW << "-----------------11111111--------------------final results-------------------------------------" << RESET << endl;
     for(auto& result : results)
     {
         sortExpr(result);
     }
-    results.push_back(expr->Clone());
-    deleteTheSame(results);
+    mineAppend(results, origins);
+    if(results.size() != 0) deleteTheSame(results);
 
     cout << YELLOW << "-------------------------------------final results-------------------------------------" << RESET << endl;
     printExprs(results, BLUE "exprAutoWrapper: after exprAutoNew: " RESET, false, DOUBLE_PRECISION);
