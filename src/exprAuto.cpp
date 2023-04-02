@@ -1467,7 +1467,7 @@ vector<ast_ptr> changeMulToDiv(const ast_ptr &numerator, const ast_ptr &denomina
             auto tmp = moveDivForWard(numerator, rhs);
             auto newExpr1 = divExpr(tmp, lhs);
             if(newExpr1 != nullptr)
-                results.push_back(std::move(tmp));
+                results.push_back(std::move(newExpr1));
         }
     }
     if(results.size() != 0) deleteTheSame(results);
