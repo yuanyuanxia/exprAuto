@@ -1501,7 +1501,8 @@ vector<ast_ptr> createAll(vector<ast_ptr> &numerators, vector<ast_ptr> &denomina
                     if(type == "Binary")
                     {
                         auto tmps = changeMulToDiv(numerator, denominator);
-                        mineAppend(results, tmps);
+                        if(tmps.size() != 0)
+                            mineAppend(results, tmps);
                     }
                 }
             }
