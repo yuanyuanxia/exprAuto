@@ -44,7 +44,7 @@ int computeResult3param(double x0, double x1, double x2, mpfr_t mpfrResult) {
     return status;
 }
 
-struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* uniqueLabel, const char* fileNameKernel, int myid, int i2StartLocal, int i2EndLocal, double x2startOriginInterval, double stepX0, double stepX1, double stepX2) {
+struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, DL x2Start, DL x2End, unsigned long int testNumX0, unsigned long int testNumX1, unsigned long int testNumX2, const char* uniqueLabel, const char* fileNameKernel, int myid, int i0StartLocal, int i0EndLocal, int i1StartLocal, int i1EndLocal, int i2StartLocal, int i2EndLocal, double x0startOriginInterval, double x1startOriginInterval, double x2startOriginInterval, double stepX0, double stepX1, double stepX2) {
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg, x2Start: %lg, x2End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d, x2Start.d, x2End.d);
     DL maxInputX0, maxInputX1, maxInputX2;
     int i0, i1, i2;
@@ -77,10 +77,10 @@ struct errorInfo test3paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     sumError = 0;
     for(i2 = i2StartLocal; i2 <= i2EndLocal; i2++) {
         x2 = x2startOriginInterval + stepX2 * i2;
-        for(i1 = 0; i1 <= (int)testNumX1; i1++) {
-            x1 = x1Start.d + stepX1 * i1;
-            for(i0 = 0; i0 <= (int)testNumX0; i0++) {
-                x0 = x0Start.d + stepX0 * i0;
+        for(i1 = i1StartLocal; i1 <= i1EndLocal; i1++) {
+            x1 = x1startOriginInterval + stepX1 * i1;
+            for(i0 = i0StartLocal; i0 <= i0EndLocal; i0++) {
+                x0 = x0startOriginInterval + stepX0 * i0;
                 computeResult3param(x0, x1, x2, mpfrResult);
                 computeOrcle3param(x0, x1, x2, mpfrOrcle);
                 #ifdef SINGLE
@@ -236,16 +236,20 @@ int main(int argc, char **argv) {
     // local parameters init
     int lenX2Local = testNumX2 / numProcs;
     int i2StartLocal;
-    i2StartLocal =x2startNowIdx + myid * lenX2Local;
+    i2StartLocal = x2startNowIdx + myid * lenX2Local;
     int i2EndLocal;
     if(myid != numProcs - 1) {
         i2EndLocal = x2startNowIdx + (myid + 1) * lenX2Local - 1;
     } else {
         i2EndLocal = x2startNowIdx + testNumX2;
     }
+    int i1StartLocal = x1startNowIdx;
+    int i1EndLocal = x1startNowIdx + testNumX1;
+    int i0StartLocal = x0startNowIdx;
+    int i0EndLocal = x0startNowIdx + testNumX0;
 
     // call the error test function
-    struct errorInfo err = test3paramFPEDParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, uniqueLabel, fileNameKernel, myid, i2StartLocal, i2EndLocal, x2startOriginInterval, stepX0, stepX1, stepX2);
+    struct errorInfo err = test3paramFPEDParallel(x0Start, x0End, x1Start, x1End, x2Start, x2End, testNumX0, testNumX1, testNumX2, uniqueLabel, fileNameKernel, myid, i0StartLocal, i0EndLocal, i1StartLocal, i1EndLocal, i2StartLocal, i2EndLocal, x0startOriginInterval, x1startOriginInterval, x2startOriginInterval, stepX0, stepX1, stepX2);
 
     // gather errors and find the max
     struct errorInfo *errs;

@@ -45,7 +45,7 @@ int computeResult2param(double x0, double x1, mpfr_t mpfrResult)
     return status;
 }
 
-struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char* uniqueLabel, const char *fileNameKernel, int myid, int i1StartLocal, int i1EndLocal)
+struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1End, unsigned long int testNumX0, unsigned long int testNumX1, const char* uniqueLabel, const char *fileNameKernel, int myid, int i0StartLocal, int i0EndLocal, int i1StartLocal, int i1EndLocal, double x0startOriginInterval, double x1startOriginInterval, double stepX0, double stepX1)
 {
     // printf("myid = %d: x0Start: %lg, x0End: %lg, x1Start: %lg, x1End: %lg\n", myid, x0Start.d, x0End.d, x1Start.d, x1End.d);
     DL maxInputX0, maxInputX1;
@@ -72,12 +72,6 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     }
     #endif
 
-    // loop boundary
-    lenX0 = x0End.d - x0Start.d;
-    lenX1 = x1End.d - x1Start.d;
-    double stepX0 = lenX0 / (double)testNumX0;
-    double stepX1 = lenX1 / (double)testNumX1;
-
     // Real number average
     maxReUlp = 0;
     aveReUlp = 0;
@@ -86,10 +80,10 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     sumError = 0;
     for (i1 = i1StartLocal; i1 <= i1EndLocal; i1++)
     {
-        x1 = x1Start.d + stepX1 * i1;
-        for (i0 = 0; i0 <= (int)testNumX0; i0++)
+        x1 = x1startOriginInterval + stepX1 * i1;
+        for (i0 = i0StartLocal; i0 <= i0EndLocal; i0++)
         {
-            x0 = x0Start.d + stepX0 * i0;
+            x0 = x0startOriginInterval + stepX0 * i0;
             computeResult2param(x0, x1, mpfrResult);
             computeOrcle2param(x0, x1, mpfrOrcle);
             #ifdef SINGLE
@@ -162,6 +156,9 @@ int main(int argc, char **argv)
     x0End.d = 2;
     x1Start.d = 1;
     x1End.d = 2;
+    int x0startNowIdx, x1startNowIdx;
+    double x0startOriginInterval, x1startOriginInterval;
+    double stepX0, stepX1;
 
     testNumX0 = TESTNUMX0;
     testNumX1 = TESTNUMX1;
@@ -170,7 +167,7 @@ int main(int argc, char **argv)
     fileNameKernel = calloc(256, sizeof(char));
     char *uniqueLabel;
     uniqueLabel = calloc(256, sizeof(char));
-    if (argc == 9)
+    if (argc == 15)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
@@ -178,24 +175,42 @@ int main(int argc, char **argv)
         x1End.d = strtod(argv[4], NULL);
         testNumX0 = strtod(argv[5], NULL);
         testNumX1 = strtod(argv[6], NULL);
-        strcpy(fileNameKernel, argv[7]);
-        strcpy(uniqueLabel, argv[8]);
+        x0startNowIdx = atoi(argv[7]);
+        x1startNowIdx = atoi(argv[8]);
+        x0startOriginInterval = strtod(argv[9], NULL);
+        x1startOriginInterval = strtod(argv[10], NULL);
+        stepX0 = strtod(argv[11], NULL);
+        stepX1 = strtod(argv[12], NULL);
+        strcpy(fileNameKernel, argv[13]);
+        strcpy(uniqueLabel, argv[14]);
     }
-    else if (argc == 7)
+    else if (argc == 13)
     {
         x0Start.d = strtod(argv[1], NULL);
         x0End.d = strtod(argv[2], NULL);
         x1Start.d = strtod(argv[3], NULL);
         x1End.d = strtod(argv[4], NULL);
-        strcpy(fileNameKernel, argv[5]);
-        strcpy(uniqueLabel, argv[6]);
+        x0startNowIdx = atoi(argv[5]);
+        x1startNowIdx = atoi(argv[6]);
+        x0startOriginInterval = strtod(argv[7], NULL);
+        x1startOriginInterval = strtod(argv[8], NULL);
+        stepX0 = strtod(argv[9], NULL);
+        stepX1 = strtod(argv[10], NULL);
+        strcpy(fileNameKernel, argv[11]);
+        strcpy(uniqueLabel, argv[12]);
     }
-    else if (argc == 5)
+    else if (argc == 11)
     {
         testNumX0 = strtod(argv[1], NULL);
         testNumX1 = strtod(argv[2], NULL);
-        strcpy(fileNameKernel, argv[3]);
-        strcpy(uniqueLabel, argv[4]);
+        x0startNowIdx = atoi(argv[3]);
+        x1startNowIdx = atoi(argv[4]);
+        x0startOriginInterval = strtod(argv[5], NULL);
+        x1startOriginInterval = strtod(argv[6], NULL);
+        stepX0 = strtod(argv[7], NULL);
+        stepX1 = strtod(argv[8], NULL);
+        strcpy(fileNameKernel, argv[9]);
+        strcpy(uniqueLabel, argv[10]);
     }
     else
     {
@@ -213,19 +228,21 @@ int main(int argc, char **argv)
     // local parameters init
     int lenX1Local = testNumX1 / numProcs;
     int i1StartLocal;
-    i1StartLocal = myid * lenX1Local;
+    i1StartLocal = x1startNowIdx + myid * lenX1Local;
     int i1EndLocal;
     if (myid != numProcs - 1)
     {
-        i1EndLocal = (myid + 1) * lenX1Local - 1;
+        i1EndLocal = x1startNowIdx + (myid + 1) * lenX1Local - 1;
     }
     else
     {
-        i1EndLocal = testNumX1;
+        i1EndLocal = x1startNowIdx + testNumX1;
     }
+    int i0StartLocal = x0startNowIdx;
+    int i0EndLocal = x0startNowIdx + testNumX0;
 
     // call the error test function
-    struct errorInfo err = test2paramFPEDParallel(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, uniqueLabel, fileNameKernel, myid, i1StartLocal, i1EndLocal);
+    struct errorInfo err = test2paramFPEDParallel(x0Start, x0End, x1Start, x1End, testNumX0, testNumX1, uniqueLabel, fileNameKernel, myid, i0StartLocal, i0EndLocal, i1StartLocal, i1EndLocal, x0startOriginInterval, x1startOriginInterval, stepX0, stepX1);
 
     // gather errors and find the max
     struct errorInfo *errs;
