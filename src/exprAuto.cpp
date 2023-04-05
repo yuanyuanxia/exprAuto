@@ -1423,14 +1423,18 @@ vector<ast_ptr> tryRewriteRandom(ast_ptr expr)
 ast_ptr moveDivForWard(const ast_ptr &expr, const ast_ptr &denominator)
 {
     auto type = expr->type();
-    BinaryExprAST* exprPtr = dynamic_cast<BinaryExprAST *>(expr.get());
     if(type == "Binary")
     {
-        auto &lhs = exprPtr->getLHS();
-        auto &rhs = exprPtr->getRHS();
-        auto newL = divExpr(lhs, denominator);
-        auto newExpr = mulExpr(newL, rhs);
-        return newExpr;
+        BinaryExprAST* exprPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        auto opType = exprPtr->getOp();
+        if(opType == '*')
+        {
+            auto &lhs = exprPtr->getLHS();
+            auto &rhs = exprPtr->getRHS();
+            auto newL = divExpr(lhs, denominator);
+            auto newExpr = mulExpr(newL, rhs);
+            return newExpr;
+        }
     }
     return nullptr;
 }
@@ -1439,35 +1443,45 @@ vector<ast_ptr> changeMulToDiv(const ast_ptr &numerator, const ast_ptr &denomina
 {
     vector<ast_ptr> results;
     BinaryExprAST* denominatorPtr = dynamic_cast<BinaryExprAST *>(denominator.get());
-    auto &lhs = denominatorPtr->getLHS();
-    auto &rhs = denominatorPtr->getRHS();
-    auto lType = lhs->type();
-    auto rType = rhs->type();
-    if(lType == "Variable")
+    auto opType = denominatorPtr->getOp();
+    if(opType == '*')
     {
-        auto newNumerator = divExpr(numerator, lhs);
-        auto newExpr = divExpr(newNumerator, rhs);
-        if(newExpr != nullptr)
-            results.push_back(std::move(newExpr));
-
-        auto tmp = moveDivForWard(numerator, lhs);
-        auto newExpr1 = divExpr(tmp, rhs);
-        if(newExpr1 != nullptr)
-            results.push_back(std::move(newExpr1));
-    }
-    if(!isEqual(lhs, rhs))
-    {
-        if(rType == "Variable")
+        auto &lhs = denominatorPtr->getLHS();
+        auto &rhs = denominatorPtr->getRHS();
+        auto lType = lhs->type();
+        auto rType = rhs->type();
+        if(lType == "Variable")
         {
-            auto newNumerator = divExpr(numerator, rhs);
-            auto newExpr = divExpr(newNumerator, lhs);
+            auto newNumerator = divExpr(numerator, lhs);
+            auto newExpr = divExpr(newNumerator, rhs);
             if(newExpr != nullptr)
                 results.push_back(std::move(newExpr));
-            
-            auto tmp = moveDivForWard(numerator, rhs);
-            auto newExpr1 = divExpr(tmp, lhs);
-            if(newExpr1 != nullptr)
-                results.push_back(std::move(newExpr1));
+
+            auto tmp = moveDivForWard(numerator, lhs);
+            if(tmp != nullptr)
+            {
+                auto newExpr1 = divExpr(tmp, rhs);
+                if(newExpr1 != nullptr)
+                    results.push_back(std::move(newExpr1));
+            }
+        }
+        if(!isEqual(lhs, rhs))
+        {
+            if(rType == "Variable")
+            {
+                auto newNumerator = divExpr(numerator, rhs);
+                auto newExpr = divExpr(newNumerator, lhs);
+                if(newExpr != nullptr)
+                    results.push_back(std::move(newExpr));
+                
+                auto tmp = moveDivForWard(numerator, rhs);
+                if(tmp != nullptr)
+                {
+                    auto newExpr1 = divExpr(tmp, lhs);
+                    if(newExpr1 != nullptr)
+                        results.push_back(std::move(newExpr1));
+                }
+            }
         }
     }
     if(results.size() != 0) deleteTheSame(results);
@@ -1604,14 +1618,16 @@ vector<ast_ptr> exprAutoNew(const ast_ptr &expr, bool addSelf)
 vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &intervals, const std::vector<int> &scales)
 {
     cout << "\n>exprAutoWrapper: start-----------" << endl;
+    expr = minusRewrite(expr);
+    sortExpr(expr);
     auto exprOrigin = expr->Clone();
     printExpr(exprOrigin, "exprAutoWrapper: after parse, exprOrigin = ", DOUBLE_PRECISION);
-    expr = minusRewrite(expr);
     combineConstant(expr);
     expr = combineConstant1(expr);
     sortExpr(expr);
     printExpr(expr, "exprAutoWrapper: after some prepare, expr = ", DOUBLE_PRECISION);
     ast_ptr expr1 = simplifyExpr(expr); // Python SymPy simplify
+    expr1 = minusRewrite(expr1);
     combineConstant(expr1);
     sortExpr(expr1);
     printExpr(expr1, "\nexprAutoWrapper: after SymPy's simplify, expr1 = ", DOUBLE_PRECISION);
@@ -1653,12 +1669,31 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
     double maxError = std::numeric_limits<double>::max();
     double aveError = std::numeric_limits<double>::max();
     string bestOne;
+    bool allIsEqual = false;
+    bool keepEqual = true;
+    double lastMaxError, lastAveError;
+    int idxPickTheBestOrigin = 0;
     for(auto& rewriteOrigin : rewriteOrigins)
     {
         auto &currrentOne = rewriteOrigin.first;
         auto info = testError(uniqueLabel, currrentOne, intervals, scales, startNowIdxs, startOriginIntervals, steps);
         auto &currrentMaxError = info.maxError;
         auto &currrentAveError = info.aveError;
+        if(idxPickTheBestOrigin != 0)
+        {
+            if(keepEqual == true)
+            {
+                if((currrentMaxError == lastMaxError) && (currrentAveError == lastAveError))
+                {
+                    allIsEqual = true;
+                }
+                else
+                {
+                    keepEqual = false;
+                    allIsEqual = false;
+                }
+            }
+        }
         if(currrentMaxError < maxError)
         {
             maxError = currrentMaxError;
@@ -1674,13 +1709,23 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
                 bestOne = currrentOne;
             }
         }
+        lastMaxError = currrentMaxError;
+        lastAveError = currrentAveError;
+        idxPickTheBestOrigin++;
     }
     cout << "exprAutoWrapper: the rewrite object is " << (rewriteOrigins.find(bestOne))->first << endl;
     auto idx = (rewriteOrigins.find(bestOne))->second;
     vector<ast_ptr> origins;
-    origins.push_back(std::move(exprOrigin));
-    origins.push_back(expr->Clone());
-    origins.push_back(expr1->Clone());
+    if(allIsEqual == false)
+    {
+        origins.push_back(std::move(exprOrigin));
+        origins.push_back(expr->Clone());
+        origins.push_back(expr1->Clone());
+    }
+    else
+    {
+        origins.push_back(std::move(exprOrigin));
+    }
     auto &rewriteOrigin = origins.at(idx);
     auto results = exprAutoNew(rewriteOrigin);
     
@@ -1746,7 +1791,6 @@ vector<ast_ptr> exprAutoWrapper(ast_ptr &expr, const std::vector<double> &interv
     //     mineAppend(results, results1);
     //     }
     // }
-    cout << YELLOW << "-----------------11111111--------------------final results-------------------------------------" << RESET << endl;
     for(auto& result : results)
     {
         sortExpr(result);
