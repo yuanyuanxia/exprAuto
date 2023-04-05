@@ -397,6 +397,7 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"*", "mpfr_mul"},
         {"/", "mpfr_div"},
         {"exp", "mpfr_exp"},
+        {"expm1", "mpfr_expm1"},
         {"log", "mpfr_log"},
         {"log1p", "mpfr_log1p"},
         {"pow", "mpfr_pow"},
