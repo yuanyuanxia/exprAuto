@@ -46,4 +46,6 @@ vector<ast_ptr> sqrtCombine(const ast_ptr& expr);
 
 ast_ptr powToMul(const ast_ptr& expr);
 
+ast_ptr expToCosh(const ast_ptr& expr);
+
 #endif

@@ -465,6 +465,11 @@ vector<ast_ptr> dealWithBinOpKernel(const ast_ptr &expr, const char &op)
             auto tmps = exprAutoNew(result1, false);
             mineAppend(results, tmps);
         }
+        auto result2 = expToCosh(expr);
+        if(result2 != nullptr)
+        {
+            results.push_back(std::move(result2));
+        }
     }
     else if(op == '*')
     {
@@ -1024,8 +1029,9 @@ vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf)
         cerr << prompt << "we can not handle this situation!" << endl;
         exit(EXIT_FAILURE);
     }
-    // if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
+    if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew, addSelf);
+    if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: after mathfuncRewrite: ");
     vector<ast_ptr> results;
     size_t index = 0;
     for(const auto &middle : middles)

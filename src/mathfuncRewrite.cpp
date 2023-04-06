@@ -1616,3 +1616,64 @@ ast_ptr powToMul(const ast_ptr& expr)
     }
     return expr->Clone();
 }
+
+// exp(x)+exp(-x) ==> cosh(x)
+ast_ptr expToCosh(const ast_ptr& expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: sqrtCombine's input is empty!\n");
+        exit(EXIT_FAILURE);
+    }
+    if(expr->type() == "Binary")
+    {
+        BinaryExprAST *binOp = dynamic_cast<BinaryExprAST *>(expr.get());
+        char op = binOp->getOp();
+        string opStr(1, op);
+
+        ast_ptr &lhs = binOp->getLHS();
+        ast_ptr &rhs = binOp->getRHS();
+        if((op == '*') && (lhs->type() == "Call") && (rhs->type() == "Call"))  // LHS = "Call" && RHS ='Call'
+        {
+            CallExprAST *callExprLHS = dynamic_cast<CallExprAST *>(lhs.get());
+            string calleeLHS = (callExprLHS->getCallee());
+            CallExprAST *callExprRHS = dynamic_cast<CallExprAST *>(rhs.get());
+            string calleeRHS = (callExprRHS->getCallee());
+
+            if(calleeLHS == "exp" && calleeLHS == "exp")
+            {
+                vector<ast_ptr> &argsLHS = callExprLHS->getArgs();
+                vector<ast_ptr> &argsRHS = callExprRHS->getArgs();
+                auto &paramL = argsLHS.at(0);
+                auto &paramR = argsRHS.at(0);
+                auto typeParamL = paramL->type();
+                auto typeParamR = paramL->type();
+                if((typeParamL == "Variable" && typeParamR == "Binary"))
+                {
+                    ast_ptr oneNegetive = makePtr<NumberExprAST>(-1);
+                    auto newL = mulExpr(oneNegetive, paramL);
+                    if(isEqual(newL, paramR))
+                    {
+                        vector<ast_ptr> params;
+                        params.push_back(paramR->Clone());
+                        ast_ptr tmp = makePtr<CallExprAST>("cosh", std::move(params));
+                        return tmp;
+                    }
+                }
+                if((typeParamL == "Binary" && typeParamR == "Variable"))
+                {
+                    ast_ptr oneNegetive = makePtr<NumberExprAST>(-1);
+                    auto newR = mulExpr(oneNegetive, paramR);
+                    if(isEqual(paramL, newR))
+                    {
+                        vector<ast_ptr> params;
+                        params.push_back(paramL->Clone());
+                        ast_ptr tmp = makePtr<CallExprAST>("cosh", std::move(params));
+                        return tmp;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
