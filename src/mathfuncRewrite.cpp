@@ -1543,3 +1543,51 @@ vector<ast_ptr> sqrtCombine(const ast_ptr& expr)
     }
     return results;
 }
+
+ast_ptr powToMul(const ast_ptr& expr)
+{
+    if(expr == nullptr)
+    {
+        fprintf(stderr, "ERROR: powToMul's input is empty!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(expr->type() != "Call")
+    {
+        return expr->Clone();
+    }
+    
+    CallExprAST *callExpr = dynamic_cast<CallExprAST *>(expr.get());
+    auto callee = (callExpr->getCallee());
+    auto &args = callExpr->getArgs();
+
+    // fma(a, b, c) := a * b + c
+    if(callee == "pow")
+    {
+        ast_ptr &base = args.at(0); 
+        ast_ptr &exponent = args.at(1);
+        if(base == nullptr || exponent == nullptr)
+        {
+            fprintf(stderr, "ERROR: powToMul's params is wrong!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        auto typeBase = base->type();
+        auto typeExponent = exponent->type();
+        if(typeBase == "Variable" && typeExponent == "Number")
+        {
+            NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(exponent.get());
+            auto number = (numberExpr->getNumber());
+            if((int)number == number)
+            {
+                auto tmp = base->Clone();
+                for(int i = 1; i < (int)number; i++)
+                {
+                    tmp = mulExpr(tmp, base);
+                }
+                return tmp;
+            }
+        }  
+    }
+    return expr->Clone();
+}

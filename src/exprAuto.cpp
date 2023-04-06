@@ -286,6 +286,10 @@ ast_ptr dealWithCallsKernel(const ast_ptr &expr, const string callee)
         // cout << "dealWithCallsKernel: That is " << callee << endl;
         result = fmaToMulAndAdd(expr);
     }
+    else if (callee == "pow")
+    {
+        result = powToMul(expr);
+    }
     else
     {
         // cout << "dealWithCallsKernel: default: That is " << callee << endl;
@@ -525,13 +529,13 @@ vector<ast_ptr> mathfuncRewriteNew(const ast_ptr &expr)
     callLevel++;
     string prompt(callLevel * promtTimes, callLevelChar);
     prompt.append(callCount, callCountChar);
-    prompt += "mathfuncRewrite: ";
-    if(callCount == 1) cout << prompt << "start--------" << endl;
+    prompt += "mathfuncRewriteNew: ";
+    // if(callCount == 1) cout << prompt << "start--------" << endl;
 
     vector<ast_ptr> exprsFinal;
     if(expr == nullptr)
     {
-        cerr << "ERROR: empty" << endl;
+        cerr << "ERROR: mathfuncRewriteNew: empty" << endl;
         exit(EXIT_FAILURE);
     }
     if(expr->type() != "Binary")  // May be variable or number
@@ -594,7 +598,7 @@ vector<ast_ptr> mathfuncRewrite(const ast_ptr &expr, bool addSelf)
     // fprintf(stderr, "\tmathfuncRewrite: start--------\n");
     if(expr == nullptr)
     {
-        cerr << prompt << "ERROR: empty" << endl;
+        cerr << prompt << "ERROR: mathfuncRewrite: empty" << endl;
         exit(EXIT_FAILURE);
     }
     // printExpr(expr, "\tmathfuncRewrite: at the beginning: ");
@@ -1232,7 +1236,7 @@ size_t pickTheBest(vector<ast_ptr> &items, ast_ptr &originExpr)
     vector<int> startNowIdxs(dimension, 0);
     vector<double> startOriginIntervals;
     vector<double> steps;
-    for (int i = 0; i < dimension; i++)
+    for (size_t i = 0; i < dimension; i++)
     {
         auto &startOriginInterval = intervalTmp.at(i * 2);
         auto &endOriginInterval = intervalTmp.at(i * 2 + 1);
