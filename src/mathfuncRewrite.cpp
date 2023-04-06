@@ -38,26 +38,51 @@ ast_ptr expToexpm1(const ast_ptr &expr)
 
     ast_ptr &lhs = binOp->getLHS();
     ast_ptr &rhs = binOp->getRHS();
-    if((op == '+') && (lhs->type() == "Call") && (rhs->type() == "Number"))  // LHS = "Call" && RHS ='Number'
+    if(op == '+')
     {
-        CallExprAST *callExpr = dynamic_cast<CallExprAST *>(lhs.get());
-        string callee = (callExpr->getCallee());
-        vector<ast_ptr> &args = callExpr->getArgs();
-        vector<ast_ptr> argsNew;
-
-        NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(rhs.get());
-        double number = (numberExpr01->getNumber());
-        //得到这个表达式中的变量
-        if((callee == "exp") && (number == -1))
+        if((lhs->type() == "Call") && (rhs->type() == "Number"))  // LHS = "Call" && RHS ='Number'
         {
-            for(long unsigned int i = 0; i < args.size(); ++i)
+            CallExprAST *callExpr = dynamic_cast<CallExprAST *>(lhs.get());
+            string callee = (callExpr->getCallee());
+            vector<ast_ptr> &args = callExpr->getArgs();
+            vector<ast_ptr> argsNew;
+
+            NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(rhs.get());
+            double number = (numberExpr01->getNumber());
+            //得到这个表达式中的变量
+            if((callee == "exp") && (number == -1))
             {
-                auto arg = expandExpr(args.at(i));
-                argsNew.push_back(std::move(arg));
+                for(long unsigned int i = 0; i < args.size(); ++i)
+                {
+                    auto arg = expandExpr(args.at(i));
+                    argsNew.push_back(std::move(arg));
+                }
+                string calleeNew = "expm1";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                return exprFinal;
             }
-            string calleeNew = "expm1";
-            ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
-            return exprFinal;
+        }
+        else if((lhs->type() == "Number") && (rhs->type() == "Call"))  // LHS = "Number" && RHS ='Call'
+        {
+            CallExprAST *callExpr = dynamic_cast<CallExprAST *>(rhs.get());
+            string callee = (callExpr->getCallee());
+            vector<ast_ptr> &args = callExpr->getArgs();
+            vector<ast_ptr> argsNew;
+
+            NumberExprAST *numberExpr01 = dynamic_cast<NumberExprAST *>(lhs.get());
+            double number = (numberExpr01->getNumber());
+            //得到这个表达式中的变量
+            if((callee == "exp") && (number == -1))
+            {
+                for(long unsigned int i = 0; i < args.size(); ++i)
+                {
+                    auto arg = expandExpr(args.at(i));
+                    argsNew.push_back(std::move(arg));
+                }
+                string calleeNew = "expm1";
+                ast_ptr exprFinal = makePtr<CallExprAST>(calleeNew, std::move(argsNew));
+                return exprFinal;
+            }
         }
     }
 
