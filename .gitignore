@@ -42,3 +42,4 @@ __pycache__/
 expr_*.c
 run.log
 includeTEST/mine.h
+*.csv
