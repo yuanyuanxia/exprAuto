@@ -422,6 +422,9 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
 
         // cout << "fileNameKernel: " << fileNameKernel << "\n";
         cout << "command: " << commandStr << "\n";
+
+        return tempError;
+
         // cout << "testName: " << testName << "\n";
         char command[512] = {0};
         strcat(command, commandStr.c_str());

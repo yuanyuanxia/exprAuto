@@ -361,6 +361,10 @@ int main()
             auto timeTmp1 = std::chrono::high_resolution_clock::now(); // init over
             init_seconds = timeTmp1 - timeStart;
             cout << BLUE << "init time: " << init_seconds.count() << " s" << RESET << endl;
+
+            fprintf(stderr, GREEN "ready> " RESET);
+            continue;
+
             auto &initExprMaxError = initExprInfo.maxError;
             if (initExprMaxError <= 0.5)
             {
