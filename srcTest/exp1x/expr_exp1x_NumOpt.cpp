@@ -20,10 +20,8 @@ double expr_exp1x_CPP(double x)
 {
 	REAL x_real(x);
 
-	REAL pp(6);
 	double r;
 	REAL r_real;
-
 
 	if((0.01<=x)&&(x<=0.5)&&(0.09366259775907677<=x)&&(x<=0.0941941332009637)) {
 		r = (exp(x) - 1)/x;

@@ -41,7 +41,7 @@ else
     exit
 fi
 
-testFileName=test1paramFPEDParallel
+testFileName=test1paramFPEDParallelNumOpt
 numProcs=32
 
 # echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${prefix} ${middle} ${suffix} ${errfile}"
@@ -54,7 +54,7 @@ ${CPP} -c -IincludeNumOpt -o objs/points.o srcNumOpt/points.cpp
 ${CPP} -c -IincludeNumOpt -o objs/${sourceFile}.o ${directory}/${sourceFile}.cpp
 ${CC} -c -o objs/${prefix}_mpfr.o ${directory}/${prefix}_mpfr.c
 ${CC} -c -IincludeTEST -o objs/computeULP.o ./srcTest/computeULP.c 
-mpic++ -c -IincludeNumOpt -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -o objs/${testFileName}.o ./srcTest/${testFileName}.c
+mpic++ -c -IincludeNumOpt -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -o objs/${testFileName}.o ./srcTest/${testFileName}.cpp
 mpic++ objs/${testFileName}.o objs/${sourceFile}.o objs/${prefix}_mpfr.o objs/computeULP.o objs/points.o -Xlinker -rpath -Xlinker libs -Llibs -liRRAM -lgmp -lpthread -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
 
 # run the NumOpt version
