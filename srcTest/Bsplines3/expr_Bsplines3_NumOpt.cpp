@@ -4,14 +4,14 @@
 #include <cmath>
 #include <cfenv>
 
-#include "backend/points.h"
-#include "backend/self_math.h"
-#include "backend/gamma.h"
-#include "iRRAM/lib.h"
+// #include "backend/points.h"
+// #include "backend/self_math.h"
+// #include "backend/gamma.h"
+// #include "iRRAM/lib.h"
 
-int iRRAM::MAXiterationnum = 30;
-bool iRRAM::enableReiterate = true;
-bool iRRAM::alwaysenableReiterate = true;
+// int iRRAM::MAXiterationnum = 30;
+// bool iRRAM::enableReiterate = true;
+// bool iRRAM::alwaysenableReiterate = true;
 
 using namespace std;
 using namespace iRRAM;
@@ -20,7 +20,6 @@ double expr_Bsplines3_CPP(double x)
 {
 	REAL x_real(x);
 
-	REAL pp(6);
 	double r;
 	REAL r_real;
 
