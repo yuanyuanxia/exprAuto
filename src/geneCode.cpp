@@ -416,6 +416,7 @@ string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<str
         {"cosh", "mpfr_cosh"},
         {"tanh", "mpfr_tanh"},
         {"fma", "mpfr_fma"},
+        {"fabs", "mpfr_abs"},
     };
     // vector<string> vars;
     // getVariablesFromExpr(exprAst, vars);

@@ -16,9 +16,9 @@ public:
     string suffix;
     string exprStr;
     double error;
-    double aveError;
-    double maxError;
-    double performance;
+    double aveError = -1;
+    double maxError = -1;
+    double performance = -1;
     size_t rewriteID;
 };
 

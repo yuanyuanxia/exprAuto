@@ -36,6 +36,7 @@
 .history/
 build/
 srcGen/
+libs/
 main
 *.txt
 __pycache__/

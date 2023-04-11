@@ -77,6 +77,55 @@ map<string, vector<double>> benchmarkThresholds = {
     {"turbine1", {3.002278, 2.831004, 2.847586}},
 };
 
+// write to file
+void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime)
+{
+    vector<double> summaryData;
+    summaryData.push_back(dimension);
+    summaryData.push_back(numIntervalsBefore);
+    summaryData.push_back(numOfIntervals);
+    summaryData.push_back(double(numOfExprs));
+    if (thresholds.size() == 1)
+    {
+        summaryData.push_back(thresholds.at(0));
+        summaryData.push_back(-1);
+        summaryData.push_back(-1);
+    }
+    else if (thresholds.size() == 2)
+    {
+        summaryData.push_back(thresholds.at(0));
+        summaryData.push_back(thresholds.at(1));
+        summaryData.push_back(-1);
+    }
+    else if (thresholds.size() == 3)
+    {
+        summaryData.push_back(thresholds.at(0));
+        summaryData.push_back(thresholds.at(1));
+        summaryData.push_back(thresholds.at(2));
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: we can not support %ld demision now.\n", thresholds.size());
+        exit(EXIT_FAILURE);
+    }
+    summaryData.push_back(originExprInfo.aveError);
+    summaryData.push_back(originExprInfo.maxError);
+    summaryData.push_back(herbieExprInfo.aveError);
+    summaryData.push_back(herbieExprInfo.maxError);
+    summaryData.push_back(finalInfo.aveError);
+    summaryData.push_back(finalInfo.maxError);
+    summaryData.push_back(originPerformance);
+    summaryData.push_back(finalInfo.performance);
+    summaryData.push_back(elapsed_seconds);
+    summaryData.push_back(init_seconds);
+    summaryData.push_back(matlab_seconds);
+    summaryData.push_back(regime_seconds);
+    summaryData.push_back(rewrite_seconds);
+    summaryData.push_back(final_seconds);
+    summaryData.push_back(matlabKernelTime);
+    write_to_file(uniqueLabel, exprOriginBest, summaryData, "runlog.csv");
+}
+
 //===----------------------------------------------------------------------===//
 // Main driver code.
 //===----------------------------------------------------------------------===//
@@ -202,11 +251,12 @@ int main()
         // ready for writing to file
         string exprOriginBest = "";
         double originPerformance = -1;
+        double herbiePerformance = -1;
         int numIntervalsBefore = -1;
         double numOfIntervals = -1;
         int numOfExprs = -1;
         exprInfo finalInfo; // ave err, max err, performance
-        std::chrono::duration<double> init_seconds, matlab_seconds, regime_seconds, rewrite_seconds, final_seconds,elapsed_seconds;
+        std::chrono::duration<double> init_seconds{0}, matlab_seconds{0}, regime_seconds{0}, rewrite_seconds{0}, final_seconds{0}, elapsed_seconds{0};
         double matlabKernelTime = -1;
         vector<exprInfo> initExprInfos;
         exprInfo tempExprInfo;
@@ -219,10 +269,6 @@ int main()
         auto &originExprInfo = initExprInfos.at(0);
         auto &herbieExprInfo = initExprInfos.at(1);
         auto &daisyExprInfo = initExprInfos.at(2);
-        herbieExprInfo.aveError = -1;
-        herbieExprInfo.maxError = -1;
-        daisyExprInfo.aveError = -1;
-        daisyExprInfo.maxError = -1;
         if (runAllFlag)
         { // the whole process
             if (!isBenchMark)
@@ -241,11 +287,25 @@ int main()
             auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
-            originPerformance = testPerformance(uniqueLabel, "origin", intervals);
-            cout << "origin performance: " << originPerformance << "\n\n";
-            originPerformance = testPerformance(uniqueLabel, "herbie", intervals);
-            cout << "origin performance: " << originPerformance << "\n\n";
-            
+            if(exprOrigin != "")
+            {
+                originPerformance = testPerformance(uniqueLabel, "origin", intervals);
+                cout << "origin performance: " << originPerformance << "\n\n";
+            }
+            else
+            {
+                fprintf(stderr, "exprOrigin is null!\n");
+                exit(EXIT_FAILURE);
+            }
+            if(exprHerbie != "")
+            {
+                herbiePerformance = testPerformance(uniqueLabel, "herbie", intervals);
+                cout << "origin performance: " << originPerformance << "\n\n";
+            }
+            else
+            {
+                fprintf(stderr, "exprHerbie is null!\n");
+            }
 
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
@@ -293,6 +353,12 @@ int main()
             if (initExprMaxError <= 0.5)
             {
                 fprintf(stderr, "the error of %s is no bigger than 0.5, so do not need precision improvement.\n", inputStr.c_str());
+                // TODO: write
+                auto timeEnd = std::chrono::high_resolution_clock::now();
+                elapsed_seconds = timeEnd - timeStart;
+                cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
+
+                write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
                 fprintf(stderr, GREEN "ready> " RESET);
                 continue;
             }
@@ -426,47 +492,7 @@ int main()
         elapsed_seconds = timeEnd - timeStart;
         cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
 
-        vector<double> summaryData;
-        summaryData.push_back(dimension);
-        summaryData.push_back(numIntervalsBefore);
-        summaryData.push_back(numOfIntervals);
-        summaryData.push_back(double(numOfExprs));
-        if(thresholds.size() == 1) {
-            summaryData.push_back(thresholds.at(0));
-            summaryData.push_back(-1);
-            summaryData.push_back(-1);
-        }
-        else if(thresholds.size() == 2) {
-            summaryData.push_back(thresholds.at(0));
-            summaryData.push_back(thresholds.at(1));
-            summaryData.push_back(-1);
-        }
-        else if(thresholds.size() == 3) {
-            summaryData.push_back(thresholds.at(0));
-            summaryData.push_back(thresholds.at(1));
-            summaryData.push_back(thresholds.at(2));
-        }
-        else {
-            fprintf(stderr, "ERROR: we can not support %ld demision now.\n", thresholds.size());
-            exit(EXIT_FAILURE);
-        }
-        summaryData.push_back(originExprInfo.aveError);
-        summaryData.push_back(originExprInfo.maxError);
-        summaryData.push_back(herbieExprInfo.aveError);
-        summaryData.push_back(herbieExprInfo.maxError);
-        summaryData.push_back(finalInfo.aveError);
-        summaryData.push_back(finalInfo.maxError);
-        summaryData.push_back(originPerformance);
-        summaryData.push_back(finalInfo.performance);
-        summaryData.push_back(elapsed_seconds.count());
-        summaryData.push_back(init_seconds.count());
-        summaryData.push_back(matlab_seconds.count());
-        summaryData.push_back(regime_seconds.count());
-        summaryData.push_back(rewrite_seconds.count());
-        summaryData.push_back(final_seconds.count());
-        summaryData.push_back(matlabKernelTime);
-        write_to_file(uniqueLabel, exprOriginBest, summaryData, "runlog.csv");
-
+        write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
         fprintf(stderr, GREEN "ready> " RESET);
     }
 
