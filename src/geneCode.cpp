@@ -288,6 +288,18 @@ string geneHerbieCode(string uniqueLabel)
         {"test03_nonlin2", "(x + y)/(x - y)"}, // for test03_nonlin2, herbie is the same to origin
         {"theta", "(pow(pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 2.0), 18.0) * pow(cbrt(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855))))), 18.0)) * pow(cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))), 9.0)"}, // double t_0 = cbrt(cbrt(cbrt((atan((x2 / x1)) * 57.29577951307855)))); double t_1 = cbrt(t_0); *resultPtr = (pow(pow(t_1, 2.0), 18.0) * pow(t_1, 18.0)) * pow(t_0, 9.0)
         {"turbine1", "cbrt(pow((2.0 * pow(x2, -2.0)), 3.0)) - fma(fma(x0, -0.25, 0.375), ((x2 / (1.0 - x0)) * (x2 * pow(x1, 2.0))), 1.5)"}, // warning, the origin is (2.0/(r*r)+3.0) - ((3.0 - 2.0*v)*(1.0/8.0)*((w*w)*r*r))/(1.0 - v) - 9.0/2.0
+        {"squareRoot3_1", ""},
+        {"squareRoot3_2", ""},
+        {"squareRoot3Invalid_1", ""},
+        {"squareRoot3Invalid_2", ""},
+        {"cav10_1", ""},
+        {"cav10_2", ""},
+        {"gustafsonExample_1", ""},
+        {"gustafsonExample_2", ""},
+        {"smartRoot_1", ""},
+        {"smartRoot_2", ""},
+        {"triangleSorted_1", ""},
+        {"triangleSorted_2", ""},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
@@ -362,6 +374,18 @@ string geneDaisyCode(string uniqueLabel)
         {"test03_nonlin2", ""},
         {"theta", "atan((x2 / x1)) * 57.29577951307855"},
         {"turbine1", ""},
+        {"squareRoot3_1", ""},
+        {"squareRoot3_2", ""},
+        {"squareRoot3Invalid_1", ""},
+        {"squareRoot3Invalid_2", ""},
+        {"cav10_1", ""},
+        {"cav10_2", ""},
+        {"gustafsonExample_1", ""},
+        {"gustafsonExample_2", ""},
+        {"smartRoot_1", ""},
+        {"smartRoot_2", ""},
+        {"triangleSorted_1", ""},
+        {"triangleSorted_2", ""},
     };
 
     auto pos = benchmarkDaisy.find(uniqueLabel);

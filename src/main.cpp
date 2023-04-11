@@ -75,6 +75,18 @@ map<string, vector<double>> benchmarkThresholds = {
     {"test03_nonlin2", {1.375, 1.25}},
     {"theta", {2, 2}},
     {"turbine1", {3.002278, 2.831004, 2.847586}},
+    {"squareRoot3_1", {2}},
+    {"squareRoot3_2", {2}},
+    {"squareRoot3Invalid_1", {2}},
+    {"squareRoot3Invalid_2", {2}},
+    {"cav10_1", {2}},
+    {"cav10_2", {2}},
+    {"gustafsonExample_1", {2}},
+    {"gustafsonExample_2", {2}},
+    {"smartRoot_1", {2}},
+    {"smartRoot_2", {2}},
+    {"triangleSorted_1", {2, 2, 2}},
+    {"triangleSorted_2", {2, 2, 2}},
 };
 
 // write to file

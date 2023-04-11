@@ -86,3 +86,15 @@ tanhTaylorPoly7 x + -1.0 / 3.0 * x * x * x + 2.0 / 15.0 * x * x * x * x * x + -1
 asinhTaylorPoly7 x + -1.0 / 6.0 * x * x * x + 3.0 / 40.0 * x * x * x * x * x + -5.0 / 112.0 * x * x * x * x * x * x * x
 acoshTaylorPoly7 -10.93051753399604 + 29.957916712389473 * x + -35.58080559049901 * x * x +25.219476933674876 * x * x * x + -11.066799860894648 * x * x * x * x + 2.970361895278266 * x * x * x * x * x + -0.44893622077214135 * x * x * x * x * x * x + 0.029376877759354054 * x * x * x * x * x * x * x
 atanhTaylorPoly7 x + 1.0 / 3.0 * (x * x) * x + 1.0 / 5.0 * (x * x) * x * x * x + 1.0 / 7.0 * (x * x) * x * x * x * x * x
+squareRoot3_1 1 + 0.5 * x
+squareRoot3_2 sqrt(1 + x)
+squareRoot3Invalid_1 1 + 0.5 * x
+squareRoot3Invalid_2 sqrt(1 + x)
+cav10_1 x / 10.0
+cav10_2 x * x + 2
+gustafsonExample_1 1
+gustafsonExample_2 (exp(((fabs((x - sqrt(((x * x) + 1.0)))) - (1.0 / (x + sqrt(((x * x) + 1.0))))) * (fabs((x - sqrt(((x * x) + 1.0)))) - (1.0 / (x + sqrt(((x * x) + 1.0))))))) - 1.0) / x
+smartRoot_1 (c * 2.0) / (-3.5 - sqrt(((3.5 * 3.5) - ((3.0 * c) * 4.0))))
+smartRoot_2 (-3.5 + sqrt(((3.5 * 3.5) - ((3.0 * c) * 4.0)))) / (3.0 * 2.0)
+triangleSorted_1 sqrt(((((c + (b + a)) * (a - (c - b))) * (a + (c - b))) * (c + (b - a)))) / 4.0
+triangleSorted_2 sqrt(((((c + (a + b)) * (b - (c - a))) * (b + (c - a))) * (c + (a - b)))) / 4.0;
