@@ -1,22 +1,3 @@
-#include <iostream>
-#include <iomanip>
-#include <limits>
-#include <cfenv>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <mpfr.h>
-#include "iRRAM/lib.h"
-
-using namespace std;
-using namespace iRRAM;
-// int iRRAM::MAXiterationnum = 30;
-// bool iRRAM::enableReiterate = true;
-// bool iRRAM::alwaysenableReiterate = true;
-
-extern "C"
-{
 #include "common.h"
 #include "mpi.h"
 
@@ -43,7 +24,6 @@ struct errorInfo {
 #ifndef ERRFILE
 #define ERRFILE 0
 #endif
-
 double EXPRESSIONMPFR(double, mpfr_t);
 double EXPRESSIONMINE(double);
 
@@ -60,7 +40,6 @@ int computeResult1param(double x0, mpfr_t mpfrResult)
     mpfr_set_d(mpfrResult, result, MPFR_RNDN);
 
     return status;
-}
 }
 
 struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int testNumX0, const char* uniqueLabel, const char* fileNameKernel, int myid, int i0StartLocal, int i0EndLocal, double x0startOriginInterval, double stepX0) {
@@ -104,10 +83,6 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         // x0 = ii0.d;
     for(i0 = i0StartLocal; i0 <= i0EndLocal; i0++) {
         x0 = x0startOriginInterval + stepX0 * i0;
-        if(myid == 2)
-        {
-            printf("i0 = %d, x0 = %lf\n", i0, x0);
-        }
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
         #ifdef SINGLE
@@ -162,9 +137,6 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
 
 int main(int argc, char **argv)
 {
-    // NumOpt
-    iRRAM_initialize(argc,argv);
-
     // parallel
     int myid, numProcs;
     MPI_Init(&argc, &argv);
@@ -186,9 +158,9 @@ int main(int argc, char **argv)
     testNumX0 = TESTNUMX0;
 
     char *fileNameKernel;
-    fileNameKernel = (char *)calloc(256, sizeof(char));
+    fileNameKernel = calloc(256, sizeof(char));
     char *uniqueLabel;
-    uniqueLabel = (char *)calloc(256, sizeof(char));
+    uniqueLabel = calloc(256, sizeof(char));
     if (argc == 9)
     {
         x0Start.d = strtod(argv[1], NULL);
@@ -226,10 +198,10 @@ int main(int argc, char **argv)
         printf("Usage: \tthe fixed inputs [%g %g %lu] will be used\n", x0Start.d, x0End.d, testNumX0);
     }
 
-    if(myid == 0) {
-        printf("\n---------------------------------------------------start test1paramFPEDParallel\n");
-        printf("Parameters: x0Start: %lg, x0End: %lg, testNumX0 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, testNumX0, fileNameKernel);
-    }
+    // if(myid == 0) {
+        // printf("\n---------------------------------------------------start test1paramFPEDParallel\n");
+        // printf("Parameters: x0Start: %lg, x0End: %lg, testNumX0 = %lu, fileNameKernel: %s\n", x0Start.d, x0End.d, testNumX0, fileNameKernel);
+    // }
 
     // local parameters init
     int lenX0Local = testNumX0 / numProcs;
