@@ -52,6 +52,9 @@ fi
 # ./detectErrorOneFPEDParallel${suffix}.sh intro_example 0 999 500000 0 0 0.001998 expr_intro_example 0_999_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh sqrt_add 1 1000 500000 0 1 0.001998 expr_sqrt_add 1_1000_500000 ${target}
 # ./detectErrorTwoFPEDParallel${suffix}.sh polarToCarthesianX 1 10 0 360 1024 1024 0 0 1 0 0.0087890625 0.3515625 expr_polarToCarthesianX 1_10_0_360_1024_1024 ${target}
+# ./detectErrorThreeFPEDParallel${suffix}.sh doppler1 -30 50 -100 100 20 20000 256 256 256 0 0 0 -30 -100 20 0.3125 0.78125 78.046875 expr_doppler1 -30_50_-100_100_20_20000_256_256_256 ${target}
+# ./detectErrorThreeFPEDParallel${suffix}.sh doppler2 -40 60 -125 125 15 25000 256 256 256 0 0 0 -40 -125 15 0.390625 0.9765625 97.59765625 expr_doppler2 -40_60_-125_125_15_25000_256_256_256 ${target}
+# ./detectErrorThreeFPEDParallel${suffix}.sh doppler3 -50 30 -30 120 320 20300 256 256 256 0 0 0 -50 -30 320 0.3125 0.5859375 78.046875 expr_doppler3 -50_30_-30_120_320_20300_256_256_256 ${target}
 
 # problem compile error
 # ./detectErrorTwoFPEDParallel${suffix}.sh i4 0.1 10 -5 5 1024 1024 0 0 0.1 -5 0.00966796875 0.009765625 expr_i4 0.1_10_-5_5_1024_1024 ${target}
@@ -68,9 +71,4 @@ fi
 # ./detectErrorTwoFPEDParallel${suffix}.sh sec4example 1.001 2 1.001 2 1024 1024 0 0 1.001 1.001 0.0009755859375000001 0.0009755859375000001 expr_sec4example 1.001_2_1.001_2_1024_1024 ${target}
 # ./detectErrorTwoFPEDParallel${suffix}.sh test03_nonlin2 0 1 -1 -0.1 1024 1024 0 0 0 -1 0.0009765625 0.00087890625 expr_test03_nonlin2 0_1_-1_-0.1_1024_1024 ${target}
 # ./detectErrorTwoFPEDParallel${suffix}.sh theta 1 100 1 100 1024 1024 0 0 1 1 0.0966796875 0.0966796875 expr_theta 1_100_1_100_1024_1024 ${target}
-
-# DOING
-# ./detectErrorThreeFPEDParallel${suffix}.sh doppler1 -30 50 -100 100 20 20000 256 256 256 0 0 0 -30 -100 20 0.3125 0.78125 78.046875 expr_doppler1 -30_50_-100_100_20_20000_256_256_256 ${target}
-# ./detectErrorThreeFPEDParallel${suffix}.sh doppler2 -40 60 -125 125 15 25000 256 256 256 0 0 0 -40 -125 15 0.390625 0.9765625 97.59765625 expr_doppler2 -40_60_-125_125_15_25000_256_256_256 ${target}
-# ./detectErrorThreeFPEDParallel${suffix}.sh doppler3 -50 30 -30 120 320 20300 256 256 256 0 0 0 -50 -30 320 0.3125 0.5859375 78.046875 expr_doppler3 -50_30_-30_120_320_20300_256_256_256 ${target}
 # ./detectErrorThreeFPEDParallel${suffix}.sh turbine1 3.8 7.8 -4.5 -0.3 0.4 0.9 256 256 256 0 0 0 3.8 -4.5 0.4 0.015625 0.01640625 0.001953125 expr_turbine1 3.8_7.8_-4.5_-0.3_0.4_0.9_256_256_256 ${target}

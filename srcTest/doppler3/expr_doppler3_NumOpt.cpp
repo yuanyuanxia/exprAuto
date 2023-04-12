@@ -16,7 +16,7 @@ bool iRRAM::alwaysenableReiterate = true;
 using namespace std;
 using namespace iRRAM;
 
-double expr_doppler3_CPP(double T, double v, double u)
+double expr_doppler3_CPP(double T, double u, double v)
 {
 	REAL T_real(T);
 	REAL v_real(v);
@@ -39,8 +39,8 @@ double expr_doppler3_CPP(double T, double v, double u)
 
 extern "C"
 {
-	double expr_doppler3_NumOpt(double x)
+	double expr_doppler3_NumOpt(double x0, double x1, double x2)
 	{
-		return expr_doppler3_CPP(x);
+		return expr_doppler3_CPP(x0, x1, x2);
 	}
 }
