@@ -37,6 +37,7 @@
 build/
 srcGen/
 libs/
+script/output/
 main
 *.txt
 __pycache__/
