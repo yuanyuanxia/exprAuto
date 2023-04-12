@@ -32,7 +32,8 @@ double expr_sqrt_add_CPP(double x)
 		return r_real.as_double();
 	}
 
-	return r;
+	r_real = 1/(iRRAM::sqrt((REAL)x_real + 1) +iRRAM::sqrt((REAL)x_real));
+	return r_real.as_double();
 }
 
 extern "C"

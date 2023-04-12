@@ -24,7 +24,7 @@ double expr_i4_CPP(double x, double y)
 	REAL r_real;
 
 	if((0.1<=x)&&(x<=10)&&(-5<=y)&&(y<=5)) {
-		r_real = sqrtf(x_real+y_real*y_real);
+		r_real = iRRAM::sqrt(x_real+y_real*y_real);
 		return r_real.as_double();
 	}
 

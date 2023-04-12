@@ -43,6 +43,7 @@ struct errorInfo
 #define TESTNUMX1 1024
 // #define FP
 // #define DEBUG
+// #define SINGLE // for i4, i6, hypot32
 #ifndef ERRFILE
 #define ERRFILE 0
 #endif

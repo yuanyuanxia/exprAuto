@@ -34,7 +34,8 @@ double expr_doppler3_CPP(double T, double u, double v)
 		return r_real.as_double();
 	}
 
-	return r;
+	r_real = ((-(REAL(1657.0)/REAL(5.0)+REAL(3.0)/REAL(5.0)*T_real))*v_real)/(((REAL(1657.0)/REAL(5.0)+REAL(3.0)/REAL(5.0)*T_real)+u_real)*((REAL(1657.0)/REAL(5.0)+REAL(3.0)/REAL(5.0)*T_real)+u_real));
+	return r_real.as_double();
 }
 
 extern "C"

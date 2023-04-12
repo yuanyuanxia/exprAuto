@@ -379,7 +379,7 @@ double expr_i6_CPP(double x, double y)
 	}
 
 	if((0.1<=x)&&(x<=10)&&(-5<=y)&&(y<=5)) {
-		r_real = sinf(x_real*y_real);
+		r_real = iRRAM::sin(x_real*y_real);
 		return r_real.as_double();
 	}
 

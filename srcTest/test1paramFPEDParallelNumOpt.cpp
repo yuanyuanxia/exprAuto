@@ -104,6 +104,9 @@ struct errorInfo test1FPEDparamParallel(unsigned long int testNumX0, const char*
         // x0 = ii0.d;
     for(i0 = i0StartLocal; i0 <= i0EndLocal; i0++) {
         x0 = x0startOriginInterval + stepX0 * i0;
+        if(x0 == -1 || x0 == 1 || x0 == 0) { // for NMSEproblem343, NMSEexample310
+            continue;
+        }
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
         #ifdef SINGLE

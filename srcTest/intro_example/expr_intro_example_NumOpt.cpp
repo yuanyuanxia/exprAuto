@@ -31,8 +31,8 @@ double expr_intro_example_CPP(double x)
 		r_real = x_real/(x_real+1);
 		return r_real.as_double();
 	}
-
-	return r;
+	r_real = x_real/(x_real+1);
+	return r_real.as_double();
 }
 
 extern "C"
