@@ -166,8 +166,8 @@ int main()
 
     fprintf(stderr, GREEN "ready> " RESET);
     string inputStr = "";
-    // while (getline(infile, inputStr)) // read line from file's input
-    while (getline(cin, inputStr)) // read line from keyboard input
+    while (getline(infile, inputStr)) // read line from file's input
+    // while (getline(cin, inputStr)) // read line from keyboard input
     {
         // only rewrite
         // getlineCount++;
@@ -293,6 +293,23 @@ int main()
             system(mkdirCommand.c_str());
 
             auto exprOrigin = geneExprCodeKernel(inputStr, vars, uniqueLabel, "origin");
+
+            vector<int> startNowIdxsTmp(dimension, 0);
+            vector<double> startOriginIntervalsTmp;
+            vector<double> stepsTmp;
+            for (int i = 0; i < dimension; i++)
+            {
+                auto &startOriginInterval = intervals.at(i * 2);
+                auto &endOriginInterval = intervals.at(i * 2 + 1);
+                startOriginIntervalsTmp.push_back(startOriginInterval);
+                double width = endOriginInterval - startOriginInterval;
+                double step = width / (double)scales.at(i);
+                stepsTmp.push_back(step);
+            }
+            geneErrorDetectScript(uniqueLabel, "tmp", intervals, scales, startNowIdxsTmp, startOriginIntervalsTmp, stepsTmp);
+            fprintf(stderr, GREEN "ready> " RESET);
+            continue;
+
             // auto funcNameOrigin = geneExprCode(inputStr, uniqueLabel, "origin");
             // auto funcNameHerbie = geneHerbieCode(inputStr, uniqueLabel, "herbie");
             auto exprHerbie = geneHerbieCode(uniqueLabel);
@@ -361,9 +378,6 @@ int main()
             auto timeTmp1 = std::chrono::high_resolution_clock::now(); // init over
             init_seconds = timeTmp1 - timeStart;
             cout << BLUE << "init time: " << init_seconds.count() << " s" << RESET << endl;
-
-            fprintf(stderr, GREEN "ready> " RESET);
-            continue;
 
             auto &initExprMaxError = initExprInfo.maxError;
             if (initExprMaxError <= 0.5)

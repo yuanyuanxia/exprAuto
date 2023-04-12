@@ -202,12 +202,12 @@ int main_inner(const unsigned long int &testNumX0, const string &uniqueLabelStr,
         DL maxInputX0;
         maxInputX0.d = errs[maxErrorIdx].maxInputX0;
 
+        std::string directory{"./outputs"};
+        std::string suffixErr("error.txt");
         FILE *fErr;
-        char *directory = "./outputs";
-        char *suffixErr = "error.txt";
         char *fileNameErr;
-        fileNameErr = (char *) calloc(strlen(directory) + strlen(uniqueLabel) + strlen(fileNameKernel) + strlen(suffixErr) + 128, sizeof(char));
-        sprintf(fileNameErr, "%s/%s/%s_%s", directory, uniqueLabel, fileNameKernel, suffixErr);
+        fileNameErr = (char *) calloc(directory.length() + strlen(uniqueLabel) + strlen(fileNameKernel) + suffixErr.length() + 128, sizeof(char));
+        sprintf(fileNameErr, "%s/%s/%s_%s", directory.c_str(), uniqueLabel, fileNameKernel, suffixErr.c_str());
         if ((fErr = fopen(fileNameErr, "w")) == NULL)
         {
             printf("Error opening file %s.\n", fileNameErr);
