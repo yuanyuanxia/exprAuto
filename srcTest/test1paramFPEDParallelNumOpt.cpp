@@ -104,10 +104,6 @@ struct errorInfo test1FPEDparamParallel(unsigned long int testNumX0, const char*
         // x0 = ii0.d;
     for(i0 = i0StartLocal; i0 <= i0EndLocal; i0++) {
         x0 = x0startOriginInterval + stepX0 * i0;
-        // if(myid == 2)
-        // {
-        //     printf("i0 = %d, x0 = %lf\n", i0, x0);
-        // }
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
         #ifdef SINGLE
@@ -169,12 +165,14 @@ int main_inner(const unsigned long int &testNumX0, const string &uniqueLabelStr,
     MPI_Datatype MPI_errorInfo;
     MPI_Type_contiguous(3, MPI_DOUBLE, &MPI_errorInfo); 
     MPI_Type_commit(&MPI_errorInfo);
+
     char *fileNameKernel;
     fileNameKernel = (char *)calloc(256, sizeof(char));
     sprintf(fileNameKernel, "%s", fileNameKernelStr.c_str());
     char *uniqueLabel;
     uniqueLabel = (char *)calloc(256, sizeof(char));
     sprintf(uniqueLabel, "%s", uniqueLabelStr.c_str());
+
     // call the error test function
     struct errorInfo err = test1FPEDparamParallel(testNumX0, uniqueLabel, fileNameKernel, myid, i0StartLocal, i0EndLocal, x0startOriginInterval, stepX0);
     
