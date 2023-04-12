@@ -38,8 +38,8 @@ double expr_polarToCarthesianX_CPP(double radius, double theta)
 
 extern "C"
 {
-	double expr_polarToCarthesianX_NumOpt(double x)
+	double expr_polarToCarthesianX_NumOpt(double x0, double x1)
 	{
-		return expr_polarToCarthesianX_CPP(x);
+		return expr_polarToCarthesianX_CPP(x0, x1);
 	}
 }

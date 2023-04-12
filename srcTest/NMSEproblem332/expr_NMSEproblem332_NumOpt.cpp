@@ -283,8 +283,8 @@ double expr_NMSEproblem332_CPP(double eps, double x)
 
 extern "C"
 {
-	double expr_NMSEproblem332_NumOpt(double x)
+	double expr_NMSEproblem332_NumOpt(double x0, double x1)
 	{
-		return expr_NMSEproblem332_CPP(x);
+		return expr_NMSEproblem332_CPP(x0, x1);
 	}
 }

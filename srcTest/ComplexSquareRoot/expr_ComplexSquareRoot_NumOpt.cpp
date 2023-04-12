@@ -38,8 +38,8 @@ double expr_ComplexSquareRoot_CPP(double x1, double x2)
 
 extern "C"
 {
-	double expr_ComplexSquareRoot_NumOpt(double x)
+	double expr_ComplexSquareRoot_NumOpt(double x0, double x1)
 	{
-		return expr_ComplexSquareRoot_CPP(x);
+		return expr_ComplexSquareRoot_CPP(x0, x1);
 	}
 }

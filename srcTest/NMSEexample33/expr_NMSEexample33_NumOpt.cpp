@@ -263,8 +263,8 @@ double expr_NMSEexample33_CPP(double eps, double x)
 
 extern "C"
 {
-	double expr_NMSEexample33_NumOpt(double x)
+	double expr_NMSEexample33_NumOpt(double x0, double x1)
 	{
-		return expr_NMSEexample33_CPP(x);
+		return expr_NMSEexample33_CPP(x0, x1);
 	}
 }

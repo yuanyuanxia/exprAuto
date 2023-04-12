@@ -388,8 +388,8 @@ double expr_i6_CPP(double x, double y)
 
 extern "C"
 {
-	double expr_i6_NumOpt(double x)
+	double expr_i6_NumOpt(double x0, double x1)
 	{
-		return expr_i6_CPP(x);
+		return expr_i6_CPP(x0, x1);
 	}
 }

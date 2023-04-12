@@ -33,8 +33,8 @@ double expr_i4_CPP(double x, double y)
 
 extern "C"
 {
-	double expr_i4_NumOpt(double x)
+	double expr_i4_NumOpt(double x0, double x1)
 	{
-		return expr_i4_CPP(x);
+		return expr_i4_CPP(x0, x1);
 	}
 }

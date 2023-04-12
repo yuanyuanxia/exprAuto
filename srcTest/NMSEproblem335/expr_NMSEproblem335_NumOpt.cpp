@@ -143,8 +143,8 @@ double expr_NMSEproblem335_CPP(double eps, double x)
 
 extern "C"
 {
-	double expr_NMSEproblem335_NumOpt(double x)
+	double expr_NMSEproblem335_NumOpt(double x0, double x1)
 	{
-		return expr_NMSEproblem335_CPP(x);
+		return expr_NMSEproblem335_CPP(x0, x1);
 	}
 }

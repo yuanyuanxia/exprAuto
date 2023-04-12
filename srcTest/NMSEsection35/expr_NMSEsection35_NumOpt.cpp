@@ -288,8 +288,8 @@ double expr_NMSEsection35_CPP(double a, double x)
 
 extern "C"
 {
-	double expr_NMSEsection35_NumOpt(double x)
+	double expr_NMSEsection35_NumOpt(double x0, double x1)
 	{
-		return expr_NMSEsection35_CPP(x);
+		return expr_NMSEsection35_CPP(x0, x1);
 	}
 }

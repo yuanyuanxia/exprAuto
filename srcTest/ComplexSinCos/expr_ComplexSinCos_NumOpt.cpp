@@ -16,7 +16,7 @@ bool iRRAM::alwaysenableReiterate = true;
 using namespace std;
 using namespace iRRAM;
 
-double expr_ComplexSinCos_CPP(double r, double i)
+double expr_ComplexSinCos_CPP(double i, double r)
 {
 	REAL r_real(r);
 	REAL i_real(i);
@@ -43,8 +43,8 @@ double expr_ComplexSinCos_CPP(double r, double i)
 
 extern "C"
 {
-	double expr_ComplexSinCos_NumOpt(double x)
+	double expr_ComplexSinCos_NumOpt(double x0, double x1)
 	{
-		return expr_ComplexSinCos_CPP(x);
+		return expr_ComplexSinCos_CPP(x0, x1);
 	}
 }
