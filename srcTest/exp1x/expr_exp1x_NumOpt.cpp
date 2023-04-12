@@ -67,8 +67,7 @@ double expr_exp1x_CPP(double x)
 		r_real = (iRRAM::exp((REAL)x_real) - 1)/x_real;
 		return r_real.as_double();
 	}
-	double result = (exp(x) - 1)/x;
-	return result;
+
 	return r;
 }
 
