@@ -3,24 +3,10 @@
 
 #include <iostream>
 #include <vector>
+#include "basic.hpp"
 
 using std::string;
 using std::vector;
-
-class exprInfo
-{
-public:
-    double start;
-    double end;
-    vector<double> intervals;
-    string suffix;
-    string exprStr;
-    double error;
-    double aveError = -1;
-    double maxError = -1;
-    double performance = -1;
-    size_t rewriteID;
-};
 
 string getUniqueLabel();
 
@@ -48,7 +34,7 @@ vector<string> geneIntervalData(vector<string> upEdgeFileNames, string uniqueLab
 
 vector<vector<double>> getIntervalData(string filename);
 
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore);
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore, vector<int> &numIntervalsSoloBefore, vector<int> &numIntervalsSoloAfter);
 
 vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<double>> &intervalData, int &numOfExprs, const vector<double> &intervals);
 

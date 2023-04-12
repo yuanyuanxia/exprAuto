@@ -772,19 +772,26 @@ vector<vector<double>> getIntervalData(string filename)
 }
 
 // according to the corresponding upEdgeFile, generate intervalData for each dimension, and then combine all permutation of all dimensions.
-vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore)
+vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<double> &thresholds, vector<double> &intervals, int &numIntervalsBefore, vector<int> &numIntervalsSoloBefore, vector<int> &numIntervalsSoloAfter)
 {
     vector<vector<double>> intervalDataMultiDim;
     int dimension = thresholds.size();
+    int numIntervalsBeforeSolo = -1;
+    numIntervalsSoloBefore.clear();
+    numIntervalsSoloAfter.clear();
+    numIntervalsBefore = 1;
     for (int i = 0; i < dimension; i++) // iterate all the dimensions
     {
         // call devideUpEdgeData for each dimension: matlab upEdge ==> interval vector
         auto &upEdgeFileName = upEdgeFileNames.at(i);
         auto &threshold = thresholds.at(i);
         auto thresholdCombine = (intervals.at(2 * i + 1) - intervals.at(2 * i)) / 100; // thresholdCombine = 1% of the interval width at the target demision
-        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, numIntervalsBefore, thresholdCombine);
-        // fmt::print("thresholdCombine: {}, intervalData1D {}\n", thresholdCombine, intervalData1D);
+        auto intervalData1D = devideUpEdgeData(upEdgeFileName, threshold, numIntervalsBeforeSolo, thresholdCombine);
+        numIntervalsBefore = numIntervalsBefore * numIntervalsBeforeSolo;
+        // fmt::print("i = {}, numIntervalsBeforeSolo: {}, thresholdCombine: {}, intervalData1D {}\n", i, numIntervalsBeforeSolo, thresholdCombine, intervalData1D);
         intervalDataMultiDim.push_back(intervalData1D);
+        numIntervalsSoloBefore.push_back(numIntervalsBeforeSolo);
+        numIntervalsSoloAfter.push_back(intervalData1D.size() / 2);
     }
     // call permuteMultiVec to get all permutation
     auto results = permuteMultiVec(intervalDataMultiDim);

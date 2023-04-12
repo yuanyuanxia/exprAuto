@@ -339,6 +339,12 @@ vector<double> devideUpEdgeData(string upEdgeFileName, double &threshold, int &n
     
     // Merge intervals that are close in distance.
     numIntervalsBefore = output_vector.size() / 2;
+    // fprintf(stderr, "output_vector: ");
+    // for(auto item : output_vector)
+    // {
+    //     fprintf(stderr, "%f ", *item);
+    // }
+    // fprintf(stderr, "\n");
     vector<double *> merge_vector;
     interval_merge(output_vector, merge_vector, thresholdCombine);
     // printRegime(merge_vector.size(), merge_vector, intervalFileName, "distanceTmp_afterCombine.txt", "widthTmp_afterCombine.txt");
