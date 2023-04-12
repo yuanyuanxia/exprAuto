@@ -18,6 +18,7 @@ fi
 # DONE
 # ./detectErrorOneFPEDParallel${suffix}.sh Bsplines3 0 1 500000 0 0 2e-06 expr_Bsplines3 0_1_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh exp1x 0.01 0.5 500000 0 0.01 9.8e-07 expr_exp1x 0.01_0.5_500000 ${target}
+# ./detectErrorOneFPEDParallel${suffix}.sh exp1x_log 0.01 0.5 500000 0 0.01 9.8e-07 expr_exp1x_log 0.01_0.5_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh intro_example 0 999 500000 0 0 0.001998 expr_intro_example 0_999_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh logexp -8 8 500000 0 -8 3.2e-05 expr_logexp -8_8_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh NMSEexample31 0.01 100 500000 0 0.01 0.00019998 expr_NMSEexample31 0.01_100_500000 ${target}
@@ -60,7 +61,6 @@ fi
 # problem compile error
 
 # TODO: NO FILE
-# ./detectErrorOneFPEDParallel${suffix}.sh exp1x_log 0.01 0.5 500000 0 0.01 9.8e-07 expr_exp1x_log 0.01_0.5_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh NMSEproblem334 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem334 0.01_100_500000 ${target}
 # ./detectErrorOneFPEDParallel${suffix}.sh NMSEproblem345 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem345 0.01_100_500000 ${target}
 # ./detectErrorTwoFPEDParallel${suffix}.sh hypot32 1 100 1 100 1024 1024 0 0 1 1 0.0966796875 0.0966796875 expr_hypot32 1_100_1_100_1024_1024 ${target}

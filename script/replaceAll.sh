@@ -3,6 +3,7 @@
 ./replace.sh doppler1
 ./replace.sh doppler2
 ./replace.sh doppler3
+./replace.sh exp1x_log
 ./replace.sh i4
 ./replace.sh i6
 ./replace.sh intro_example
