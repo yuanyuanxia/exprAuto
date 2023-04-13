@@ -805,6 +805,14 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
         summaryData.push_back(thresholds.at(2));
         summaryData.push_back(thresholds.at(3));
     }
+    else if (thresholds.size() == 5)
+    {
+        summaryData.push_back(thresholds.at(0));
+        summaryData.push_back(thresholds.at(1));
+        summaryData.push_back(thresholds.at(2));
+        summaryData.push_back(thresholds.at(3));
+        summaryData.push_back(thresholds.at(4));
+    }
     else
     {
         fprintf(stderr, "ERROR: write_to_file_wrapper: we can not support %ld demision now.\n", thresholds.size());

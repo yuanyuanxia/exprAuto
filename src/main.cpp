@@ -88,6 +88,11 @@ map<string, vector<double>> benchmarkThresholds = {
     {"triangleSorted_1", {2, 2, 2}},
     {"triangleSorted_2", {2, 2, 2}},
     {"example", {2, 2, 2, 2}},
+    {"polyIDX0", {2, 2, 2, 2}},
+    {"polyIDX1", {2, 2, 2, 2}},
+    {"polyIDX2", {2, 2, 2, 2}},
+    {"example5param", {2, 2, 2, 2, 2}},
+    {"pov-ray", {2, 2, 2, 2, 2}},
 };
 
 //===----------------------------------------------------------------------===//
@@ -203,6 +208,10 @@ int main()
         else if (dimension == 4)
         {
             sampleScale = 96;
+        }
+        else if (dimension == 5)
+        {
+            sampleScale = 24;
         }
         else
         {
@@ -379,6 +388,21 @@ int main()
                     suffixTmp = exprOriginBest + "_U";
                     suffixTmps.push_back(suffixTmp);
                     vector<int> scales{384, 96}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
+                }
+                else if (dimension == 5)
+                {
+                    suffixTmp = exprOriginBest + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Z";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_U";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_V";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{384, 24}; // actually are drawNum and findMaxNum, so only need 2 numbers
                     sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
                 else

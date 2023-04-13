@@ -301,6 +301,11 @@ string geneHerbieCode(string uniqueLabel)
         {"triangleSorted_1", ""},
         {"triangleSorted_2", ""},
         {"example", "(x0+x1)+(x2+x3)"},
+        {"polyIDX0", ""},
+        {"polyIDX1", ""},
+        {"polyIDX2", ""},
+        {"example5param", "(x0+x1)+(x2+x3)+x4"},
+        {"pov-ray", ""},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
@@ -388,6 +393,11 @@ string geneDaisyCode(string uniqueLabel)
         {"triangleSorted_1", ""},
         {"triangleSorted_2", ""},
         {"example", "(x0+x2)+(x1+x3)"},
+        {"polyIDX0", ""},
+        {"polyIDX1", ""},
+        {"polyIDX2", ""},
+        {"example5param", "(x0+x1)+(x2+x3)+x4"},
+        {"pov-ray", ""},
     };
 
     auto pos = benchmarkDaisy.find(uniqueLabel);
