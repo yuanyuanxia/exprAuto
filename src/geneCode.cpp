@@ -300,6 +300,7 @@ string geneHerbieCode(string uniqueLabel)
         {"smartRoot_2", ""},
         {"triangleSorted_1", ""},
         {"triangleSorted_2", ""},
+        {"example", "(x0+x1)+(x2+x3)"},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
@@ -386,6 +387,7 @@ string geneDaisyCode(string uniqueLabel)
         {"smartRoot_2", ""},
         {"triangleSorted_1", ""},
         {"triangleSorted_2", ""},
+        {"example", "(x0+x2)+(x1+x3)"},
     };
 
     auto pos = benchmarkDaisy.find(uniqueLabel);

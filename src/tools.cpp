@@ -364,7 +364,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
     exprInfo tempError;
     size_t size = scales.size();
 
-    if (size < 4)
+    if (size < 5)
     {
         string prefix = "expr_" + uniqueLabel;
         vector<string> params;
@@ -409,7 +409,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         namespace fs = std::filesystem;
         string currentPath = fs::current_path();
         string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt"; // get the output of error detecting
-        string number[3] = {"One", "Two", "Three"};
+        string number[4] = {"One", "Two", "Three", "Four"};
         string scriptName = "./detectError" + number[size - 1] + "FPEDParallel.sh";
         stringstream ss;
         ss << scriptName << " " << uniqueLabel;
@@ -456,7 +456,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         tempError.suffix = suffix;
         return tempError;
     }
-    else if (size == 4)
+    else if (size == 5)
     {
         tempError = testError(uniqueLabel, suffix, intervals);
     }
@@ -473,7 +473,7 @@ void sampleError(string uniqueLabel, string suffix, const vector<double> &interv
     exprInfo tempError;
     size_t size = intervals.size() / 2;
 
-    if (size < 4)
+    if (size < 5)
     {
         string prefix = "expr_" + uniqueLabel;
         vector<string> params;
@@ -503,7 +503,7 @@ void sampleError(string uniqueLabel, string suffix, const vector<double> &interv
         namespace fs = std::filesystem;
         string currentPath = fs::current_path();
         string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt"; // used to get the output of error detecting, not input parameters
-        string number[3] = {"One", "Two", "Three"};
+        string number[4] = {"One", "Two", "Three", "Four"};
         string scriptName = "./sampleError" + number[size - 1] + ".sh";
         stringstream ss;
         ss << scriptName << " " << uniqueLabel;
@@ -523,7 +523,7 @@ void sampleError(string uniqueLabel, string suffix, const vector<double> &interv
     }
     else
     {
-        fprintf(stderr, "ERROR: testError: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
+        fprintf(stderr, "ERROR: sampleError: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
     }
 }
@@ -794,6 +794,7 @@ vector<vector<double>> getIntervalData(vector<string> upEdgeFileNames, vector<do
         numIntervalsSoloAfter.push_back(intervalData1D.size() / 2);
     }
     // call permuteMultiVec to get all permutation
+    // fmt::print("intervalDataMultiDim : {}\n", intervalDataMultiDim);
     auto results = permuteMultiVec(intervalDataMultiDim);
     return results;
 }
@@ -946,7 +947,44 @@ vector<vector<double>> permuteMultiVec (vector<vector<double>> vec)
 {
     vector<vector<double>> suzu;
     size_t row = vec.size();
-    if (row == 3)
+    if (row == 4)
+    {
+        vector<double> tmp;
+        auto &row0 = vec.at(0);
+        auto &row1 = vec.at(1);
+        auto &row2 = vec.at(2);
+        auto &row3 = vec.at(3);
+        for(size_t i = 0; i < row0.size(); i += 2)
+        {
+            tmp.push_back(row0.at(i));
+            tmp.push_back(row0.at(i + 1));
+            for(size_t j = 0; j < row1.size(); j += 2)
+            {
+                tmp.push_back(row1.at(j));
+                tmp.push_back(row1.at(j + 1));
+                for(size_t k = 0; k < row2.size(); k += 2)
+                {
+                    tmp.push_back(row2.at(k));
+                    tmp.push_back(row2.at(k + 1));
+                    for(size_t l = 0; l < row3.size(); l += 2)
+                    {
+                        tmp.push_back(row3.at(l));
+                        tmp.push_back(row3.at(l + 1));
+                        suzu.push_back(tmp);
+                        tmp.pop_back();
+                        tmp.pop_back();
+                    }
+                    tmp.pop_back();
+                    tmp.pop_back();
+                }
+                tmp.pop_back();
+                tmp.pop_back();
+            }
+            tmp.pop_back();
+            tmp.pop_back();
+        }
+    }
+    else if (row == 3)
     {
         int rowSize = vec.size();      // 确定有几行
         int columnSize = 2 * rowSize;  // 新生成二维数组的列数

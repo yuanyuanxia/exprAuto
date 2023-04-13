@@ -98,3 +98,4 @@ smartRoot_1 (c * 2.0) / (-3.5 - sqrt(((3.5 * 3.5) - ((3.0 * c) * 4.0))))
 smartRoot_2 (-3.5 + sqrt(((3.5 * 3.5) - ((3.0 * c) * 4.0)))) / (3.0 * 2.0)
 triangleSorted_1 sqrt(((((c + (b + a)) * (a - (c - b))) * (a + (c - b))) * (c + (b - a)))) / 4.0
 triangleSorted_2 sqrt(((((c + (a + b)) * (b - (c - a))) * (b + (c - a))) * (c + (a - b)))) / 4.0;
+example x0+x1+x2+x3

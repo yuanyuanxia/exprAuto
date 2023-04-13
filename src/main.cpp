@@ -87,6 +87,7 @@ map<string, vector<double>> benchmarkThresholds = {
     {"smartRoot_2", {2}},
     {"triangleSorted_1", {2, 2, 2}},
     {"triangleSorted_2", {2, 2, 2}},
+    {"example", {2, 2, 2, 2}},
 };
 
 //===----------------------------------------------------------------------===//
@@ -199,6 +200,10 @@ int main()
         {
             sampleScale = 256;
         }
+        else if (dimension == 4)
+        {
+            sampleScale = 96;
+        }
         else
         {
             sampleScale = 10;
@@ -252,25 +257,25 @@ int main()
             auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
-            if(exprOrigin != "")
-            {
-                originPerformance = testPerformance(uniqueLabel, "origin", intervals);
-                cout << "origin performance: " << originPerformance << "\n\n";
-            }
-            else
-            {
-                fprintf(stderr, "exprOrigin is null!\n");
-                exit(EXIT_FAILURE);
-            }
-            if(exprHerbie != "")
-            {
-                herbiePerformance = testPerformance(uniqueLabel, "herbie", intervals);
-                cout << "origin performance: " << originPerformance << "\n\n";
-            }
-            else
-            {
-                fprintf(stderr, "exprHerbie is null!\n");
-            }
+            // if(exprOrigin != "")
+            // {
+            //     originPerformance = testPerformance(uniqueLabel, "origin", intervals);
+            //     cout << "origin performance: " << originPerformance << "\n\n";
+            // }
+            // else
+            // {
+            //     fprintf(stderr, "exprOrigin is null!\n");
+            //     exit(EXIT_FAILURE);
+            // }
+            // if(exprHerbie != "")
+            // {
+            //     herbiePerformance = testPerformance(uniqueLabel, "herbie", intervals);
+            //     cout << "origin performance: " << originPerformance << "\n\n";
+            // }
+            // else
+            // {
+            //     fprintf(stderr, "exprHerbie is null!\n");
+            // }
 
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
@@ -363,6 +368,19 @@ int main()
                     vector<int> scales{512, 128}; // actually are drawNum and findMaxNum, so only need 2 numbers
                     sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
+                else if (dimension == 4)
+                {
+                    suffixTmp = exprOriginBest + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Z";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_U";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{384, 96}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
+                }
                 else
                 {
                     fprintf(stderr, "ERROR: main: we can not handle %d parameters (bigger than 3) now\n", dimension);
@@ -411,8 +429,8 @@ int main()
                 steps.push_back(step);
             }
             finalInfo = testError(uniqueLabel, "final", intervals, scales, startNowIdxs, startOriginIntervals, steps);
-            finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
-            cout << "performance: " << finalInfo.performance << "\n\n";
+            // finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
+            // cout << "performance: " << finalInfo.performance << "\n\n";
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance end   =-=-=-=-=-=-=-=-=-=-=-=-=\n";
             auto timeTmp5 = std::chrono::high_resolution_clock::now();
             final_seconds = timeTmp5 - timeTmp4;
