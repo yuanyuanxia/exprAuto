@@ -92,7 +92,7 @@ map<string, vector<double>> benchmarkThresholds = {
     {"polyIDX1", {2, 2, 2, 2}},
     {"polyIDX2", {2, 2, 2, 2}},
     {"example5param", {2, 2, 2, 2, 2}},
-    {"pov-ray", {2, 2, 2, 2, 2}},
+    {"pov_ray", {2, 2, 2, 2, 2}},
 };
 
 //===----------------------------------------------------------------------===//
@@ -207,15 +207,11 @@ int main()
         }
         else if (dimension == 4)
         {
-            sampleScale = 12;
-        }
-        else if (dimension == 5)
-        {
-            sampleScale = 24;
+            sampleScale = 16;
         }
         else
         {
-            sampleScale = 10;
+            sampleScale = 8;
         }
         vector<int> scales;
         for (int i = 0; i < dimension; i++)
@@ -387,7 +383,7 @@ int main()
                     suffixTmps.push_back(suffixTmp);
                     suffixTmp = exprOriginBest + "_U";
                     suffixTmps.push_back(suffixTmp);
-                    vector<int> scales{384, 96}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    vector<int> scales{512, 16}; // actually are drawNum and findMaxNum, so only need 2 numbers
                     sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
                 else if (dimension == 5)
@@ -402,7 +398,7 @@ int main()
                     suffixTmps.push_back(suffixTmp);
                     suffixTmp = exprOriginBest + "_V";
                     suffixTmps.push_back(suffixTmp);
-                    vector<int> scales{384, 24}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    vector<int> scales{512, 8}; // actually are drawNum and findMaxNum, so only need 2 numbers
                     sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
                 else

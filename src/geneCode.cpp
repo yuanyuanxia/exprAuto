@@ -305,7 +305,7 @@ string geneHerbieCode(string uniqueLabel)
         {"polyIDX1", ""},
         {"polyIDX2", ""},
         {"example5param", "(x0+x1)+(x2+x3)+x4"},
-        {"pov-ray", ""},
+        {"pov_ray", ""},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);
@@ -397,7 +397,7 @@ string geneDaisyCode(string uniqueLabel)
         {"polyIDX1", ""},
         {"polyIDX2", ""},
         {"example5param", "(x0+x1)+(x2+x3)+x4"},
-        {"pov-ray", ""},
+        {"pov_ray", ""},
     };
 
     auto pos = benchmarkDaisy.find(uniqueLabel);
