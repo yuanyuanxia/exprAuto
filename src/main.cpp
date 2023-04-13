@@ -87,56 +87,13 @@ map<string, vector<double>> benchmarkThresholds = {
     {"smartRoot_2", {2}},
     {"triangleSorted_1", {2, 2, 2}},
     {"triangleSorted_2", {2, 2, 2}},
+    {"example", {2, 2, 2, 2}},
+    {"polyIDX0", {2, 2, 2, 2}},
+    {"polyIDX1", {2, 2, 2, 2}},
+    {"polyIDX2", {2, 2, 2, 2}},
+    {"example5param", {2, 2, 2, 2, 2}},
+    {"pov_ray", {2, 2, 2, 2, 2}},
 };
-
-// write to file
-void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime)
-{
-    vector<double> summaryData;
-    summaryData.push_back(dimension);
-    summaryData.push_back(numIntervalsBefore);
-    summaryData.push_back(numOfIntervals);
-    summaryData.push_back(double(numOfExprs));
-    if (thresholds.size() == 1)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(-1);
-        summaryData.push_back(-1);
-    }
-    else if (thresholds.size() == 2)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(-1);
-    }
-    else if (thresholds.size() == 3)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(thresholds.at(2));
-    }
-    else
-    {
-        fprintf(stderr, "ERROR: we can not support %ld demision now.\n", thresholds.size());
-        exit(EXIT_FAILURE);
-    }
-    summaryData.push_back(originExprInfo.aveError);
-    summaryData.push_back(originExprInfo.maxError);
-    summaryData.push_back(herbieExprInfo.aveError);
-    summaryData.push_back(herbieExprInfo.maxError);
-    summaryData.push_back(finalInfo.aveError);
-    summaryData.push_back(finalInfo.maxError);
-    summaryData.push_back(originPerformance);
-    summaryData.push_back(finalInfo.performance);
-    summaryData.push_back(elapsed_seconds);
-    summaryData.push_back(init_seconds);
-    summaryData.push_back(matlab_seconds);
-    summaryData.push_back(regime_seconds);
-    summaryData.push_back(rewrite_seconds);
-    summaryData.push_back(final_seconds);
-    summaryData.push_back(matlabKernelTime);
-    write_to_file(uniqueLabel, exprOriginBest, summaryData, "runlog.csv");
-}
 
 //===----------------------------------------------------------------------===//
 // Main driver code.
@@ -248,9 +205,13 @@ int main()
         {
             sampleScale = 256;
         }
+        else if (dimension == 4)
+        {
+            sampleScale = 16;
+        }
         else
         {
-            sampleScale = 10;
+            sampleScale = 8;
         }
         vector<int> scales;
         for (int i = 0; i < dimension; i++)
@@ -281,6 +242,8 @@ int main()
         auto &originExprInfo = initExprInfos.at(0);
         auto &herbieExprInfo = initExprInfos.at(1);
         auto &daisyExprInfo = initExprInfos.at(2);
+        vector<int> numIntervalsSoloBefore;
+        vector<int> numIntervalsSoloAfter;
         if (runAllFlag)
         { // the whole process
             if (!isBenchMark)
@@ -316,25 +279,25 @@ int main()
             auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
 
-            if(exprOrigin != "")
-            {
-                originPerformance = testPerformance(uniqueLabel, "origin", intervals);
-                cout << "origin performance: " << originPerformance << "\n\n";
-            }
-            else
-            {
-                fprintf(stderr, "exprOrigin is null!\n");
-                exit(EXIT_FAILURE);
-            }
-            if(exprHerbie != "")
-            {
-                herbiePerformance = testPerformance(uniqueLabel, "herbie", intervals);
-                cout << "origin performance: " << originPerformance << "\n\n";
-            }
-            else
-            {
-                fprintf(stderr, "exprHerbie is null!\n");
-            }
+            // if(exprOrigin != "")
+            // {
+            //     originPerformance = testPerformance(uniqueLabel, "origin", intervals);
+            //     cout << "origin performance: " << originPerformance << "\n\n";
+            // }
+            // else
+            // {
+            //     fprintf(stderr, "exprOrigin is null!\n");
+            //     exit(EXIT_FAILURE);
+            // }
+            // if(exprHerbie != "")
+            // {
+            //     herbiePerformance = testPerformance(uniqueLabel, "herbie", intervals);
+            //     cout << "origin performance: " << originPerformance << "\n\n";
+            // }
+            // else
+            // {
+            //     fprintf(stderr, "exprHerbie is null!\n");
+            // }
 
             vector<string> suffixSet = {"origin"};
             if (exprHerbie != "")
@@ -388,7 +351,7 @@ int main()
                 elapsed_seconds = timeEnd - timeStart;
                 cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
 
-                write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
+                write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numIntervalsSoloBefore, numIntervalsSoloAfter, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
                 fprintf(stderr, GREEN "ready> " RESET);
                 continue;
             }
@@ -428,6 +391,34 @@ int main()
                     vector<int> scales{512, 128}; // actually are drawNum and findMaxNum, so only need 2 numbers
                     sampleError(uniqueLabel, exprOriginBest, intervals, scales);
                 }
+                else if (dimension == 4)
+                {
+                    suffixTmp = exprOriginBest + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Z";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_U";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{512, 16}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
+                }
+                else if (dimension == 5)
+                {
+                    suffixTmp = exprOriginBest + "_X";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Y";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_Z";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_U";
+                    suffixTmps.push_back(suffixTmp);
+                    suffixTmp = exprOriginBest + "_V";
+                    suffixTmps.push_back(suffixTmp);
+                    vector<int> scales{512, 8}; // actually are drawNum and findMaxNum, so only need 2 numbers
+                    sampleError(uniqueLabel, exprOriginBest, intervals, scales);
+                }
                 else
                 {
                     fprintf(stderr, "ERROR: main: we can not handle %d parameters (bigger than 3) now\n", dimension);
@@ -439,8 +430,9 @@ int main()
             auto timeTmp2 = std::chrono::high_resolution_clock::now(); // matlab over
             matlab_seconds = timeTmp2 - timeTmp1;
             cout << BLUE << "regime time (matlab part): " << matlab_seconds.count() << " s" << RESET << endl;
-
-            auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals, numIntervalsBefore);
+    
+            auto intervalData = getIntervalData(upEdgeFileNames, thresholds, intervals, numIntervalsBefore, numIntervalsSoloBefore, numIntervalsSoloAfter);
+            fmt::print("numIntervalSoloBefore: {}, numIntervalSoloAfter: {}\n", numIntervalsSoloBefore, numIntervalsSoloAfter);
             // fmt::print("[INFO] main: thresholds {}\n", thresholds);
             numOfIntervals = intervalData.size();
             fmt::print("after regime, we have {} intervals: {}\n", numOfIntervals, intervalData);
@@ -475,8 +467,8 @@ int main()
                 steps.push_back(step);
             }
             finalInfo = testError(uniqueLabel, "final", intervals, scales, startNowIdxs, startOriginIntervals, steps);
-            finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
-            cout << "performance: " << finalInfo.performance << "\n\n";
+            // finalInfo.performance = testPerformance(uniqueLabel, "final", intervals);
+            // cout << "performance: " << finalInfo.performance << "\n\n";
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance end   =-=-=-=-=-=-=-=-=-=-=-=-=\n";
             auto timeTmp5 = std::chrono::high_resolution_clock::now();
             final_seconds = timeTmp5 - timeTmp4;
@@ -522,7 +514,7 @@ int main()
         elapsed_seconds = timeEnd - timeStart;
         cout << BLUE << "the whole time: " << elapsed_seconds.count() << " s" << RESET << endl;
 
-        write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
+        write_to_file_wrapper(uniqueLabel, exprOriginBest, dimension, numIntervalsBefore, numOfIntervals, numIntervalsSoloBefore, numIntervalsSoloAfter, numOfExprs, thresholds, originExprInfo, herbieExprInfo, finalInfo, originPerformance, elapsed_seconds.count(), init_seconds.count(), matlab_seconds.count(), regime_seconds.count(), rewrite_seconds.count(), final_seconds.count(), matlabKernelTime);
         fprintf(stderr, GREEN "ready> " RESET);
     }
 

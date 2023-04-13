@@ -819,8 +819,8 @@ vector<ast_ptr> createExpr(const vector<monoInfo> &monomials)
                                            // if consider commutative law,hasCommutativeLaw is true,and the result is more.
         bool isFullyCofactor = true;    // the key to control the rewrite results.IsFullyCofactor is true,the result is more.
         for(int i = 0; i < (int)vars.size();i++){
-            int term[10] = {0}; // {0, 1, 2, 3, 4, 5};
-            double coefficient[10] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+            int term[128] = {0}; // {0, 1, 2, 3, 4, 5};
+            double coefficient[128] = {0.0}; // {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
             variable = vars.at(i);
             if(isFullyCofactor){
                 vector<monoInfo> sortAftermonomials = sortMonomials(variable,monomials);

@@ -6,6 +6,7 @@
 #include <random>
 #include <algorithm>
 #include <fmt/core.h>
+#include <fmt/ranges.h>
 
 using std::cerr;
 using std::cout;
@@ -741,7 +742,7 @@ size_t combination(size_t k, size_t n)
     return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
-void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const std::vector<double> &data, const std::string &filename)
+void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> thresholds, const std::vector<double> &data, const std::string &filename)
 {
     std::ofstream outputFile;
     outputFile.open(filename, std::ios::out | std::ios::app);
@@ -750,6 +751,10 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
     {
         outputFile << uniqueLabel << ", ";
         outputFile << exprOriginBest << ", ";
+        outputFile << fmt::format("\"{}\"", numIntervalsSoloBefore) << ", ";
+        outputFile << fmt::format("\"{}\"", numIntervalsSoloAfter) << ", ";
+        outputFile << fmt::format("\"{}\"", thresholds) << ", ";
+
         for (const auto &val : data)
         {
             if(int(val) - val == 0)
@@ -766,4 +771,68 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
     // {
         // std::cout << "Failed to open file!" << std::endl;
     // }
+}
+
+// write to file
+void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime)
+{
+    vector<double> summaryData;
+    summaryData.push_back(dimension);
+    summaryData.push_back(numIntervalsBefore);
+    summaryData.push_back(numOfIntervals);
+    summaryData.push_back(double(numOfExprs));
+    // if (thresholds.size() == 1)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(-1);
+    //     summaryData.push_back(-1);
+    // }
+    // else if (thresholds.size() == 2)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(-1);
+    // }
+    // else if (thresholds.size() == 3)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    // }
+    // else if (thresholds.size() == 4)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    //     summaryData.push_back(thresholds.at(3));
+    // }
+    // else if (thresholds.size() == 5)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    //     summaryData.push_back(thresholds.at(3));
+    //     summaryData.push_back(thresholds.at(4));
+    // }
+    // else
+    // {
+    //     fprintf(stderr, "ERROR: write_to_file_wrapper: we can not support %ld demision now.\n", thresholds.size());
+    //     exit(EXIT_FAILURE);
+    // }
+    summaryData.push_back(originExprInfo.aveError);
+    summaryData.push_back(originExprInfo.maxError);
+    summaryData.push_back(herbieExprInfo.aveError);
+    summaryData.push_back(herbieExprInfo.maxError);
+    summaryData.push_back(finalInfo.aveError);
+    summaryData.push_back(finalInfo.maxError);
+    summaryData.push_back(originPerformance);
+    summaryData.push_back(finalInfo.performance);
+    summaryData.push_back(elapsed_seconds);
+    summaryData.push_back(init_seconds);
+    summaryData.push_back(matlab_seconds);
+    summaryData.push_back(regime_seconds);
+    summaryData.push_back(rewrite_seconds);
+    summaryData.push_back(final_seconds);
+    summaryData.push_back(matlabKernelTime);
+    write_to_file(uniqueLabel, exprOriginBest, numIntervalsSoloBefore, numIntervalsSoloAfter, thresholds, summaryData, "runlog.csv");
 }
