@@ -37,3 +37,9 @@
 ./replace.sh test05_nonlin1_r4
 ./replace.sh test05_nonlin1_test2
 ./replace.sh verhulst
+./replace.sh squareRoot3_2
+./replace.sh squareRoot3Invalid_2
+./replace.sh cav10_2
+./replace.sh smartRoot_2
+./replace.sh triangleSorted_2
+./replace.sh pov_ray
