@@ -207,7 +207,7 @@ int main()
         }
         else if (dimension == 4)
         {
-            sampleScale = 96;
+            sampleScale = 12;
         }
         else if (dimension == 5)
         {
