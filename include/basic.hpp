@@ -259,7 +259,7 @@ vector<vector<int>> combination(const int num, const vector<int>& indexs);
 
 size_t combination(size_t k, size_t n);
 
-void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> &data, const std::string &filename);
+void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> thresholds, const std::vector<double> &data, const std::string &filename);
 
 void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime);
 // } // end anonymous namespace

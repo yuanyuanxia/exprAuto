@@ -742,7 +742,7 @@ size_t combination(size_t k, size_t n)
     return factorial(n) / (factorial(k) * factorial(n - k));
 }
 
-void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> &data, const std::string &filename)
+void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> thresholds, const std::vector<double> &data, const std::string &filename)
 {
     std::ofstream outputFile;
     outputFile.open(filename, std::ios::out | std::ios::app);
@@ -753,6 +753,7 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
         outputFile << exprOriginBest << ", ";
         outputFile << fmt::format("\"{}\"", numIntervalsSoloBefore) << ", ";
         outputFile << fmt::format("\"{}\"", numIntervalsSoloAfter) << ", ";
+        outputFile << fmt::format("\"{}\"", thresholds) << ", ";
 
         for (const auto &val : data)
         {
@@ -780,44 +781,44 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
     summaryData.push_back(numIntervalsBefore);
     summaryData.push_back(numOfIntervals);
     summaryData.push_back(double(numOfExprs));
-    if (thresholds.size() == 1)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(-1);
-        summaryData.push_back(-1);
-    }
-    else if (thresholds.size() == 2)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(-1);
-    }
-    else if (thresholds.size() == 3)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(thresholds.at(2));
-    }
-    else if (thresholds.size() == 4)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(thresholds.at(2));
-        summaryData.push_back(thresholds.at(3));
-    }
-    else if (thresholds.size() == 5)
-    {
-        summaryData.push_back(thresholds.at(0));
-        summaryData.push_back(thresholds.at(1));
-        summaryData.push_back(thresholds.at(2));
-        summaryData.push_back(thresholds.at(3));
-        summaryData.push_back(thresholds.at(4));
-    }
-    else
-    {
-        fprintf(stderr, "ERROR: write_to_file_wrapper: we can not support %ld demision now.\n", thresholds.size());
-        exit(EXIT_FAILURE);
-    }
+    // if (thresholds.size() == 1)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(-1);
+    //     summaryData.push_back(-1);
+    // }
+    // else if (thresholds.size() == 2)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(-1);
+    // }
+    // else if (thresholds.size() == 3)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    // }
+    // else if (thresholds.size() == 4)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    //     summaryData.push_back(thresholds.at(3));
+    // }
+    // else if (thresholds.size() == 5)
+    // {
+    //     summaryData.push_back(thresholds.at(0));
+    //     summaryData.push_back(thresholds.at(1));
+    //     summaryData.push_back(thresholds.at(2));
+    //     summaryData.push_back(thresholds.at(3));
+    //     summaryData.push_back(thresholds.at(4));
+    // }
+    // else
+    // {
+    //     fprintf(stderr, "ERROR: write_to_file_wrapper: we can not support %ld demision now.\n", thresholds.size());
+    //     exit(EXIT_FAILURE);
+    // }
     summaryData.push_back(originExprInfo.aveError);
     summaryData.push_back(originExprInfo.maxError);
     summaryData.push_back(herbieExprInfo.aveError);
@@ -833,5 +834,5 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
     summaryData.push_back(rewrite_seconds);
     summaryData.push_back(final_seconds);
     summaryData.push_back(matlabKernelTime);
-    write_to_file(uniqueLabel, exprOriginBest, numIntervalsSoloBefore, numIntervalsSoloAfter, summaryData, "runlog.csv");
+    write_to_file(uniqueLabel, exprOriginBest, numIntervalsSoloBefore, numIntervalsSoloAfter, thresholds, summaryData, "runlog.csv");
 }
