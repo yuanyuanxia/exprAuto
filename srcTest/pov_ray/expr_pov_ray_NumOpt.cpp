@@ -41,8 +41,8 @@ double expr_pov_ray_CPP(double x1, double x2, double x3, double x4, double x5)
 
 extern "C"
 {
-	double expr_pov_ray_NumOpt(double x)
+	double expr_pov_ray_NumOpt(double x1, double x2, double x3, double x4, double x5)
 	{
-		return expr_pov_ray_CPP(x);
+		return expr_pov_ray_CPP(x1, x2, x3, x4, x5);
 	}
 }
