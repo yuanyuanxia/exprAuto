@@ -305,7 +305,7 @@ string geneHerbieCode(string uniqueLabel)
         {"polyIDX1", "x0"}, // error but not influence the result
         {"polyIDX2", ""},
         {"example5param", "(x0+x1)+(x2+x3)+x4"},
-        {"pov_ray", ""},
+        {"pov_ray", "cos(x2) * fma(x1, cos(x3), fma(x5, sin(x3), x4))"},
     };
 
     auto pos = benchmarkHerbie.find(uniqueLabel);

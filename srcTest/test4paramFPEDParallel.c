@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Datatype MPI_errorInfo;
-    MPI_Type_contiguous(5, MPI_DOUBLE, &MPI_errorInfo); 
+    MPI_Type_contiguous(6, MPI_DOUBLE, &MPI_errorInfo); 
     MPI_Type_commit(&MPI_errorInfo);
 
     // parameters init

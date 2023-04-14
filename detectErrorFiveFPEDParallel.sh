@@ -41,7 +41,7 @@ if [ $# -eq 35 ]; then
     middle=${33} # intervalsInfo_sizes. Eg: 3.8_7.8_-4.5_-0.3_0.4_0.9_256_256_256
     suffix=${34} # different version. Eg: herbie daisy origin temp_0_3 final
     errfile=${35} # 1 or 0: TRUE or False
-elif [ $# -eq 32 ]; then
+elif [ $# -eq 34 ]; then
     x0Size=${12}
     x1Size=${13}
     x2Size=${14}
