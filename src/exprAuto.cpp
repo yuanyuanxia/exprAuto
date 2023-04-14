@@ -927,6 +927,21 @@ void sortExpr(ast_ptr &expr){
     sortExprAST(min ,max ,v ,expr);
 }
 
+// limitExprNumByRandom uses random_shuffle to limit the number of elements in exprs
+// we set limitExprNumByNum at the 3 different level, so the number of the rewritten exprs shouble be about 10^3.
+void limitExprNumByRandom(vector<ast_ptr> &exprs, const size_t thresholdExprNum = 10)
+{
+    if (exprs.size() > thresholdExprNum)
+    {
+        random_shuffle(exprs.begin(), exprs.end());
+        int deleteNum = exprs.size() - thresholdExprNum;
+        for (int i = 0; i < deleteNum; i++)
+        {
+                exprs.pop_back();
+        }
+    }
+}
+
 vector<ast_ptr> polyRewrite(const ast_ptr &expr)
 {
     static size_t callCount = 0;
@@ -949,11 +964,13 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
         }
         auto numeratorsFinal = mergePolynomial(numerators);
         auto results = createExpr(numeratorsFinal);
-        for(int i = 0 ;i < (int)results.size();i++){
+        for (int i = 0; i < (int)results.size(); i++)
+        {
             ast_ptr &a = results.at(i);
             sortExpr(a);
         }
         vector<ast_ptr> resultsNew;
+        limitExprNumByRandom(results);
         for(auto &result : results)
         {
             resultsNew.push_back(result->Clone()); // the key to control the rewrite results
@@ -969,6 +986,7 @@ vector<ast_ptr> polyRewrite(const ast_ptr &expr)
                 // tmps1.push_back(std::move(tmp->Clone()));
                 tmps1.push_back(std::move(tmp1));
             }
+            limitExprNumByRandom(tmps1);
             if(tmps1.empty())
             {
                 resultsNew.push_back(std::move(result));
@@ -1031,9 +1049,11 @@ vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf)
     }
     if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: before mathfuncRewrite: ");
     auto middles = mathfuncRewrite(exprNew, addSelf);
-    if(callCount == 1) printExpr(exprNew, prompt + "tryRewrites: after mathfuncRewrite: ");
+    // if(callCount == 1) printExprs(middles, prompt + "tryRewrites: after mathfuncRewrite: ");
     vector<ast_ptr> results;
     size_t index = 0;
+    // cout << "tryRewrite middles.size() = " << middles.size() << endl;
+    limitExprNumByRandom(middles);
     for(const auto &middle : middles)
     {
         // cout << prompt << "For expr NO." << index << ": " << PrintExpression(middle) << ", do polyRewrite" << endl;
@@ -1050,8 +1070,10 @@ vector<ast_ptr> tryRewrite(ast_ptr expr, bool addSelf)
         // }
         auto tmp = polyRewrite(middle);
         mineAppend(results, tmp);
+        // results.push_back(middle->Clone());
         index++;
     }
+    // cout << "tryRewrite results.size() = " << results.size() << endl;
     // if(callCount == 1) printExprs(results, "tryRewrites: before delete: ");
     for(int i = 0 ;i < (int)results.size();i++){
         ast_ptr &a = results.at(i);
