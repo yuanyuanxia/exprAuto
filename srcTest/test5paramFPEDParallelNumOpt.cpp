@@ -177,7 +177,7 @@ int main_inner(const unsigned long int &testNumX0, const unsigned long int &test
 	iRRAM::cout << iRRAM::setRwidth(30);
 
     MPI_Datatype MPI_errorInfo;
-    MPI_Type_contiguous(5, MPI_DOUBLE, &MPI_errorInfo); 
+    MPI_Type_contiguous(7, MPI_DOUBLE, &MPI_errorInfo); 
     MPI_Type_commit(&MPI_errorInfo);
 
     char *fileNameKernel;
