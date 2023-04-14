@@ -18,6 +18,7 @@ fi
 ./detectErrorFourFPEDParallel.sh polyIDX0 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX0 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 origin
 ./detectErrorFourFPEDParallel.sh polyIDX0 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX0 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 herbie
 ./detectErrorFourFPEDParallel.sh polyIDX0 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX0 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 herbiePlus
+./detectErrorFourFPEDParallel.sh polyIDX0 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX0 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 final
 ./detectErrorFourFPEDParallel.sh polyIDX1 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX1 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 origin
 ./detectErrorFourFPEDParallel.sh polyIDX1 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX1 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 herbie
 ./detectErrorFourFPEDParallel.sh polyIDX1 3 9 1.5 5 -2 10 -1 3.5 16 16 16 16 0 0 0 0 3 1.5 -2 -1 0.375 0.21875 0.75 0.28125 expr_polyIDX1 3_9_1.5_5_-2_10_-1_3.5_16_16_16_16 herbiePlus
