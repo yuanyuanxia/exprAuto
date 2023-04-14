@@ -919,6 +919,8 @@ vector<exprInfo> rewrite(string exprStr, string uniqueLabel, vector<vector<doubl
             // scales.at(i) = scales.at(i) * (intervalTmp.at(i * 2 + 1) - intervalTmp.at(i * 2)) / width;
         }
         auto newTempExprs = exprAutoWrapper(tempExpr, intervalTmp, scales);
+        // vector<ast_ptr> newTempExprs;
+        // newTempExprs.push_back(tempExpr->Clone());
         numOfExprs = newTempExprs.size();
         string suffix = "temp_" + std::to_string(count) + "_";
 

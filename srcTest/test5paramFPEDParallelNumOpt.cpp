@@ -245,6 +245,8 @@ int main_inner(const unsigned long int &testNumX0, const unsigned long int &test
     free(fileNameKernel);
     free(errs);
     MPI_Type_free(&MPI_errorInfo);
+
+    return 0;
 }
 
 
