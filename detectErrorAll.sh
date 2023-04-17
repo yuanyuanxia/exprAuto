@@ -72,7 +72,7 @@ fi
 # ./detectErrorThreeFPEDParallel${suffix}.sh turbine1 3.8 7.8 -4.5 -0.3 0.4 0.9 256 256 256 0 0 0 3.8 -4.5 0.4 0.015625 0.01640625 0.001953125 expr_turbine1 3.8_7.8_-4.5_-0.3_0.4_0.9_256_256_256 ${target}
 
 # DONE
-./detectErrorOneFPEDParallelNumOpt.sh squareRoot3_2 0 10 500000 0 0 2e-05 expr_squareRoot3_2 0_10_500000 NumOpt
-./detectErrorOneFPEDParallelNumOpt.sh smartRoot_2 -2 2 500000 0 -2 8e-06 expr_smartRoot_2 -2_2_500000 NumOpt
-./detectErrorOneFPEDParallelNumOpt.sh squareRoot3Invalid_2 0 10 500000 0 0 2e-05 expr_squareRoot3Invalid_2 0_10_500000 NumOpt
-./detectErrorOneFPEDParallelNumOpt.sh cav10_2 0 10 500000 0 0 2e-05 expr_cav10_2 0_10_500000 NumOpt
+# ./detectErrorOneFPEDParallel${suffix}.sh squareRoot3_2 0 10 500000 0 0 2e-05 expr_squareRoot3_2 0_10_500000 ${target}
+# ./detectErrorOneFPEDParallel${suffix}.sh smartRoot_2 -2 2 500000 0 -2 8e-06 expr_smartRoot_2 -2_2_500000 ${target}
+# ./detectErrorOneFPEDParallel${suffix}.sh squareRoot3Invalid_2 0 10 500000 0 0 2e-05 expr_squareRoot3Invalid_2 0_10_500000 ${target}
+# ./detectErrorOneFPEDParallel${suffix}.sh cav10_2 0 10 500000 0 0 2e-05 expr_cav10_2 0_10_500000 ${target}
