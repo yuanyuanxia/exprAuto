@@ -24,6 +24,8 @@ exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0E
 
 exprInfo testError(string uniqueLabel, string suffix, double x0Start, double x0End, double x1Start, double x1End, double x2Start, double x2End, int x0Size, int x1Size, int x2Size);
 
+void geneErrorDetectScript(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, const vector<int> &startNowIdxs, const vector<double> &startOriginIntervals, const vector<double> &steps);
+
 double testPerformance(string uniqueLabel, string suffix, const vector<double> &intervals);
 
 string geneBoundaryData(string uniqueLabel, string suffix, double &costTime);

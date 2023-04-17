@@ -422,6 +422,9 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
 
         // cout << "fileNameKernel: " << fileNameKernel << "\n";
         cout << "command: " << commandStr << "\n";
+
+        return tempError;
+
         // cout << "testName: " << testName << "\n";
         char command[512] = {0};
         strcat(command, commandStr.c_str());
@@ -525,6 +528,71 @@ void sampleError(string uniqueLabel, string suffix, const vector<double> &interv
     {
         fprintf(stderr, "ERROR: sampleError: the intervalTmp's dimension is %ld, which we don't support now.\n", size);
         exit(EXIT_FAILURE);
+    }
+}
+
+void geneErrorDetectScript(string uniqueLabel, string suffix, const vector<double> &intervals, const vector<int> &scales, const vector<int> &startNowIdxs, const vector<double> &startOriginIntervals, const vector<double> &steps)
+{
+    size_t size = scales.size();
+
+    if (size < 4)
+    {
+        string prefix = "expr_" + uniqueLabel;
+        vector<string> params;
+        for(const auto &interval : intervals)
+        {
+            auto paraTmp = fmt::format("{}", interval);
+            params.push_back(paraTmp);
+        }
+        for(const auto &scale : scales)
+        {
+            auto scaleTmp = fmt::format("{}", scale);
+            params.push_back(scaleTmp);
+        }
+        string middle; // do not need to add startNowIdx and startOriginInterval to middle
+        for(size_t i = 0; i < params.size(); ++i)
+        {
+            if(i == 0)
+            {
+                middle = params.at(i);
+            }
+            else
+            {
+                middle = middle + "_" + params.at(i);
+            }
+        }
+        for(const auto &startNowIdx : startNowIdxs)
+        {
+            auto startNowIdxTmp = fmt::format("{}", startNowIdx);
+            params.push_back(startNowIdxTmp);
+        }
+        for(const auto &startOriginInterval : startOriginIntervals)
+        {
+            auto startOriginIntervalTmp = fmt::format("{}", startOriginInterval);
+            params.push_back(startOriginIntervalTmp);
+        }
+        for(const auto &step : steps)
+        {
+            auto stepTmp = fmt::format("{}", step);
+            params.push_back(stepTmp);
+        }
+        string fileNameKernel = prefix + "__" + middle + "_" + suffix;
+        namespace fs = std::filesystem;
+        string currentPath = fs::current_path();
+        string testName = currentPath + "/outputs/" + uniqueLabel + "/" + fileNameKernel + "_error.txt"; // get the output of error detecting
+        string number[3] = {"One", "Two", "Three"};
+        string scriptName = "./detectError" + number[size - 1] + "FPEDParallel${suffix}.sh";
+        stringstream ss;
+        ss << scriptName << " " << uniqueLabel;
+        for(const auto & param : params)
+        {
+            ss << " " << param;
+        }
+        ss << " " << prefix << " " << middle << " " << "${target}" << " ";
+        string commandStr = ss.str();
+
+        // cout << "fileNameKernel: " << fileNameKernel << "\n";
+        cout << commandStr << "\n";
     }
 }
 
