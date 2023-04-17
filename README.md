@@ -6,16 +6,16 @@
     - [软件架构](#软件架构)
     - [编译运行](#编译运行)
       - [依赖环境](#依赖环境)
-      - [Linux](#linux)
-      - [Windows](#windows)
       - [运行结果](#运行结果)
   - [参考链接](#参考链接)
   - [目前进度](#目前进度)
 
 ## 介绍
-exprAuto 支持数学表达式的解析、等价变换、mpfr 代码生成等功能，是一个命令行工具。
+exprAuto 是一个浮点表达式精度优化工具。
 
-exprAuto 基于 [LLVM教程--第二章 实现语法分析器和AST](https://llvm-tutorial-cn.readthedocs.io/en/latest/chapter-2.html) 实现。
+exprAuto 支持数学表达式的解析、等价变换、多种类型的代码生成（包括double、double-double、mpfr）、误差检测、误差区间划分等功能，是一个命令行工具。
+
+exprAuto 的表达式解析功能基于 [LLVM教程--第二章 实现语法分析器和AST](https://llvm-tutorial-cn.readthedocs.io/en/latest/chapter-2.html) 实现。
 
 数学表达式的 BNF 定义 (BNF 定义详见参考链接 3)：
 
@@ -35,130 +35,85 @@ factor -> number | variable | (expr) | func(expr, ...)
 
 ### 工作流程
 
-数学表达式 -> **词法分析** -> 词法单元 -> **语法分析** -> 语法分析树(AST) -> **等价变换/代码生成**
+1. 表达式重写
+   
+   数学表达式 -> 词法分析 -> 词法单元 -> 语法分析 -> 语法分析树(AST) -> **等价变换** -> 代码生成
+
+2. 区间划分 + 表达式重写
+
+   数学表达式 -> 区间划分 -> 等价变换 -> 代码生成
 
 ### 软件架构
 
 主要文件目录如下：
-```
+``` shell
 .
-├── bin
-├── include
-│   ├── basic.hpp
-│   ├── expandAST.hpp
-│   ├── exprAuto.hpp
-│   ├── funcInfo.hpp
-│   ├── geneExpr.hpp
-│   ├── laxerAST.hpp
-│   ├── laxerASTLY.hpp
-│   ├── mathfuncRewrite.hpp
-│   ├── monoInfo.hpp
-│   ├── parserAST.hpp
-│   ├── parserASTLY.hpp
-│   ├── polyInfo.hpp
-│   ├── polyRewrite.hpp
-│   ├── preprocess.hpp
-│   ├── simplifyExpr.hpp
-│   └── variableInfo.hpp
-├── Makefile
+├── include/
+├── includeDD/
+├── includeNumOpt/
+├── includeTEST/
+├── src/
+├── srcTest/
+├── srcNumOpt/
+├── script/
+├── libs/
+├── objs/
+├── bin/
+├── outputs/
 ├── README.md
-└── src
-    ├── basic.cpp
-    ├── expandAST.cpp
-    ├── exprAuto.cpp
-    ├── funcInfo.cpp
-    ├── geneExpr.cpp
-    ├── laxerAST.cpp
-    ├── laxerASTLY.cpp
-    ├── main.cpp
-    ├── mathfuncRewrite.cpp
-    ├── monoInfo.cpp
-    ├── parserAST.cpp
-    ├── parserASTLY.cpp
-    ├── polyInfo.cpp
-    ├── polyRewrite.cpp
-    ├── preprocess.cpp
-    ├── pythonAfter.txt
-    ├── pythonBefore.txt
-    ├── simplifyExpr.cpp
-    ├── simplify.py
-    └── variableInfo.cpp
+├── Makefile
+├── benchMarkInterval.txt
+├── benchMark.txt
+├── detectError**.sh
 ```
 
-主要类、方法如下 (待更新)：
-- Top-Level parsing
-  - HandleDefinition()
-  - HandleExtern()
-  - HandleTopLevelExpression() ★
-  - MainLoop()
-- Abstract Syntax Tree (aka Parse Tree)
-  - ExprAST
-  - NumberExprAST
-  - VariableExprAST
-  - BinaryExprAST
-  - CallExprAST
-  - PrototypeAST
-  - FunctionAST
-- Lexer
-  - Token
-  - gettok()
-  - getNextToken()
-- Parser
-  - ParseExpression()
-  - ParseNumberExpr()
-  - ParseIdentifierExpr()
-  - ParseParenExpr()
-  - ParseBinOpRHS(int, std::unique_ptr\<ExprAST>) ★
-  - ParseExpressin()
-  - ParsePrototype()
-  - ParseDefinition()
-  - ParseTopLevelxpr()
-  - ParseExtern()
-- ExpandExpr
-  - std::unique_ptr\<ExprAST> **expandExpr**(std::unique_ptr\<ExprAST> &expr) ★★★
-- PolyRewrite
-  - vector<std::unique_ptr\<ExprAST>> **createExpr**(const std::unique_ptr\<ExprAST> exprInit)
-  - void **getReady**(const std::unique_ptr\<ExprAST> &expr, std::string *variablePtr, int *term, double *coefficient, int *lenPtr)
-  - vector<std::unique_ptr\<ExprAST>> **createMiddle**(const std::string variable, const int *term, const double *coefficient, const int len)
-- MathfuncRewrite
-  - std::unique_ptr<ExprAST> **expToexpm1**(const std::unique_ptr<ExprAST> &expr)
-  - **logTolog1**
-  - **sqrtTohypot**
-  - ······
-- ExprAuto
-  - std::unique_ptr<ExprAST> **preprocess**(const std::unique_ptr<ExprAST> &expr)
-  - vector<std::unique_ptr<ExprAST>> **rewriteExprWrapper**(std::unique_ptr<ExprAST> &expr)
-  - vector<std::unique_ptr<ExprAST>> **createAll**(vector<std::unique_ptr<ExprAST>> &numerators, vector<std::unique_ptr<ExprAST>> &denominators)
-  - ······
+include: 项目主要代码的头文件目录
+
+includeDD: 实现dd代码自动生成所需的头文件
+
+includeNumOpt: 测试NumOpt所需的头文件
+
+includeTEST: 误差检测所需的头文件
+
+src: 存放项目的主要代码
+
+srcTest: 存放误差和性能等测试所需的代码以及表达式生成代码
+
+srcNumOpt: 存放测试NumOpt所需的代码
+
+srcNumOpt: 存放测试NumOpt的相关脚本和输入输出
+
+libs: 存放测试所需的库文件
+
+objs: 存放编译过程生成的目标代码
+
+bin: 存放编译生成的可执行文件
+
+outputs: 存放运行过程中生成的结果文件
+
+benchMark.txt: 存放exprAuto已测试过的benchmark
+
+benchMarkInterval.txt: 存放exprAuto已测试过的benchmark的测试区间
+
+detectError**.sh: 误差检测的相关shell脚本
 
 ### 编译运行
 #### 依赖环境
-gcc, g++, make, openMPI, rlwrap, Matlab, Python, SymPy library
-#### Linux
+
+gcc, g++, make, openMPI, rlwrap, Matlab, Python, SymPy library, QD库, NumOpt
+
+QD库：https://www.davidhbailey.com/dhbsoftware/
+
+NumOpt： http://seg.nju.edu.cn/eytang/numopt/numopt.tar.gz
+
 ```bash
 git clone https://gitee.com/mathlib/expr-auto.git
 cd path/to/exprAuto
 make
 ./bin/exprAuto.exe
 # OR use the external tool rlwrap
-# The use of the external tool rlwrap is highly recommended but not required to use the Sollya interactive tool.
+# The use of the external tool rlwrap is highly recommended but not required to use the exprAuto interactive tool.
 rlwrap ./bin/exprAuto.exe
-```
-
-OR
-
-```bash
-git clone https://gitee.com/mathlib/expr-auto.git
-cd path/to/exprAuto
-g++ -o ./bin/exprAuto.exe ./src/*.cpp -Iinclude -I/usr/include/python3.8 -lpython3.8 -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
-./bin/exprAuto.exe
-```
-
-#### Windows
-```powershell
-cd path/to/exprAuto
-g++.exe -o .\bin\exprAuto.exe .\src\*.cpp -I .\include\ -I C:\path\to\Python\Python37\include\ -L C:\path\to\Python\Python\Python37\libs\ -L C:\path\to\Python\\Python37\Lib\ -lpython37 -Wall -Wextra -Wpedantic -Wno-unused-function -fdiagnostics-color=always
-./bin/exprAuto.exe
 ```
 
 #### 运行结果
@@ -206,10 +161,14 @@ elapsed time: 0.0429435s
 
 ## 参考链接
 
-1. [LLVM教程--第二章 实现语法分析器和AST](https://llvm-tutorial-cn.readthedocs.io/en/latest/chapter-2.html): 本项目代码框架
+1. [LLVM教程--第二章 实现语法分析器和AST](https://llvm-tutorial-cn.readthedocs.io/en/latest/chapter-2.html): 本项目的表达式解析框架
 2. [LLVM Tutorial -- 2. Kaleidoscope: Implementing a Parser and AST](https://llvm.org/docs/tutorial/MyFirstLanguageFrontend/LangImpl02.html): 上述教程的英文原版
 3. [从编译原理看一个解释器的实现](https://zhuanlan.zhihu.com/p/27450417): 辅助理解数学表达式的解析方法
 4. C++ primer (5th-Edition). Stanley B. Lippman, Josée Lajoie, Barbara E. Moo. 2012. ISBN-13: 9780321714114
+5. Panchekha, Pavel, Alex Sanchez-Stern, James R. Wilcox, and Zachary Tatlock. “Automatically Improving Accuracy for Floating Point Expressions.” In Proceedings of the 36th ACM SIGPLAN Conference on Programming Language Design and Implementation, 1–11. PLDI ’15. New York, NY, USA: Association for Computing Machinery, 2015. https://doi.org/10.1145/2737924.2737959.
+6. Saiki, Brett, Oliver Flatt, Chandrakana Nandi, Pavel Panchekha, and Zachary Tatlock. “Combining Precision Tuning and Rewriting.” In 2021 IEEE 28th Symposium on Computer Arithmetic (ARITH), 1–8. Lyngby, Denmark: IEEE, 2021. https://doi.org/10.1109/ARITH51176.2021.00013.
+7. Willsey, Max, Chandrakana Nandi, Yisu Remy Wang, Oliver Flatt, Zachary Tatlock, and Pavel Panchekha. “Egg: Fast and Extensible Equality Saturation.” Proceedings of the ACM on Programming Languages 5, no. POPL (January 4, 2021): 1–29. https://doi.org/10.1145/3434304.
+8. Nandi, Chandrakana, Max Willsey, Amy Zhu, Yisu Remy Wang, Brett Saiki, Adam Anderson, Adriana Schulz, Dan Grossman, and Zachary Tatlock. “Rewrite Rule Inference Using Equality Saturation.” Proceedings of the ACM on Programming Languages 5, no. OOPSLA (2021): 119:1-119:28. https://doi.org/10.1145/3485496.
 
 
 ## 目前进度
@@ -219,37 +178,27 @@ elapsed time: 0.0429435s
 * [x] 支持打印表达式 ★
 * [x] 支持化简表达式 ★★
 * [x] 支持多项式等价变换 ★★★
-* [x] 支持数学函数等价变换 ★★★
-  * [x] $exp(x)-1 \Rightarrow expm1(x)$
-  * [x] $log(x+1) \Rightarrow log1p(x)$
-  * [x] $sqrt(x \times x + y \times y) \Rightarrow hypot(x, y)$
-  * [x] $log(exp(x)) \Rightarrow x$
-  * [x] $exp(log(x)) \Rightarrow x$
-  * [x] $sqrt(x) \times sqrt(y) \Rightarrow sqrt(x \times y)$
-  * [x] $sqrt(x) / sqrt(y) \Rightarrow sqrt(x / y)$
+* [x] 支持数学函数等价变换 (80%) ★★★
+  * [x] 指数函数和对数函数的相关变换
+  * [x] 和差化积等三角函数变换
+  * [x] fma相关变换
+  * [x] sqrt, pow相关变换
   * [ ] ······ (更多变换)
-* [x] 支持fma等价表换 ★★★
-* [x] 整合单参多项式变换和数学函数变换 ★★★
-* [x] 支持含双参乃至多参变量的表达★★★
-* [x] 生成 mpfr 代码 ★★
-* [x] 整合误差检测功能(70%) ★★
-  * [x] 单参表达式误差测试
-  * [x] 多参表达式误差测试
-  * [ ] 完善单参的串行版本
-  * [ ] 实现单参的并行版本
-  * [x] 完善双参的串行版本
-  * [ ] 实现双参的并行版本
-  * [x] 完善三参的串行版本
-  * [x] 实现三参的并行版本
-* [x] 支持并行误差检测 ★★
-* [ ] 整合精度优化功能 (50%) ★★★
-  * [ ] matlab获取轮廓线数据
-  * [ ] 精度优化区间划分
-  * [x] 整合表达式重写
-  * [x] 生成最终表达式的代码
-* [ ] 整合性能测试功能 ★
-  * [ ] 单参表达式性能测试
-  * [ ] 多参表达式性能测试
+* [ ] 支持误差检测 (90%) ★★
+  * [x] 特定参数数量的误差检测（目前支持1-5个参数）
+  * [x] 并行化
+  * [ ] 任意参数的误差检测
+* [x] 支持性能测试功能 (90%) ★
+  * [x] 特定参数数量的误差检测（目前支持1-3个参数）
+  * [ ] 任意参数的性能检测
+* [ ] 精度优化功能 (80%) ★★★
+  * [x] 精度优化区间划分
+  * [x] 表达式重写框架
+  * [ ] 优化重写框架
+* [x] 代码生成 (90%) ★
+  * [x] 生成double、d-d、mpfr版本的代码
+  * [x] 生成带判断的表达式代码
+  * [ ] 支持FPCore格式
 * [ ] 支持对 herbie、daisy 等优化工具的调用 ★
 * [ ] 实现多精度变换 ★★★
 * [ ] ...... (更多功能)
