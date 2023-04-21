@@ -324,7 +324,8 @@ string geneHerbieCode(string uniqueLabel)
         return herbieExpr;
     }
     fprintf(stderr, "ERROR: geneHerbieCode: we can not support %s now\n", uniqueLabel.c_str());
-    exit(EXIT_FAILURE);
+    return "";
+    // exit(EXIT_FAILURE);
 }
 
 string geneDaisyCode(string uniqueLabel)
@@ -416,7 +417,8 @@ string geneDaisyCode(string uniqueLabel)
         return daisyExpr;
     }
     fprintf(stderr, "ERROR: geneDaisyCode: we can not support %s now\n", uniqueLabel.c_str());
-    exit(EXIT_FAILURE);
+    return "";
+    // exit(EXIT_FAILURE);
 }
 
 string geneMpfrCode(const ast_ptr &exprAst, const string uniqueLabel, vector<string> vars)
@@ -873,6 +875,58 @@ vector<int> setOrder(ast_ptr &expr)
     return opOrder;
 }
 
+void showOrdersKernel(ast_ptr &expr, int &orderNow)
+{
+    auto type = expr->type();
+    if(type == "Number")
+    {
+        string tmp = "NO." + std::to_string(orderNow) + ": ";
+        printExpr(expr, tmp);
+        orderNow++;
+    }
+    else if(type == "Variable")
+    {
+        string tmp = "NO." + std::to_string(orderNow) + ": ";
+        printExpr(expr, tmp);
+        orderNow++;
+    }
+    else if(type == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callPtr->getArgs();
+        vector<int> paramOrders;
+        for(auto& arg : args)
+        {
+            showOrdersKernel(arg, orderNow);
+        }
+        string tmp = "NO." + std::to_string(orderNow) + ": ";
+        printExpr(expr, tmp);
+        orderNow++;
+    }
+    else if(type == "Binary")
+    {
+        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        ast_ptr &lhs = binPtr->getLHS();
+        ast_ptr &rhs = binPtr->getRHS();
+        showOrdersKernel(lhs, orderNow);
+        showOrdersKernel(rhs, orderNow);
+        string tmp = "NO." + std::to_string(orderNow) + ": ";
+        printExpr(expr, tmp);
+        orderNow++;
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: unknowntype %s\n", type.c_str());
+        exit(EXIT_FAILURE);
+    }
+}
+
+void showOrder(ast_ptr &expr)
+{
+    int order = 0;
+    showOrdersKernel(expr, order);
+}
+
 static std::map<char, string> opMap = {
     {'+', "add"},
     {'-', "sub"},
@@ -1179,7 +1233,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     //     currentNum = currentNum >> 1;
     // }
     
-    vector<string> dataTypes = {"DD", "ld", "double"};
+    vector<string> dataTypes = {"DD", "double"};
     int lenDataTypes = dataTypes.size();
     int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
     for(int num = 0; num < maxNum; num++)
