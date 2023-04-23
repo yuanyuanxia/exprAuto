@@ -254,7 +254,7 @@ int main(int argc, char **argv)
         }
         printf("average ulp\tmax ulp\n");
         printf("%.16le\t%.16le\n", aveError, maxError);
-        // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxError);
+        printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%.16le\t%.16le\n", aveError, maxError);
         fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxError);

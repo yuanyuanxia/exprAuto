@@ -279,7 +279,23 @@ int main()
             auto exprHerbie = geneHerbieCode(uniqueLabel);
             auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
-
+            printExpr(originExpr, "the origin expr: ");
+            showOrder(originExpr);
+            vector<int> startNowIdxs(dimension, 0);
+            vector<double> startOriginIntervals;
+            vector<double> steps;
+            for (int i = 0; i < dimension; i++)
+            {
+                auto &startOriginInterval = intervals.at(i * 2);
+                auto &endOriginInterval = intervals.at(i * 2 + 1);
+                startOriginIntervals.push_back(startOriginInterval);
+                double width = endOriginInterval - startOriginInterval;
+                double step = width / (double)scales.at(i);
+                steps.push_back(step);
+            }
+            testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
+            fprintf(stderr, GREEN "ready> " RESET);
+            continue;
             // if(exprOrigin != "")
             // {
             //     originPerformance = testPerformance(uniqueLabel, "origin", intervals);
@@ -455,9 +471,6 @@ int main()
             auto funcNameFinal = geneFinalCodeKernel(inputStr, uniqueLabel, exprInfoVector, vars);
 
             cout << "=-=-=-=-=-=-=-=-=-=-=-=-= test final code's error and performance start =-=-=-=-=-=-=-=-=-=-=-=-=\n";
-            vector<int> startNowIdxs(dimension, 0);
-            vector<double> startOriginIntervals;
-            vector<double> steps;
             for (int i = 0; i < dimension; i++)
             {
                 auto &startOriginInterval = intervals.at(i * 2);
