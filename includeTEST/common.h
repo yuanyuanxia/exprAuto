@@ -33,7 +33,7 @@ double computeUlpDiff(mpfr_t correctValue, mpfr_t myValue);
 
 double computeUlpDiffF(mpfr_t correctValue, mpfr_t myValue);
 
-double computeAbs(mpfr_t correctValue, mpfr_t myValue);
+double computeAbs(mpfr_t correctValue, mpfr_t myValue, mpfr_t mpfrDiff);
 
 double computeRel(mpfr_t correctValue, mpfr_t myValue);
 

@@ -49,8 +49,8 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     double x0, error, sumError, aveReUlp, maxReUlp, lenX0;
 
     // mpfr
-    mpfr_t mpfrOrcle, mpfrResult;
-    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_t mpfrOrcle, mpfrResult, mpfrDiff;
+    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, mpfrDiff, (mpfr_ptr) 0);
 
     // write error data to file
     #if ERRFILE
@@ -86,7 +86,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
         #if (defined ABSOLUTE)
-            error = computeAbs(mpfrOrcle, mpfrResult);
+            error = computeAbs(mpfrOrcle, mpfrResult, mpfrDiff);
         #elif (defined RELATIVE)
             error = computeRel(mpfrOrcle, mpfrResult);
         #else
@@ -133,7 +133,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     fclose(f);
     free(fileNameSample);
     #endif
-    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_clears(mpfrOrcle, mpfrResult, mpfrDiff, (mpfr_ptr) 0);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;
