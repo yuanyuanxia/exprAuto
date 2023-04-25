@@ -7,6 +7,7 @@
 #include "geneCode.hpp"
 #include "tools.hpp"
 #include "benchMark.hpp"
+#include "shadowValue.hpp"
 
 #include <fstream>
 #include <chrono>
@@ -293,6 +294,27 @@ int main()
                 double step = width / (double)scales.at(i);
                 steps.push_back(step);
             }
+            // auto tmpType = originExpr->type();
+            // if(tmpType == "Binary")
+            // {
+            //     BinaryExprAST *tmpBinaryExpr = dynamic_cast<BinaryExprAST *>(originExpr.get());
+            //     auto tmpCall = tmpBinaryExpr->getCallback();
+            //     auto tmpResult = tmpCall(1.3, 2.4);
+            //     cout << "op = " << tmpBinaryExpr->getOp() << " tmpResult = " << tmpResult << endl;
+            // }
+            // else if (tmpType == "Call")
+            // {
+            //     CallExprAST *tmpCallExpr = dynamic_cast<CallExprAST *>(originExpr.get());
+            //     auto tmpCall = tmpCallExpr->getCallback();
+            //     vector<double> args{1.3};
+            //     auto tmpResult = tmpCall(args);
+            //     cout << "callee = " << tmpCallExpr->getCallee() << " tmpResult = " << tmpResult << endl;
+            // }
+            vector<double> values(vars.size(), 1.4);
+            auto varsValue = setVarsValue(vars, values);
+            fmt::print("varsValue = {}\n", varsValue);
+            shadowValue(originExpr, varsValue);
+
             testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);
             continue;

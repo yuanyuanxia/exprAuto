@@ -12,6 +12,9 @@
 #include <utility>
 #include <vector>
 #include <fstream>
+#include <functional>
+#include "mpreal.h"
+#include "funclist.hpp"
 
 using std::string;
 using std::vector;
@@ -40,6 +43,22 @@ public:
     double performance = -1;
     size_t rewriteID;
 };
+
+typedef std::function<double(double)> singleCall;
+typedef std::function<double(double, double)> doubleCall;
+typedef std::function<double(double, double, double)> tribleCall;
+typedef std::function<double(double, double, double, double)> quadCall;
+typedef std::function<double(vector<double>)> commonCall;
+typedef std::function<mpfr::mpreal(mpfr::mpreal, mpfr::mpreal)> doubleRealCall;
+typedef std::function<mpfr::mpreal(vector<mpfr::mpreal>)> commonRealCall;
+
+extern std::map<string, singleCall> singleCall_map;
+extern std::map<string, doubleCall> doubleCall_map;
+extern std::map<string, tribleCall> tribleCall_map;
+extern std::map<string, quadCall> quadCall_map;
+extern std::map<string, commonCall> commonCall_map;
+extern std::map<string, doubleRealCall> doubleRealCall_map;
+extern std::map<string, commonRealCall> commonRealCall_map;
 
 //===----------------------------------------------------------------------===//
 // Abstract Syntax Tree (aka Parse Tree)
@@ -110,9 +129,14 @@ class BinaryExprAST : public ExprAST
 {
     char Op;
     std::unique_ptr<ExprAST> LHS, RHS;
-
+    doubleCall func;
+    doubleRealCall realFunc;
 public:
-    BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS, std::unique_ptr<ExprAST> RHS) : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {}
+    BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS, std::unique_ptr<ExprAST> RHS) : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)) {
+        string Opstr(1,Op);
+        func = doubleCall_map.find(Opstr)->second;
+        realFunc = doubleRealCall_map.find(Opstr)->second;
+    }
 
     void printExpr()
     {
@@ -124,10 +148,12 @@ public:
     string type() { return "Binary"; }
 
     char getOp() { return Op; }
-    void setOp(char opNew) { Op = opNew; }
     std::unique_ptr<ExprAST> &getLHS() { return LHS; }
     std::unique_ptr<ExprAST> &getRHS() { return RHS; }
+    doubleCall getCallback() { return func; }
+    doubleRealCall getRealCallback() { return realFunc; }
 
+    void setOp(char opNew) { Op = opNew; }
     void setLHS(std::unique_ptr<ExprAST> &newLHS) { LHS = newLHS->Clone(); }
     void setRHS(std::unique_ptr<ExprAST> &newRHS) { RHS = newRHS->Clone(); }
 
@@ -144,11 +170,19 @@ class CallExprAST : public ExprAST
 {
     string Callee;
     vector<std::unique_ptr<ExprAST>> Args;
+    commonCall call;
+    commonRealCall realCall;
 
 public:
-    CallExprAST(const string &Callee, vector<std::unique_ptr<ExprAST>> Args) : Callee(Callee), Args(std::move(Args)) {}
+    CallExprAST(const string &Callee, vector<std::unique_ptr<ExprAST>> Args) : Callee(Callee), Args(std::move(Args)) {
+        call = commonCall_map.find(Callee)->second;
+        realCall = commonRealCall_map.find(Callee)->second;
+    }
 
-    CallExprAST(std::unique_ptr<CallExprAST> &func) : Callee(func->Callee), Args(std::move(func->Args)) {}
+    CallExprAST(std::unique_ptr<CallExprAST> &func) : Callee(func->Callee), Args(std::move(func->Args)) {
+        call = commonCall_map.find(Callee)->second;
+        realCall = commonRealCall_map.find(Callee)->second;
+    }
 
     void printExpr()
     {
@@ -164,6 +198,8 @@ public:
 
     string getCallee() { return Callee; }
     vector<std::unique_ptr<ExprAST>> &getArgs() { return Args; }
+    commonCall getCallback() { return call; }
+    commonRealCall getRealCallback() { return realCall; }
 
     std::unique_ptr<ExprAST> Clone()
     {
@@ -263,5 +299,7 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
 
 void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime);
 // } // end anonymous namespace
+
+std::map<string, double> setVarsValue(const vector<string> &vars, const vector<double> &values);
 
 #endif

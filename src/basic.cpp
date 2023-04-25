@@ -18,6 +18,41 @@ using std::endl;
 using std::to_string;
 using std::ofstream;
 using std::ios;
+
+std::map<string, singleCall> singleCall_map = {
+    {"sin", minesin},
+    {"cos", minecos},
+    {"tan", minetan},
+    {"exp", mineexp},
+    {"log", minelog},
+    {"asin", mineasin},
+    {"acos", mineacos},
+    {"atan", mineatan},
+};
+
+std::map<string, doubleCall> doubleCall_map = {
+    {"+", mineadd},
+    {"-", minesub},
+    {"*", minemul},
+    {"/", minediv},
+};
+
+std::map<string, commonCall> commonCall_map = {
+    {"sin", common_sin},
+    {"cos", common_cos},
+    {"tan", common_tan},
+};
+
+std::map<string, doubleRealCall> doubleRealCall_map = {
+    {"+", realadd},
+    {"-", realsub},
+    {"*", realmul},
+    {"/", realdiv},
+};
+
+std::map<string, commonRealCall> commonRealCall_map = {
+    {"tan", real_tan},
+};
 //===----------------------------------------------------------------------===//
 // basic operation
 //===----------------------------------------------------------------------===//
@@ -835,4 +870,21 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
     summaryData.push_back(final_seconds);
     summaryData.push_back(matlabKernelTime);
     write_to_file(uniqueLabel, exprOriginBest, numIntervalsSoloBefore, numIntervalsSoloAfter, thresholds, summaryData, "runlog.csv");
+}
+
+std::map<string, double> setVarsValue(const vector<string> &vars, const vector<double> &values)
+{
+    if (values.size() != vars.size())
+    {
+        fprintf(stderr, "values.size() != vars.size(), which are %ld and %ld\n", values.size(), vars.size());
+        exit(EXIT_FAILURE);
+    }
+    std::map<string, double> results;
+    for(size_t i = 0; i < vars.size(); i++)
+    {
+        auto &var = vars.at(i);
+        auto &value = values.at(i);
+        results[var] = value;
+    }
+    return results;
 }
