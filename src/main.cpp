@@ -311,9 +311,23 @@ int main()
             //     cout << "callee = " << tmpCallExpr->getCallee() << " tmpResult = " << tmpResult << endl;
             // }
             vector<double> values(vars.size(), 1.4);
-            auto varsValue = setVarsValue(vars, values);
+            auto varsValue = setVarsValue<double>(vars, values);
             fmt::print("varsValue = {}\n", varsValue);
-            shadowValue(originExpr, varsValue);
+            Shadow::shadowValue<double>(originExpr, varsValue);
+
+            vector<double *> values1;
+            size_t inputNum = 5;
+            for(size_t i = 0; i < vars.size(); i++)
+            {
+                double *tmp = new double[inputNum];
+                for(size_t j = 0; j < inputNum; j++)
+                {
+                    tmp[j] = i * inputNum + j;
+                }
+                values1.push_back(tmp);
+            }
+            auto varsValue1 = setVarsValue<double *>(vars, values1);
+            Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
 
             testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);

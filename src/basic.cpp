@@ -872,15 +872,16 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
     write_to_file(uniqueLabel, exprOriginBest, numIntervalsSoloBefore, numIntervalsSoloAfter, thresholds, summaryData, "runlog.csv");
 }
 
-std::map<string, double> setVarsValue(const vector<string> &vars, const vector<double> &values)
+template <typename T>
+std::map<string, T> setVarsValue(const vector<string> &vars, const vector<T> &values)
 {
     if (values.size() != vars.size())
     {
         fprintf(stderr, "values.size() != vars.size(), which are %ld and %ld\n", values.size(), vars.size());
         exit(EXIT_FAILURE);
     }
-    std::map<string, double> results;
-    for(size_t i = 0; i < vars.size(); i++)
+    std::map<string, T> results;
+    for (size_t i = 0; i < vars.size(); i++)
     {
         auto &var = vars.at(i);
         auto &value = values.at(i);
@@ -888,3 +889,6 @@ std::map<string, double> setVarsValue(const vector<string> &vars, const vector<d
     }
     return results;
 }
+
+template std::map<string, double> setVarsValue<double>(const vector<string> &vars, const vector<double> &values);
+template std::map<string, double *> setVarsValue<double *>(const vector<string> &vars, const vector<double *> &values);

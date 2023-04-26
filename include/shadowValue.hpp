@@ -2,9 +2,12 @@
 #define _SHADOWVALUE
 
 #include "basic.hpp"
+namespace Shadow {
 
 void shadowValue(ast_ptr &expr, double input);
 
-void shadowValue(const ast_ptr &expr, const std::map<string, double> &varsValue);
+template <typename T>
+void shadowValue(const ast_ptr &expr, const std::map<string, T> &varsValue, int length = 1);
 
+}
 #endif

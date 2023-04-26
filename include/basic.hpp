@@ -300,6 +300,7 @@ void write_to_file(const string &uniqueLabel, const string &exprOriginBest, cons
 void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimension, int numIntervalsBefore, double numOfIntervals, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, int numOfExprs, vector<double> thresholds, const exprInfo &originExprInfo, const exprInfo &herbieExprInfo, const exprInfo &finalInfo, double originPerformance, double elapsed_seconds, double init_seconds, double matlab_seconds, double regime_seconds, double rewrite_seconds, double final_seconds, double matlabKernelTime);
 // } // end anonymous namespace
 
-std::map<string, double> setVarsValue(const vector<string> &vars, const vector<double> &values);
+template <typename T>
+std::map<string, T> setVarsValue(const vector<string> &vars, const vector<T> &values);
 
 #endif
