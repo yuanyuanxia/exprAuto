@@ -41,6 +41,7 @@ std::map<string, commonCall> commonCall_map = {
     {"sin", common_sin},
     {"cos", common_cos},
     {"tan", common_tan},
+    {"pow", common_pow},
 };
 
 std::map<string, doubleRealCall> doubleRealCall_map = {
@@ -52,6 +53,7 @@ std::map<string, doubleRealCall> doubleRealCall_map = {
 
 std::map<string, commonRealCall> commonRealCall_map = {
     {"tan", real_tan},
+    {"pow", real_pow},
 };
 //===----------------------------------------------------------------------===//
 // basic operation

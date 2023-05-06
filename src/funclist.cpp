@@ -62,6 +62,10 @@ double common_tan(vector<double> args) {
     return tan(args.at(0));
 }
 
+double common_pow(vector<double> args) {
+    return pow(args.at(0), args.at(1));
+}
+
 mpfr::mpreal realadd(mpfr::mpreal x, mpfr::mpreal y)
 {
     return x + y;
@@ -84,4 +88,8 @@ mpfr::mpreal realdiv(mpfr::mpreal x, mpfr::mpreal y)
 
 mpfr::mpreal real_tan(vector<mpfr::mpreal> args) {
     return tan(args.at(0));
+}
+
+mpfr::mpreal real_pow(vector<mpfr::mpreal> args) {
+    return pow(args.at(0), args.at(1));
 }

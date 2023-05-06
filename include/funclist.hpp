@@ -35,6 +35,8 @@ double common_cos(vector<double> args);
 
 double common_tan(vector<double> args);
 
+double common_pow(vector<double> args);
+
 mpfr::mpreal realadd(mpfr::mpreal x, mpfr::mpreal y);
 
 mpfr::mpreal realsub(mpfr::mpreal x, mpfr::mpreal y);
@@ -44,5 +46,7 @@ mpfr::mpreal realmul(mpfr::mpreal x, mpfr::mpreal y);
 mpfr::mpreal realdiv(mpfr::mpreal x, mpfr::mpreal y);
 
 mpfr::mpreal real_tan(vector<mpfr::mpreal> args);
+
+mpfr::mpreal real_pow(vector<mpfr::mpreal> args);
 
 #endif
