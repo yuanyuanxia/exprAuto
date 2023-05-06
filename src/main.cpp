@@ -310,25 +310,32 @@ int main()
             //     auto tmpResult = tmpCall(args);
             //     cout << "callee = " << tmpCallExpr->getCallee() << " tmpResult = " << tmpResult << endl;
             // }
-            vector<double> values(vars.size(), 1.4);
-            auto varsValue = setVarsValue<double>(vars, values);
-            fmt::print("varsValue = {}\n", varsValue);
-            Shadow::shadowValue<double>(originExpr, varsValue);
+            // vector<double> values(dimension, 1.4);
+            // auto varsValue = setVarsValue<double>(vars, values);
+            // fmt::print("varsValue = {}\n", varsValue);
+            // Shadow::shadowValue<double>(originExpr, varsValue);
 
+            // generate input data
             vector<double *> values1;
-            size_t inputNum = 5;
-            for(size_t i = 0; i < vars.size(); i++)
+            size_t inputNum = 1000;
+            for(int i = 0; i < dimension; i++)
             {
+                auto &startOriginInterval = intervals.at(i * 2);
+                auto &endOriginInterval = intervals.at(i * 2 + 1);
+                double width = endOriginInterval - startOriginInterval;
+                double step = width / inputNum;
+
                 double *tmp = new double[inputNum];
                 for(size_t j = 0; j < inputNum; j++)
                 {
-                    tmp[j] = i * inputNum + j;
+                    tmp[j] = startOriginInterval + j * step;
                 }
                 values1.push_back(tmp);
             }
             auto varsValue1 = setVarsValue<double *>(vars, values1);
+            // call the shadowValue function to generate the shadow values of the expression.
             Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
-
+            // TODO: free values1
             testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);
             continue;

@@ -1,14 +1,19 @@
 #include <fmt/ranges.h>
 #include <mpfr.h>
 #include <typeinfo>
+#include <iostream>
+#include <iomanip>
+#include <string>
 #include "mpreal.h"
 #include "shadowValue.hpp"
 #include "funclist.hpp"
+#include "errorDetect.hpp"
 
 
 using std::string;
 using std::vector;
 using std::ofstream;
+using std::ios;
 namespace Shadow {
 
 // demo
@@ -247,8 +252,7 @@ valueTwo<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &va
             std::cout << "callee = " << callPtr->getCallee() << " funcRealValue = " << funcRealValue.toString() << std::endl;
             funcRealValues.push_back(funcRealValue);
         
-            // absolute error
-            double errorValue = fabs((funcRealValue - result.funcValue).toDouble());
+            auto errorValue = computeError(funcRealValue, result.funcValue);
             errorValues.push_back(errorValue);
         }
         else if constexpr (TisDoublePointer)
@@ -265,7 +269,7 @@ valueTwo<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &va
                 auto funcRealValue = tmpRealCall(tmpParam);
                 tmpfuncRealValues[i] = funcRealValue;
                 
-                tmpErrorValues[i] = fabs((funcRealValue - (result.funcValue)[i]).toDouble());
+                tmpErrorValues[i] = computeError(funcRealValue, (result.funcValue)[i]);
             }
             funcRealValues.push_back(tmpfuncRealValues);
             errorValues.push_back(tmpErrorValues);
@@ -355,9 +359,19 @@ valueTwo<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &va
             std::cout << "op = " << binPtr->getOp() << " funcRealValue = " << funcRealValue.toString() << std::endl;
             funcRealValues.push_back(funcRealValue);
 
-            // absolute error
-            double errorValue = fabs((funcRealValue - result.funcValue).toDouble());
+            auto errorValue = computeError(funcRealValue, result.funcValue);
             errorValues.push_back(errorValue);
+
+            // absolute error
+            // double absErrorValue = fabs((funcRealValue - result.funcValue).toDouble());
+            // errorValues.push_back(absErrorValue);
+            // relative error
+            // double relErrorValue = fabs(((funcRealValue - result.funcValue) / funcRealValue).toDouble());
+            // errorValues.push_back(relErrorValue);
+            // ulp error
+            // auto unitUlp = computeUlpUnit(funcRealValue.toDouble());
+            // auto ulpErrorValue = fabs((funcRealValue - result.funcValue).toDouble() / unitUlp);
+            // errorValues.push_back(ulpErrorValue);
         }
         else if constexpr (TisDoublePointer)
         {
@@ -369,8 +383,11 @@ valueTwo<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &va
                 mpfr::mpreal tmpRhsValue = (rhsValue.funcValue)[i];
                 auto funcRealValue = tmpRealCall(tmpLhsValue, tmpRhsValue);
                 tmpfuncRealValues[i] = funcRealValue;
-                
-                tmpErrorValues[i] = fabs((funcRealValue - (result.funcValue)[i]).toDouble());
+
+                tmpErrorValues[i] = computeError(funcRealValue, (result.funcValue)[i]);
+
+                // absolute error
+                // tmpErrorValues[i] = fabs((funcRealValue - (result.funcValue)[i]).toDouble());
             }
             funcRealValues.push_back(tmpfuncRealValues);
             errorValues.push_back(tmpErrorValues);
@@ -443,13 +460,65 @@ void shadowValue(const ast_ptr &expr, const std::map<string, T> &varsValue, int 
         std::vector<mpfr::mpreal *> funcRealValues;
         std::vector<mpfr::mpreal *> mathRealValues;
         shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, length);
-        for(int i = 0; i < length; i++)
+        // TODO: free funcValues, funcRealValues, mathRealValues, errorValues
+        // print to the screen
+        // for(int i = 0; i < length; i++)
+        // {
+        //     for(size_t j = 0; j < funcValues.size(); j++)
+        //     {
+        //         fprintf(stderr, "input NO.%d step NO.%ld: funcValue = %g\n", i, j, (funcValues.at(j))[i]);
+        //         fprintf(stderr, "input NO.%d step NO.%ld: funcRealValue = %s\n", i, j, (funcRealValues.at(j))[i].toString().c_str());
+        //         fprintf(stderr, "input NO.%d step NO.%ld: mathRealValue = %s\n", i, j, (mathRealValues.at(j))[i].toString().c_str());
+        //         fprintf(stderr, "input NO.%d step NO.%ld: errorValue = %g\n\n", i, j, (errorValues.at(j))[i]);
+        //     }
+        //     fprintf(stderr, "================================\n\n");
+        // }
+        // print to the file
+        double **inputsPtr = new double *[varsValue.size()];
+        int ptrIdx = 0;
+        for(auto &value : varsValue){
+            inputsPtr[ptrIdx] = value.second;
+            ptrIdx++;
+        }
+        for(size_t i = 0; i < funcValues.size(); i++)
         {
-            for(size_t j = 0; j < funcValues.size(); j++)
+            std::ofstream fout;
+            string filename = "./errorFunc_" + std::to_string(i) + ".txt";
+            fout.open(filename, ios::out);
+            if (!fout.is_open())
             {
-                fprintf(stderr, "i = %d j = %ld: funcValue = %f\n", i, j, (funcValues.at(j))[i]);
+                std::cout << "open " << filename << " failed";
+                exit(EXIT_FAILURE);
+            }
+            for(int j = 0; j < length; j++)
+            {
+                for(size_t ptrIdx = 0; ptrIdx < varsValue.size(); ptrIdx++) // print all the input variables' value
+                {
+                    fout << inputsPtr[ptrIdx][j] << " ";
+                }
+                fout << (errorValues.at(i))[j] << "\n";
             }
         }
+        // std::ofstream fout;
+        // fout.open("./shadowValueResult.txt", ios::out);
+        // if (!fout.is_open())
+        // {
+        //     std::cout << "open shadowValueResult.txt failed";
+        //     exit(EXIT_FAILURE);
+        // }
+        // fout << "inputIdx stepIdx funcValue funcRealValue mathRealValue errorValue\n";
+        // for(int i = 0; i < length; i++)
+        // {
+        //     for(size_t j = 0; j < funcValues.size(); j++)
+        //     {
+        //         fout << i << " " << j << " " << (funcValues.at(j))[i] << " " << (funcRealValues.at(j))[i].toString() << " " << (mathRealValues.at(j))[i].toString() << " " << (errorValues.at(j))[i] << "\n";
+        //     }
+        // }
+        // fout << "input NO." << i << " step NO." << j << ": funcValue = " << (funcValues.at(j))[i] << "\n";
+        // fout << "input NO." << i << " step NO." << j << ": funcRealValue = " << (funcRealValues.at(j))[i].toString() << "\n";
+        // fout << "input NO." << i << " step NO." << j << ": mathRealValue = " << (mathRealValues.at(j))[i].toString() << "\n";
+        // fout << "input NO." << i << " step NO." << j << ": errorValue = " << (errorValues.at(j))[i] << "\n";
+        // fout << "================================\n\n";
     }
 }
 
