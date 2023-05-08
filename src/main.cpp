@@ -282,6 +282,7 @@ int main()
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
             printExpr(originExpr, "the origin expr: ");
             showOrder(originExpr);
+            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd");
             vector<int> startNowIdxs(dimension, 0);
             vector<double> startOriginIntervals;
             vector<double> steps;
@@ -337,6 +338,19 @@ int main()
             Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
             // TODO: free values1
             testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
+            vector<exprInfo> infos;
+            for(int i = 0; i < maxNum; i++) {
+                string tmp = "dd_" + std::to_string(i);
+                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+                infos.push_back(infoTmp);
+            }
+            cout << "No\taverage Err\tmax Err\n";
+            for(size_t i = 0; i < infos.size(); i++)
+            {
+                auto &info = infos.at(i);
+                cout << i << "\t" << info.aveError << "\t" << info.maxError << "\n";
+            }
+            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);
             continue;
             // if(exprOrigin != "")

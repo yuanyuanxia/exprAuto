@@ -46,11 +46,11 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     DL maxInputX0;
     int i0;
     // int flag;
-    double x0, reUlp, sumError, aveReUlp, maxReUlp, lenX0;
+    double x0, error, sumError, aveReUlp, maxReUlp, lenX0;
 
     // mpfr
-    mpfr_t mpfrOrcle, mpfrResult;
-    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_t mpfrOrcle, mpfrResult, mpfrDiff;
+    mpfr_inits2(PRECISION, mpfrOrcle, mpfrResult, mpfrDiff, (mpfr_ptr) 0);
 
     // write error data to file
     #if ERRFILE
@@ -85,29 +85,35 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
         x0 = x0startOriginInterval + stepX0 * i0;
         computeResult1param(x0, mpfrResult);
         computeOrcle1param(x0, mpfrOrcle);
-        #ifdef SINGLE
-        reUlp = computeUlpDiffF(mpfrOrcle, mpfrResult);
-        #else   // compute Double ULP as default
-        reUlp = computeUlpDiff(mpfrOrcle, mpfrResult);
+        #if (defined ABSOLUTE)
+            error = computeAbs(mpfrOrcle, mpfrResult, mpfrDiff);
+        #elif (defined RELATIVE)
+            error = computeRel(mpfrOrcle, mpfrResult);
+        #else
+            #if (defined SINGLE)
+            error = computeUlpDiffF(mpfrOrcle, mpfrResult);
+            #else   // compute Double ULP as default
+            error = computeUlpDiff(mpfrOrcle, mpfrResult);
+            #endif
         #endif
-        // if(reUlp <= 0.5) {
-        //     reUlp = 0;
+        // if(error <= 0.5) {
+        //     error = 0;
         // }
-        // if(isfinite(reUlp) == 0) {
+        // if(isfinite(error) == 0) {
         //     printf("happen to NaN or inf\n");
         //     exit(1);
         // }
         
-        if (isnormal(reUlp) != 0)
+        if (isnormal(error) != 0)
         {
             #if ERRFILE
-            fprintf(f, "%le\t%le\n", x0, reUlp);
+            fprintf(f, "%le\t%le\n", x0, error);
             #endif
-            sumError += reUlp;
-            if (reUlp > maxReUlp) {
+            sumError += error;
+            if (error > maxReUlp) {
                 // flag = 0;
                 maxInputX0.d = x0;
-                maxReUlp = reUlp;
+                maxReUlp = error;
             }
         }
         
@@ -127,7 +133,7 @@ struct errorInfo test1FPEDparamParallel(DL x0Start, DL x0End, unsigned long int 
     fclose(f);
     free(fileNameSample);
     #endif
-    mpfr_clears(mpfrOrcle, mpfrResult, (mpfr_ptr) 0);
+    mpfr_clears(mpfrOrcle, mpfrResult, mpfrDiff, (mpfr_ptr) 0);
     struct errorInfo err;
     err.sumError = sumError;
     err.maxError = maxReUlp;

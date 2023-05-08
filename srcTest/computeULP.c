@@ -96,3 +96,30 @@ double computeUlpDiffF(mpfr_t correctValue, mpfr_t myValue) {
     mpfr_clears(mpfrDiff, mpfrReUlp, (mpfr_ptr) 0);
     return reUlp;
 }
+
+double computeAbs(mpfr_t correctValue, mpfr_t myValue, mpfr_t mpfrDiff) {
+    double result;
+
+    mpfr_sub(mpfrDiff, correctValue, myValue, MPFR_RNDN);
+    result = mpfr_get_d(mpfrDiff, MPFR_RNDN);
+    result = fabs(result);
+
+    return result;
+}
+
+double computeRel(mpfr_t correctValue, mpfr_t myValue)
+{
+    double result;
+    mpfr_t mpfrDiff;
+
+    mpfr_inits2(PRECISION, mpfrDiff, (mpfr_ptr)0);
+
+    mpfr_sub(mpfrDiff, correctValue, myValue, MPFR_RNDN);
+    mpfr_div(mpfrDiff, mpfrDiff, correctValue, MPFR_RNDN);
+    result = mpfr_get_d(mpfrDiff, MPFR_RNDN);
+    result = fabs(result);
+
+    // mpfr clear
+    mpfr_clears(mpfrDiff, (mpfr_ptr)0);
+    return result;
+}

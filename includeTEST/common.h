@@ -33,6 +33,10 @@ double computeUlpDiff(mpfr_t correctValue, mpfr_t myValue);
 
 double computeUlpDiffF(mpfr_t correctValue, mpfr_t myValue);
 
+double computeAbs(mpfr_t correctValue, mpfr_t myValue, mpfr_t mpfrDiff);
+
+double computeRel(mpfr_t correctValue, mpfr_t myValue);
+
 #define _EXP_BITS 11
 #define SIGN_BIT 0x8000000000000000
 #define EXP_BIT 0x7FF0000000000000
