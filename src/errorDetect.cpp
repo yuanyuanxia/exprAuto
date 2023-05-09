@@ -38,3 +38,18 @@ double computeError(mpfr::mpreal oracle, double x)
 
     return errorValue;
 }
+
+double computeError(mpfr::mpreal oracle, mpfr::mpreal x)
+{
+    // absolute error
+    // double errorValue = fabs((oracle - x).toDouble());
+
+    // relative error
+    // double errorValue = fabs(((oracle - x) / oracle).toDouble());
+
+    // ulp error
+    auto unitUlp = computeUlpUnit(oracle.toDouble());
+    auto errorValue = fabs((oracle - x).toDouble() / unitUlp);
+
+    return errorValue;
+}

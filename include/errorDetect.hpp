@@ -17,4 +17,6 @@ double computeUlpUnit(double x);
 
 double computeError(mpfr::mpreal oracle, double x);
 
+double computeError(mpfr::mpreal oracle, mpfr::mpreal x);
+
 #endif

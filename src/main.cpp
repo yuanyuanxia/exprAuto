@@ -282,43 +282,16 @@ int main()
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
             printExpr(originExpr, "the origin expr: ");
             showOrder(originExpr);
-            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd");
-            vector<int> startNowIdxs(dimension, 0);
-            vector<double> startOriginIntervals;
-            vector<double> steps;
-            for (int i = 0; i < dimension; i++)
-            {
-                auto &startOriginInterval = intervals.at(i * 2);
-                auto &endOriginInterval = intervals.at(i * 2 + 1);
-                startOriginIntervals.push_back(startOriginInterval);
-                double width = endOriginInterval - startOriginInterval;
-                double step = width / (double)scales.at(i);
-                steps.push_back(step);
-            }
-            // auto tmpType = originExpr->type();
-            // if(tmpType == "Binary")
-            // {
-            //     BinaryExprAST *tmpBinaryExpr = dynamic_cast<BinaryExprAST *>(originExpr.get());
-            //     auto tmpCall = tmpBinaryExpr->getCallback();
-            //     auto tmpResult = tmpCall(1.3, 2.4);
-            //     cout << "op = " << tmpBinaryExpr->getOp() << " tmpResult = " << tmpResult << endl;
-            // }
-            // else if (tmpType == "Call")
-            // {
-            //     CallExprAST *tmpCallExpr = dynamic_cast<CallExprAST *>(originExpr.get());
-            //     auto tmpCall = tmpCallExpr->getCallback();
-            //     vector<double> args{1.3};
-            //     auto tmpResult = tmpCall(args);
-            //     cout << "callee = " << tmpCallExpr->getCallee() << " tmpResult = " << tmpResult << endl;
-            // }
+
+            //// a simple try for shadow value
             // vector<double> values(dimension, 1.4);
             // auto varsValue = setVarsValue<double>(vars, values);
             // fmt::print("varsValue = {}\n", varsValue);
             // Shadow::shadowValue<double>(originExpr, varsValue);
 
-            // generate input data
+            //// generate input data for shadow value
             vector<double *> values1;
-            size_t inputNum = 1000;
+            size_t inputNum = 10;
             for(int i = 0; i < dimension; i++)
             {
                 auto &startOriginInterval = intervals.at(i * 2);
@@ -334,25 +307,43 @@ int main()
                 values1.push_back(tmp);
             }
             auto varsValue1 = setVarsValue<double *>(vars, values1);
-            // call the shadowValue function to generate the shadow values of the expression.
-            Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
-            // TODO: free values1
-            testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
-            vector<exprInfo> infos;
-            for(int i = 0; i < maxNum; i++) {
-                string tmp = "dd_" + std::to_string(i);
-                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-                infos.push_back(infoTmp);
-            }
-            cout << "No\taverage Err\tmax Err\n";
-            for(size_t i = 0; i < infos.size(); i++)
+            //// call the shadowValue function to generate the shadow values of the expression. The shadow values are stored into files partly.
+            // Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
+            //// TODO: free values1
+
+            //// support DD
+            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum);
+            //// test DD's error
+            vector<int> startNowIdxs(dimension, 0);
+            vector<double> startOriginIntervals;
+            vector<double> steps;
+            for (int i = 0; i < dimension; i++)
             {
-                auto &info = infos.at(i);
-                cout << i << "\t" << info.aveError << "\t" << info.maxError << "\n";
+                auto &startOriginInterval = intervals.at(i * 2);
+                auto &endOriginInterval = intervals.at(i * 2 + 1);
+                startOriginIntervals.push_back(startOriginInterval);
+                double width = endOriginInterval - startOriginInterval;
+                double step = width / (double)scales.at(i);
+                steps.push_back(step);
             }
+            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
+            // vector<exprInfo> infos;
+            // for(int i = 0; i < maxNum; i++) {
+            //     string tmp = "dd_" + std::to_string(i);
+            //     auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            //     infos.push_back(infoTmp);
+            // }
+            // cout << "No\taverage Err\tmax Err\n";
+            // for(size_t i = 0; i < infos.size(); i++)
+            // {
+            //     auto &info = infos.at(i);
+            //     cout << i << "\t" << info.aveError << "\t" << info.maxError << "\n";
+            // }
+
             // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);
             continue;
+
             // if(exprOrigin != "")
             // {
             //     originPerformance = testPerformance(uniqueLabel, "origin", intervals);

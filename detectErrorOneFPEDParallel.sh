@@ -4,7 +4,7 @@
 path=`pwd`
 cd ${path}
 CC=mpicc
-ERRORMODEL=ABSOLUTE
+ERRORMODEL=ULP
 
 uniqueLabel=${1} # unique number
 x0Start=${2}

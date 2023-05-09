@@ -43,6 +43,6 @@ void getDepth(ast_ptr &expr, int &depth);
 
 int showOrder(ast_ptr &expr);
 
-int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail);
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> values, size_t inputNum);
 
 #endif

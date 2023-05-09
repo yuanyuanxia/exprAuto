@@ -49,4 +49,46 @@ mpfr::mpreal real_tan(vector<mpfr::mpreal> args);
 
 mpfr::mpreal real_pow(vector<mpfr::mpreal> args);
 
+template<typename T>
+mpfr::mpreal mineadd_d_dd(double x, double *y);
+
+template<typename T>
+mpfr::mpreal mineadd_dd_d(double *x, double y);
+
+template<typename T>
+mpfr::mpreal mineadd_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minesub_d_dd(double x, double *y);
+
+template<typename T>
+mpfr::mpreal minesub_dd_d(double *x, double y);
+
+template<typename T>
+mpfr::mpreal minesub_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minemul_d_dd(double x, double *y);
+
+template<typename T>
+mpfr::mpreal minemul_dd_d(double *x, double y);
+
+template<typename T>
+mpfr::mpreal minemul_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minediv_d_dd(double x, double *y);
+
+template<typename T>
+mpfr::mpreal minediv_dd_d(double *x, double y);
+
+template<typename T>
+mpfr::mpreal minediv_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minesin_dd(double *x);
+
+template<typename T>
+mpfr::mpreal minetan_dd(double *x);
+
 #endif

@@ -60,6 +60,15 @@ extern std::map<string, commonCall> commonCall_map;
 extern std::map<string, doubleRealCall> doubleRealCall_map;
 extern std::map<string, commonRealCall> commonRealCall_map;
 
+typedef std::function<mpfr::mpreal(double *)> singleCall_dd;
+typedef std::function<mpfr::mpreal(double, double *)> doubleCall_d_dd;
+typedef std::function<mpfr::mpreal(double *, double)> doubleCall_dd_d;
+typedef std::function<mpfr::mpreal(double *, double *)> doubleCall_dd_dd;
+extern std::map<string, singleCall_dd> singleCall_dd_map;
+extern std::map<string, doubleCall_d_dd> doubleCall_d_dd_map;
+extern std::map<string, doubleCall_dd_d> doubleCall_dd_d_map;
+extern std::map<string, doubleCall_dd_dd> doubleCall_dd_dd_map;
+
 //===----------------------------------------------------------------------===//
 // Abstract Syntax Tree (aka Parse Tree)
 //===----------------------------------------------------------------------===//

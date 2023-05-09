@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <fmt/core.h>
 #include <fmt/ranges.h>
+#include "mpreal.h"
 
 using std::cerr;
 using std::cout;
@@ -55,6 +56,47 @@ std::map<string, commonRealCall> commonRealCall_map = {
     {"tan", real_tan},
     {"pow", real_pow},
 };
+
+std::map<string, singleCall_dd> singleCall_dd_map = {
+    {"sin_d", minesin_dd<double>},
+    {"sin_dd", minesin_dd<mpfr::mpreal>},
+    {"tan_d", minetan_dd<double>},
+    {"tan_dd", minetan_dd<mpfr::mpreal>},
+};
+
+std::map<string, doubleCall_d_dd> doubleCall_d_dd_map = {
+    {"add_d", mineadd_d_dd<double>},
+    {"add_dd", mineadd_d_dd<mpfr::mpreal>},
+    {"sub_d", minesub_d_dd<double>},
+    {"sub_dd", minesub_d_dd<mpfr::mpreal>},
+    {"mul_d", minemul_d_dd<double>},
+    {"mul_dd", minemul_d_dd<mpfr::mpreal>},
+    {"div_d", minediv_d_dd<double>},
+    {"div_dd", minediv_d_dd<mpfr::mpreal>},
+};
+
+std::map<string, doubleCall_dd_d> doubleCall_dd_d_map = {
+    {"add_d", mineadd_dd_d<double>},
+    {"add_dd", mineadd_dd_d<mpfr::mpreal>},
+    {"sub_d", minesub_dd_d<double>},
+    {"sub_dd", minesub_dd_d<mpfr::mpreal>},
+    {"mul_d", minemul_dd_d<double>},
+    {"mul_dd", minemul_dd_d<mpfr::mpreal>},
+    {"div_d", minediv_dd_d<double>},
+    {"div_dd", minediv_dd_d<mpfr::mpreal>},
+};
+
+std::map<string, doubleCall_dd_dd> doubleCall_dd_dd_map = {
+    {"add_d", mineadd_dd_dd<double>},
+    {"add_dd", mineadd_dd_dd<mpfr::mpreal>},
+    {"sub_d", minesub_dd_dd<double>},
+    {"sub_dd", minesub_dd_dd<mpfr::mpreal>},
+    {"mul_d", minemul_dd_dd<double>},
+    {"mul_dd", minemul_dd_dd<mpfr::mpreal>},
+    {"div_d", minediv_dd_dd<double>},
+    {"div_dd", minediv_dd_dd<mpfr::mpreal>},
+};
+
 //===----------------------------------------------------------------------===//
 // basic operation
 //===----------------------------------------------------------------------===//

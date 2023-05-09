@@ -1,6 +1,7 @@
 #include "basic.hpp"
 #include "geneCode.hpp"
 #include "parserASTLY.hpp"
+#include "shadowValue.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -1204,7 +1205,7 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
 
 // Note: Each operator node has two states, double or double-double. if there are n node in that expression, there are 2^n states. 
 // Generate double-double implementations in all states and return the number of generated codes
-int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail)
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum)
 {
     // AST init
     auto opOrder = setOrder(expr);
@@ -1251,6 +1252,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         }
         setType(expr, opTypes);
 
+
         // init to generate code
         string directory = "srcTest/" + uniqueLabel + "/";
         string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
@@ -1263,6 +1265,11 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         cout << "\n";
         ofstream file_clean(fileName, ios_base::out);
         ofstream ofs(fileName, ios::app);        
+
+        /// call shadowValue to generate each step's values of expr.
+        // varsValue is input values
+        // inputNum is the number of input data
+        Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
 
         // call codegen to generate code
         codegen(expr, vars, funcName, ofs);
