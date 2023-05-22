@@ -24,6 +24,11 @@ double computeUlpUnit(double x) {
     return x0.d;
 }
 
+double computeUlpUnit(mpfr::mpreal oracle) {
+    double x = oracle.toDouble();
+    return computeUlpUnit(x);
+}
+
 double computeError(mpfr::mpreal oracle, double x)
 {
     // absolute error

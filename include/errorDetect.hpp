@@ -15,6 +15,8 @@ typedef union {
 
 double computeUlpUnit(double x);
 
+double computeUlpUnit(mpfr::mpreal oracle);
+
 double computeError(mpfr::mpreal oracle, double x);
 
 double computeError(mpfr::mpreal oracle, mpfr::mpreal x);
