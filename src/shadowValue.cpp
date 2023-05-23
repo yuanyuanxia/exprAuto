@@ -19,6 +19,8 @@ using std::ios;
 namespace Shadow {
 
 std::map<string, std::function<double(double)>> fDrvMapOne = {
+    {"sqrt", [](double x) { return 0.5 / sqrt(x); }},
+    {"cbrt", [](double x) { return 1 / (3.0 * cbrt(x*x)); }},
     {"exp", [](double x) { return exp(x); }},
     {"exp2", [](double x) { return exp2(x) * log(2); }},
     {"exp10", [](double x) { return exp10(x) * log(10); }},
@@ -28,9 +30,9 @@ std::map<string, std::function<double(double)>> fDrvMapOne = {
     {"sin", [](double x) { return cos(x); }},
     {"cos", [](double x) { return -sin(x); }},
     {"tan", [](double x) { return 1 / (cos(x) * cos(x)); }},
-    {"arcsin", [](double x) { return 1 / sqrt(1 - x * x); }},
-    {"arccos", [](double x) { return -1 / sqrt(1 - x * x); }},
-    {"arctan", [](double x) { return 1 / (1 + x * x); }},
+    {"asin", [](double x) { return 1 / sqrt(1 - x * x); }},
+    {"acos", [](double x) { return -1 / sqrt(1 - x * x); }},
+    {"atan", [](double x) { return 1 / (1 + x * x); }},
 };
 
 std::map<string, std::function<double(double, double)>> fDrvMapTwo = {
@@ -639,13 +641,13 @@ void computeConditionNumber(const ast_ptr &expr, vector<T> &conditionNumbers, ve
         auto &args = callPtr->getArgs();
         auto IDparam = new int[args.size()];
 
-        for (size_t i = args.size() - 1; i >= 0; i--)
+        for (int i = args.size() - 1; i >= 0; i--)
         {
             computeConditionNumberKernel(conditionNumbers, conditionNumbersOp, IDfather, IDnow, length);
             IDparam[i] = IDnow;
             IDnow--;
         }
-        for (size_t i = args.size() - 1; i >= 0; i--)
+        for (int i = args.size() - 1; i >= 0; i--)
         {
             const auto &arg = args.at(i);
             computeConditionNumber(arg, conditionNumbers, conditionNumbersOp, IDparam[i], IDnow, length);

@@ -66,6 +66,54 @@ double common_pow(vector<double> args) {
     return pow(args.at(0), args.at(1));
 }
 
+double common_exp(vector<double> args) {
+    return exp(args.at(0));
+}
+
+double common_log(vector<double> args) {
+    return log(args.at(0));
+}
+
+double common_asin(vector<double> args) {
+    return asin(args.at(0));
+}
+
+double common_acos(vector<double> args) {
+    return acos(args.at(0));
+}
+
+double common_atan(vector<double> args) {
+    return atan(args.at(0));
+}
+
+double common_expm1(vector<double> args) {
+    return expm1(args.at(0));
+}
+
+double common_fma(vector<double> args) {
+    return fma(args.at(0), args.at(1), args.at(2));
+}
+
+double common_log1p(vector<double> args) {
+    return log1p(args.at(0));
+}
+
+double common_sqrt(vector<double> args) {
+    return sqrt(args.at(0));
+}
+
+double common_hypot(vector<double> args) {
+    return hypot(args.at(0), args.at(1));
+}
+
+double common_cbrt(vector<double> args) {
+    return cbrt(args.at(0));
+}
+
+double common_atan2(vector<double> args) {
+    return atan2(args.at(0), args.at(1));
+}
+
 mpfr::mpreal realadd(mpfr::mpreal x, mpfr::mpreal y)
 {
     return x + y;
@@ -86,12 +134,68 @@ mpfr::mpreal realdiv(mpfr::mpreal x, mpfr::mpreal y)
     return x / y;
 }
 
+mpfr::mpreal real_sin(vector<mpfr::mpreal> args) {
+    return sin(args.at(0));
+}
+
+mpfr::mpreal real_cos(vector<mpfr::mpreal> args) {
+    return cos(args.at(0));
+}
+
 mpfr::mpreal real_tan(vector<mpfr::mpreal> args) {
     return tan(args.at(0));
 }
 
 mpfr::mpreal real_pow(vector<mpfr::mpreal> args) {
     return pow(args.at(0), args.at(1));
+}
+
+mpfr::mpreal real_exp(vector<mpfr::mpreal> args) {
+    return exp(args.at(0));
+}
+
+mpfr::mpreal real_log(vector<mpfr::mpreal> args) {
+    return log(args.at(0));
+}
+
+mpfr::mpreal real_asin(vector<mpfr::mpreal> args) {
+    return asin(args.at(0));
+}
+
+mpfr::mpreal real_acos(vector<mpfr::mpreal> args) {
+    return acos(args.at(0));
+}
+
+mpfr::mpreal real_atan(vector<mpfr::mpreal> args) {
+    return atan(args.at(0));
+}
+
+mpfr::mpreal real_expm1(vector<mpfr::mpreal> args) {
+    return expm1(args.at(0));
+}
+
+mpfr::mpreal real_fma(vector<mpfr::mpreal> args) {
+    return fma(args.at(0), args.at(1), args.at(2));
+}
+
+mpfr::mpreal real_log1p(vector<mpfr::mpreal> args) {
+    return log1p(args.at(0));
+}
+
+mpfr::mpreal real_sqrt(vector<mpfr::mpreal> args) {
+    return sqrt(args.at(0));
+}
+
+mpfr::mpreal real_hypot(vector<mpfr::mpreal> args) {
+    return hypot(args.at(0), args.at(1));
+}
+
+mpfr::mpreal real_cbrt(vector<mpfr::mpreal> args) {
+    return cbrt(args.at(0));
+}
+
+mpfr::mpreal real_atan2(vector<mpfr::mpreal> args) {
+    return atan2(args.at(0), args.at(1));
 }
 
 template<typename T>

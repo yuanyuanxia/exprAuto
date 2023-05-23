@@ -43,6 +43,18 @@ std::map<string, commonCall> commonCall_map = {
     {"cos", common_cos},
     {"tan", common_tan},
     {"pow", common_pow},
+    {"exp", common_exp},
+    {"log", common_log},
+    {"asin", common_asin},
+    {"acos", common_acos},
+    {"atan", common_atan},
+    {"expm1", common_expm1},
+    {"fma", common_fma},
+    {"log1p", common_log1p},
+    {"sqrt", common_sqrt},
+    {"hypot", common_hypot},
+    {"cbrt", common_cbrt},
+    {"atan2", common_atan2},
 };
 
 std::map<string, doubleRealCall> doubleRealCall_map = {
@@ -53,8 +65,22 @@ std::map<string, doubleRealCall> doubleRealCall_map = {
 };
 
 std::map<string, commonRealCall> commonRealCall_map = {
+    {"sin", real_sin},
+    {"cos", real_cos},
     {"tan", real_tan},
     {"pow", real_pow},
+    {"exp", real_exp},
+    {"log", real_log},
+    {"asin", real_asin},
+    {"acos", real_acos},
+    {"atan", real_atan},
+    {"expm1", real_expm1},
+    {"fma", real_fma},
+    {"log1p", real_log1p},
+    {"sqrt", real_sqrt},
+    {"hypot", real_hypot},
+    {"cbrt", real_cbrt},
+    {"atan2", real_atan2},
 };
 
 std::map<string, singleCall_dd> singleCall_dd_map = {
