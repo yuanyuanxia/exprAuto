@@ -41,6 +41,8 @@ string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprIn
 
 void getDepth(ast_ptr &expr, int &depth);
 
+vector<int> setOrder(ast_ptr &expr);
+
 int showOrder(ast_ptr &expr);
 
 int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> values, size_t inputNum);
