@@ -67,5 +67,5 @@ if [ ${errfile} -eq 1 ]; then
     cd - > /dev/null
 fi
 
-echo "end detecting error ${uniqueLabel}"
-echo
+# echo "end detecting error ${uniqueLabel}"
+# echo

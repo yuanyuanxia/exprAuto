@@ -677,6 +677,23 @@ void computeConditionNumber(const ast_ptr &expr, vector<T> &conditionNumbers, ve
     }
 }
 
+// The function takes in vecotor<double> v as input, and returns vecotor<double> res, where res[i] represents the rank of the v[i] by descending order."
+vector<int> getRanks(const vector<double> &v)
+{
+    vector<double> sorted = v;
+    std::sort(sorted.begin(), sorted.end(), std::greater<double>());
+    auto last = std::unique(sorted.begin(), sorted.end()); // Remove duplicates
+    sorted.erase(last, sorted.end());                      // Delete excess elements
+    vector<int> res(v.size());
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        auto it = std::find(sorted.begin(), sorted.end(), v[i]); // Find the first occurrence of v[i] in sorted
+        res[i] = std::distance(sorted.begin(), it) + 1;          // Record the position, which is the ranking of v[i] in the sorted order
+    }
+
+    return res;
+}
+
 template <typename T>
 void computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const int length = 1)
 {
@@ -692,16 +709,30 @@ void computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues, const ve
     else if constexpr (TisDoublePointer)
     {
         vector<double> epsilonEAverage(errorValues.size(), 0.0);
+        vector<double> errorValuesAverage(errorValues.size(), 0.0);
+        vector<double> conditionNumbersOpAverage(errorValues.size(), 0.0);
         for(size_t i = 0; i < errorValues.size(); i++)
         {
             for(int j = 0; j < length; j++)
             {
-                epsilonE.at(i)[j] = errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j];
-                epsilonEAverage.at(i) += epsilonE.at(i)[j];
+                epsilonE.at(i)[j] = fabs(errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j]);
+                epsilonEAverage.at(i) += epsilonE.at(i)[j]; // TODO: 实际上，这个fabs函数应该在求取条件数的时候就加上。但从结果讲，在最后加的效果是等价的。errorValues根据我的印象，应该是早都加过fabs了。
+                errorValuesAverage.at(i) += errorValues.at(i)[j];
+                conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
             }
             epsilonEAverage.at(i) /= length;
+            errorValuesAverage.at(i) /= length;
+            conditionNumbersOpAverage.at(i) /= length;
         }
-        fmt::print("the avarage of epsilonE is: {}\n", epsilonEAverage);
+        auto ranks = getRanks(epsilonEAverage);
+        // fmt::print("the avarage of epsilonE is: {}\n", epsilonEAverage);
+        std::cout << "epsilonE rank\n";
+        for(size_t i = 0; i < epsilonEAverage.size(); i++)
+        {
+            // fmt::print("{} {}\n", epsilonEAverage.at(i), ranks.at(i));
+            // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} epsilonEAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
+            fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
+        }
     }
     else
     {
@@ -1113,16 +1144,20 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             if(mapType == "d_dd")
             {
                 auto tmpDoubleCall = doubleCall_d_dd_map.find(opStr + "_" + opTypeStr)->second;
+                x2[1] = (rhsValue.funcValue - x2[0]).toDouble();
                 result.funcValue = tmpDoubleCall(x1[0], x2);
             }
             else if(mapType == "dd_d")
             {
                 auto tmpDoubleCall = doubleCall_dd_d_map.find(opStr + "_" + opTypeStr)->second;
+                x1[1] = (lhsValue.funcValue - x1[0]).toDouble();
                 result.funcValue = tmpDoubleCall(x1, x2[0]);
             }
             else if(mapType == "dd_dd")
             {
                 auto tmpDoubleCall = doubleCall_dd_dd_map.find(opStr + "_" + opTypeStr)->second;
+                x1[1] = (lhsValue.funcValue - x1[0]).toDouble();
+                x2[1] = (rhsValue.funcValue - x2[0]).toDouble();
                 result.funcValue = tmpDoubleCall(x1, x2);
             }
             else

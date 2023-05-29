@@ -879,16 +879,17 @@ vector<int> setOrder(ast_ptr &expr)
 void showOrdersKernel(ast_ptr &expr, int &orderNow)
 {
     auto type = expr->type();
+    // string prompt = "";
     if(type == "Number")
     {
-        string tmp = "NO." + std::to_string(orderNow) + ": ";
-        printExpr(expr, tmp);
+        // string tmp = prompt + std::to_string(orderNow) + ": ";
+        printExpr(expr);
         orderNow++;
     }
     else if(type == "Variable")
     {
-        string tmp = "NO." + std::to_string(orderNow) + ": ";
-        printExpr(expr, tmp);
+        // string tmp = prompt + std::to_string(orderNow) + ": ";
+        printExpr(expr);
         orderNow++;
     }
     else if(type == "Call")
@@ -900,8 +901,8 @@ void showOrdersKernel(ast_ptr &expr, int &orderNow)
         {
             showOrdersKernel(arg, orderNow);
         }
-        string tmp = "NO." + std::to_string(orderNow) + ": ";
-        printExpr(expr, tmp);
+        // string tmp = prompt + std::to_string(orderNow) + ": ";
+        printExpr(expr);
         orderNow++;
     }
     else if(type == "Binary")
@@ -911,8 +912,8 @@ void showOrdersKernel(ast_ptr &expr, int &orderNow)
         ast_ptr &rhs = binPtr->getRHS();
         showOrdersKernel(lhs, orderNow);
         showOrdersKernel(rhs, orderNow);
-        string tmp = "NO." + std::to_string(orderNow) + ": ";
-        printExpr(expr, tmp);
+        // string tmp = prompt + std::to_string(orderNow) + ": ";
+        printExpr(expr);
         orderNow++;
     }
     else
@@ -1205,7 +1206,7 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
 
 // Note: Each operator node has two states, double or double-double. if there are n node in that expression, there are 2^n states. 
 // Generate double-double implementations in all states and return the number of generated codes
-int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum)
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum, vector<string> &outputStr)
 {
     // AST init
     auto opOrder = setOrder(expr);
@@ -1258,11 +1259,13 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
         string fileName = directory + funcName + ".c";
         cout << "fileName: " << fileName << "\topTypes: ";
+        std::stringstream ss;
         for(map<int, string>::iterator it = opTypes.begin(); it != opTypes.end(); it++)
         {
-            cout << it->first << " " << it->second << ", ";
+            // cout << it->first << " " << it->second << ", ";
+            ss << it->first << " " << it->second << " ";
         }
-        cout << "\n";
+        outputStr.push_back(ss.str());
         ofstream file_clean(fileName, ios_base::out);
         ofstream ofs(fileName, ios::app);        
 
