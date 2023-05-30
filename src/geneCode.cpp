@@ -2,6 +2,7 @@
 #include "geneCode.hpp"
 #include "parserASTLY.hpp"
 #include "shadowValue.hpp"
+#include "color.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -1209,8 +1210,8 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
 int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum, vector<string> &outputStr)
 {
     // AST init
-    auto opOrder = setOrder(expr);
-    auto lenOp = opOrder.size();
+    auto opSequence = setOrder(expr);
+    auto lenOp = opSequence.size();
     
     // set opTypes: method NO.1
     // int depth = 0;
@@ -1246,7 +1247,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         std::map<int, string> opTypes;
         for(size_t i = 0; i < lenOp; i++)
         {
-            auto id = opOrder[i];
+            auto id = opSequence[i];
             auto tmp = currentNum % lenDataTypes;
             opTypes[id] = dataTypes[tmp];
             currentNum = currentNum / lenDataTypes;
@@ -1258,7 +1259,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         string directory = "srcTest/" + uniqueLabel + "/";
         string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
         string fileName = directory + funcName + ".c";
-        cout << "fileName: " << fileName << "\topTypes: ";
+        cout << "\n\nfileName: " << fileName << "\topTypes: ";
         std::stringstream ss;
         for(map<int, string>::iterator it = opTypes.begin(); it != opTypes.end(); it++)
         {
@@ -1272,7 +1273,35 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         /// call shadowValue to generate each step's values of expr.
         // varsValue is input values
         // inputNum is the number of input data
-        Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
+        auto epsilonEStr = Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
+        auto it = opSequence.begin();
+        for(int i = 0; i < (int)epsilonEStr.size(); i++)
+        {
+            auto &epsilonEStrNow = epsilonEStr.at(i);
+            if(*it == i)
+            {
+                if(opTypes[*it] == "DD")
+                {
+                    cout << BOLDBRIGHTRED << epsilonEStrNow << "\n" << RESET;
+                }
+                else
+                {
+                    cout << RED << epsilonEStrNow << "\n" << RESET;
+                }
+                it++;
+            }
+            else
+            {
+                cout << epsilonEStrNow << "\n";
+            }
+        }
+
+        // unsigned long int hjw = 0x3fe6e4f765fd8adaul;
+        // double hhh = *((double *)(&hjw));
+        // vector<double> values(1, hhh);
+        // auto varsValue = setVarsValue<double>(vars, values);
+        // fmt::print("varsValue = {}\n", varsValue);
+        // Shadow::shadowValue<double>(expr, varsValue);
 
         // call codegen to generate code
         codegen(expr, vars, funcName, ofs);

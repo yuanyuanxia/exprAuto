@@ -284,7 +284,8 @@ int main()
             showOrder(originExpr);
 
             // set calculation order for originExpr
-            setOrder(originExpr);
+            auto opSequence = setOrder(originExpr);
+            fmt::print("opSequence: {}\n", opSequence);
             //// a simple try for shadow value
             // vector<double> values(dimension, 1.4);
             // auto varsValue = setVarsValue<double>(vars, values);
@@ -293,7 +294,7 @@ int main()
 
             //// generate input data for shadow value
             vector<double *> values1;
-            size_t inputNum = 500000;
+            size_t inputNum = 10000;
             for(int i = 0; i < dimension; i++)
             {
                 auto &startOriginInterval = intervals.at(i * 2);
@@ -310,7 +311,7 @@ int main()
             }
             auto varsValue1 = setVarsValue<double *>(vars, values1);
             //// call the shadowValue function to generate the shadow values of the expression. The shadow values are stored into files partly.
-            Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
+            // Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
             //// TODO: free values1
 
             //// support DD
@@ -329,25 +330,29 @@ int main()
                 double step = width / (double)scales.at(i);
                 steps.push_back(step);
             }
-            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-            vector<exprInfo> infos;
-            for(int i = 0; i < maxNum; i++) {
-                cout << "-test error-" << i << "\n";
-                string tmp = "dd_" + std::to_string(i);
-                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-                infos.push_back(infoTmp);
-            }
-            cout << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            // vector<exprInfo> infos;
+            // for(int i = 0; i < maxNum; i++) {
+            //     cout << "-test error-" << i << "\n";
+            //     string tmp = "dd_" + std::to_string(i);
+            //     auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            //     infos.push_back(infoTmp);
+            // }
+            cout << std::left << setw(4) << "No";
+            // cout << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
             for(int i = 0; i < log2(maxNum); i++) {
                 cout << "step Type ";
             }
             cout << "\n";
             // cout << std::left << setw(4) << "No" << std::left << setw(15) << "average Err" << std::left << setw(15) << "max Err" << "op Type\n";
-            for(size_t i = 0; i < infos.size(); i++)
+            auto it = opSequence.begin();
+            for(int i = 0; i < maxNum; i++)
             {
-                auto &info = infos.at(i);
+                // auto &info = infos.at(i);
                 auto &opTypeStr = outputStr.at(i);
-                cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+                cout << std::left << setw(4) << i << opTypeStr << "\n";
+                it++;
+                // cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
             }
 
             // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
