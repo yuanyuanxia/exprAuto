@@ -90,6 +90,17 @@ std::map<string, singleCall_dd> singleCall_dd_map = {
     {"tan_dd", minetan_dd<mpfr::mpreal>},
 };
 
+std::map<string, doubleCall_d_d> doubleCall_d_d_map = {
+    {"add_d", mineadd_d_d<double>},
+    {"add_dd", mineadd_d_d<mpfr::mpreal>},
+    {"sub_d", minesub_d_d<double>},
+    {"sub_dd", minesub_d_d<mpfr::mpreal>},
+    {"mul_d", minemul_d_d<double>},
+    {"mul_dd", minemul_d_d<mpfr::mpreal>},
+    {"div_d", minediv_d_d<double>},
+    {"div_dd", minediv_d_d<mpfr::mpreal>},
+};
+
 std::map<string, doubleCall_d_dd> doubleCall_d_dd_map = {
     {"add_d", mineadd_d_dd<double>},
     {"add_dd", mineadd_d_dd<mpfr::mpreal>},

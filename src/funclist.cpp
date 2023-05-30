@@ -1,6 +1,7 @@
 #include <qd/c_dd.h>
 #include "basic.hpp"
 #include "funclist.hpp"
+#include "includeDD/inline.h"
 
 double mineadd(double x, double y) {
     return x + y;
@@ -199,6 +200,18 @@ mpfr::mpreal real_atan2(vector<mpfr::mpreal> args) {
 }
 
 template<typename T>
+mpfr::mpreal mineadd_d_d(double x1, double x2)
+{
+    double y[2];
+    y[0] = two_add_mine(x1, x2, &(y[1]));
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
 mpfr::mpreal mineadd_d_dd(double x1, double *x2Ptr)
 {
     double y[2];
@@ -227,6 +240,18 @@ mpfr::mpreal mineadd_dd_dd(double *x1Ptr, double *x2Ptr)
 {
     double y[2];
     c_dd_add(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minesub_d_d(double x1, double x2)
+{
+    double y[2];
+    y[0] = two_sub_mine(x1, x2, &(y[1]));
     T tmp;
     mpfr::mpreal result;
     tmp = y[0];
@@ -271,6 +296,18 @@ mpfr::mpreal minesub_dd_dd(double *x1Ptr, double *x2Ptr)
 }
 
 template<typename T>
+mpfr::mpreal minemul_d_d(double x1, double x2)
+{
+    double y[2];
+    y[0] = two_mul_mine(x1, x2, &(y[1]));
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
 mpfr::mpreal minemul_d_dd(double x1, double *x2Ptr)
 {
     double y[2];
@@ -299,6 +336,18 @@ mpfr::mpreal minemul_dd_dd(double *x1Ptr, double *x2Ptr)
 {
     double y[2];
     c_dd_mul(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minediv_d_d(double x1, double x2)
+{
+    double y[2];
+    y[0] = div_mine(x1, x2, &(y[1]));
     T tmp;
     mpfr::mpreal result;
     tmp = y[0];
@@ -367,6 +416,8 @@ mpfr::mpreal minetan_dd(double *x)
 }
 
 // add
+template mpfr::mpreal mineadd_d_d<double>(double x, double y);
+template mpfr::mpreal mineadd_d_d<mpfr::mpreal>(double x, double y);
 template mpfr::mpreal mineadd_d_dd<double>(double x, double *y);
 template mpfr::mpreal mineadd_d_dd<mpfr::mpreal>(double x, double *y);
 template mpfr::mpreal mineadd_dd_d<double>(double *x, double y);
@@ -375,6 +426,8 @@ template mpfr::mpreal mineadd_dd_dd<double>(double *x, double *y);
 template mpfr::mpreal mineadd_dd_dd<mpfr::mpreal>(double *x, double *y);
 
 // sub
+template mpfr::mpreal minesub_d_d<double>(double x, double y);
+template mpfr::mpreal minesub_d_d<mpfr::mpreal>(double x, double y);
 template mpfr::mpreal minesub_d_dd<double>(double x, double *y);
 template mpfr::mpreal minesub_d_dd<mpfr::mpreal>(double x, double *y);
 template mpfr::mpreal minesub_dd_d<double>(double *x, double y);
@@ -383,6 +436,8 @@ template mpfr::mpreal minesub_dd_dd<double>(double *x, double *y);
 template mpfr::mpreal minesub_dd_dd<mpfr::mpreal>(double *x, double *y);
 
 // mul
+template mpfr::mpreal minemul_d_d<double>(double x, double y);
+template mpfr::mpreal minemul_d_d<mpfr::mpreal>(double x, double y);
 template mpfr::mpreal minemul_d_dd<double>(double x, double *y);
 template mpfr::mpreal minemul_d_dd<mpfr::mpreal>(double x, double *y);
 template mpfr::mpreal minemul_dd_d<double>(double *x, double y);
@@ -391,6 +446,8 @@ template mpfr::mpreal minemul_dd_dd<double>(double *x, double *y);
 template mpfr::mpreal minemul_dd_dd<mpfr::mpreal>(double *x, double *y);
 
 // div
+template mpfr::mpreal minediv_d_d<double>(double x, double y);
+template mpfr::mpreal minediv_d_d<mpfr::mpreal>(double x, double y);
 template mpfr::mpreal minediv_d_dd<double>(double x, double *y);
 template mpfr::mpreal minediv_d_dd<mpfr::mpreal>(double x, double *y);
 template mpfr::mpreal minediv_dd_d<double>(double *x, double y);

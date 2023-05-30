@@ -102,6 +102,9 @@ mpfr::mpreal real_cbrt(vector<mpfr::mpreal> args);
 mpfr::mpreal real_atan2(vector<mpfr::mpreal> args);
 
 template<typename T>
+mpfr::mpreal mineadd_d_d(double x, double y);
+
+template<typename T>
 mpfr::mpreal mineadd_d_dd(double x, double *y);
 
 template<typename T>
@@ -109,6 +112,9 @@ mpfr::mpreal mineadd_dd_d(double *x, double y);
 
 template<typename T>
 mpfr::mpreal mineadd_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minesub_d_d(double x, double y);
 
 template<typename T>
 mpfr::mpreal minesub_d_dd(double x, double *y);
@@ -120,6 +126,9 @@ template<typename T>
 mpfr::mpreal minesub_dd_dd(double *x, double *y);
 
 template<typename T>
+mpfr::mpreal minemul_d_d(double x, double y);
+
+template<typename T>
 mpfr::mpreal minemul_d_dd(double x, double *y);
 
 template<typename T>
@@ -127,6 +136,9 @@ mpfr::mpreal minemul_dd_d(double *x, double y);
 
 template<typename T>
 mpfr::mpreal minemul_dd_dd(double *x, double *y);
+
+template<typename T>
+mpfr::mpreal minediv_d_d(double x, double y);
 
 template<typename T>
 mpfr::mpreal minediv_d_dd(double x, double *y);
