@@ -58,3 +58,11 @@ double computeError(mpfr::mpreal oracle, mpfr::mpreal x)
 
     return errorValue;
 }
+
+double computeError(mpfr::mpreal funcRealValue, mpfr::mpreal funcValue, double unitUlp)
+{
+    // ulp error
+    auto errorValue = fabs((funcRealValue - funcValue).toDouble() / unitUlp);
+
+    return errorValue;
+}

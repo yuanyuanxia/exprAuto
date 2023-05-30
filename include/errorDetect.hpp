@@ -21,4 +21,6 @@ double computeError(mpfr::mpreal oracle, double x);
 
 double computeError(mpfr::mpreal oracle, mpfr::mpreal x);
 
+double computeError(mpfr::mpreal funcRealValue, mpfr::mpreal funcValue, double unitUlp);
+
 #endif
