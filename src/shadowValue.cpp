@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <string>
 #include <any>
+#include <numeric>
 #include "mpreal.h"
 #include "shadowValue.hpp"
 #include "funclist.hpp"
@@ -704,9 +705,11 @@ vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues
         vector<string> epsilonEStr;
         for(size_t i = 0; i < errorValues.size(); i++)
         {
-            epsilonE.at(i) = errorValues.at(i) * conditionNumbersOp.at(condNumOrder.at(i));
+            epsilonE.at(i) = fabs(errorValues.at(i) * conditionNumbersOp.at(condNumOrder.at(i)));
             epsilonEStr.push_back(std::to_string(epsilonE.at(i)));
         }
+        auto sum = std::accumulate(epsilonE.begin(), epsilonE.end(), 0);
+        std::cout << "The sum of the elements in the vector is: " << sum << std::endl;
         return epsilonEStr;
     }
     else if constexpr (TisDoublePointer)
@@ -739,6 +742,9 @@ vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues
             auto epsilonEStrNow = fmt::format("{}: {:<15e} {:<15e} {:<15e}", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
             epsilonEStr.push_back(epsilonEStrNow);
         }
+        auto sum = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
+        string sumEpsilon = fmt::format("The sum of the epsilon is {:g}\n", sum);
+        epsilonEStr.push_back(sumEpsilon);
         return epsilonEStr;
     }
     else
@@ -895,9 +901,26 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 mpfr::mpreal tmp = tmpSingleCall(x1);
                 result.funcValue = tmp;
             }
+            else if(mapType == "_d")
+            {
+                if(callTypeStr == "dd")
+                {
+                    double x1[2]{0};
+                    x1[0] = paramResults.at(0).toDouble();
+                    auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
+                    mpfr::mpreal tmp = tmpSingleCall(x1);
+                    result.funcValue = tmp;
+                }
+                else
+                {
+                    double tmp = tmpCall(paramResultsDouble);
+                    result.funcValue = tmp;
+                }
+            }
             else
             {
-                result.funcValue = tmpCall(paramResultsDouble);
+                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                exit(EXIT_FAILURE);
             }
             // std::cout << "callee = " << callPtr->getCallee() << " result = " << result.funcValue << std::endl;
             funcValues.push_back(result.funcValue);
@@ -909,26 +932,45 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             {
                 double x1[2]{0};
                 mpfr::mpreal tmp;
+                auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
                 for(int i = 0; i < length; i++)
                 {
                     x1[0] = ((paramResults.at(0))[i]).toDouble();
                     x1[1] = ((paramResults.at(0))[i] - x1[0]).toDouble();
-                    auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
                     tmpfuncValues[i] = tmpSingleCall(x1);
+                }
+            }
+            else if(mapType == "_d")
+            {
+                if(callTypeStr == "dd")
+                {
+                    auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
+                    double x1[2]{0};
+                    for(int i = 0; i < length; i++)
+                    {
+                        x1[0] = ((paramResults.at(0))[i]).toDouble();
+                        mpfr::mpreal funcValue = tmpSingleCall(x1);
+                        tmpfuncValues[i] = funcValue;
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < length; i++)
+                    {
+                        vector<double> tmpParam;
+                        for(auto &param : paramResults)
+                        {
+                            tmpParam.push_back((param[i]).toDouble());
+                        }
+                        double funcValue = tmpCall(tmpParam);
+                        tmpfuncValues[i] = funcValue;
+                    }
                 }
             }
             else
             {
-                for(int i = 0; i < length; i++)
-                {
-                    vector<double> tmpParam;
-                    for(auto &param : paramResults)
-                    {
-                        tmpParam.push_back((param[i]).toDouble());
-                    }
-                    auto funcValue = tmpCall(tmpParam);
-                    tmpfuncValues[i] = funcValue;
-                }
+                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                exit(EXIT_FAILURE);
             }
             
             result.funcValue = tmpfuncValues;
@@ -943,22 +985,35 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         // real func
         auto tmpRealCall = callPtr->getRealCallback();
 
-        // func real value
+        // func real value & math real value & ulp unit value & error value
         if constexpr (TisDouble)
         {
+            // func real value
             mpfr::mpreal funcRealValue = tmpRealCall(paramFuncRealResults);
             // std::cout << "callee = " << callPtr->getCallee() << " funcRealValue = " << funcRealValue.toString() << std::endl;
             funcRealValues.push_back(funcRealValue);
-        
-            auto errorValue = computeError(funcRealValue, result.funcValue);
+
+            // math real value
+            result.realValue = tmpRealCall(parammathRealResults);
+            // std::cout << "callee = " << callPtr->getCallee() << " mathRealResult = " << result.realValue.toString() << std::endl;
+            mathRealValues.push_back(result.realValue);
+            
+            // math real value's ulp unit Value
+            result.ulpValue = computeUlpUnit(result.realValue);
+            
+            // error value according funcReal & func & mathReal values
+            auto errorValue = computeError(funcRealValue, result.funcValue, result.ulpValue);
             errorValues.push_back(errorValue);
         }
         else if constexpr (TisDoublePointer)
         {
             auto tmpfuncRealValues = new mpfr::mpreal[length];
+            auto tmpmathRealValues = new mpfr::mpreal[length];
+            auto tmpUlpValues = new double[length];
             auto tmpErrorValues = new double[length];
             for(int i = 0; i < length; i++)
             {
+                // func real value
                 vector<mpfr::mpreal> tmpParam;
                 for(auto &param : paramResults)
                 {
@@ -966,42 +1021,25 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 }
                 auto funcRealValue = tmpRealCall(tmpParam);
                 tmpfuncRealValues[i] = funcRealValue;
-                
+
+                // math real value
+                vector<mpfr::mpreal> tmpParam1;
+                for(auto &param : parammathRealResults)
+                {
+                    tmpParam1.push_back(param[i]);
+                }
+                auto mathRealValue = tmpRealCall(tmpParam1);
+                tmpmathRealValues[i] = mathRealValue;
+
+                // math real value's ulp unit Value
+                tmpUlpValues[i] = computeUlpUnit(mathRealValue);
+
+                // error value according funcReal & func & mathReal values
                 tmpErrorValues[i] = computeError(funcRealValue, ((result.funcValue)[i]));
             }
             funcRealValues.push_back(tmpfuncRealValues);
-            errorValues.push_back(tmpErrorValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        // math real value
-        if constexpr (TisDouble)
-        {
-            result.realValue = tmpRealCall(parammathRealResults);
-            // std::cout << "callee = " << callPtr->getCallee() << " mathRealResult = " << result.realValue.toString() << std::endl;
-            result.ulpValue = computeUlpUnit(result.realValue);
-            mathRealValues.push_back(result.realValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpmathRealValues = new mpfr::mpreal[length];
-            auto tmpUlpValues = new double[length];
-            for(int i = 0; i < length; i++)
-            {
-                vector<mpfr::mpreal> tmpParam;
-                for(auto &param : parammathRealResults)
-                {
-                    tmpParam.push_back(param[i]);
-                }
-                auto mathRealValue = tmpRealCall(tmpParam);
-                tmpmathRealValues[i] = mathRealValue;
-                tmpUlpValues[i] = computeUlpUnit(mathRealValue);
-            }
             mathRealValues.push_back(tmpmathRealValues);
+            errorValues.push_back(tmpErrorValues);
             result.realValue = tmpmathRealValues;
             result.ulpValue = tmpUlpValues;
         }
@@ -1043,7 +1081,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 funcDrv = fDrvMapTwo.find(callee + "R")->second;
                 derivativeFuncValue = funcDrv(inputX1, inputX2);
                 auto &ulpX2 = paramUlpResults.at(1);
-                conditionNumber = ulpX2 * derivativeFuncValue / ulpX2;
+                conditionNumber = ulpX2 * derivativeFuncValue / ulpY;
                 conditionNumbers.push_back(conditionNumber);
             }
             else
@@ -1169,9 +1207,9 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else if(mapType == "d_d")
             {
-                auto tmpDoubleCall = doubleCall_d_d_map.find(opStr + "_" + opTypeStr)->second;
                 if(opTypeStr == "dd")
                 {
+                    auto tmpDoubleCall = doubleCall_d_d_map.find(opStr + "_" + opTypeStr)->second;
                     result.funcValue = tmpDoubleCall(x1[0], x2[0]);
                 }
                 else
@@ -1188,7 +1226,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             funcValues.push_back(result.funcValue);
 
         }
-        // TODO: 按照double的方法，需要考虑输入为d_d的情况。目前这样可以解决模型不唯一的问题。
+        // TODO: (DONE) 按照double的方法，需要考虑输入为d_d的情况。目前这样可以解决模型不唯一的问题。
         // TODO: 下一步就是怎么把代码实现对应到模型上。可能需要重新考虑把当前步骤更改为dd带来的影响。
         else if constexpr (TisDoublePointer)
         {
@@ -1302,9 +1340,9 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         else if constexpr (TisDoublePointer)
         {
             auto tmpfuncRealValues = new mpfr::mpreal[length];
-            auto tmpErrorValues = new double[length];
             auto tmpmathRealValues = new mpfr::mpreal[length];
             auto tmpUlpValues = new double[length];
+            auto tmpErrorValues = new double[length];
             for(int i = 0; i < length; i++)
             {
                 // func real value
@@ -1458,6 +1496,7 @@ void shadowValuePrint(const vector<ParamType<T>> &funcValues, const vector<Param
         fmt::print("errorValues := {}\n", errorValues);
         fmt::print("conditionNumbers := {}\n", conditionNumbers);
         fmt::print("conditionNumbersOp := {}\n", conditionNumbersOp);
+        fmt::print("epsilonE := {}\n", epsilonE);
     }
     else if constexpr (TisDoublePointer)
     {
