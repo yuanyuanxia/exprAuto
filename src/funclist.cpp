@@ -415,6 +415,30 @@ mpfr::mpreal minetan_dd(double *x)
     return result;
 }
 
+template<typename T>
+mpfr::mpreal mineexp_dd(double *x)
+{
+    double y[2];
+    c_dd_exp(x, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minelog_dd(double *x)
+{
+    double y[2];
+    c_dd_log(x, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
 // add
 template mpfr::mpreal mineadd_d_d<double>(double x, double y);
 template mpfr::mpreal mineadd_d_d<mpfr::mpreal>(double x, double y);
@@ -460,3 +484,7 @@ template mpfr::mpreal minesin_dd<double>(double *x);
 template mpfr::mpreal minesin_dd<mpfr::mpreal>(double *x);
 template mpfr::mpreal minetan_dd<double>(double *x);
 template mpfr::mpreal minetan_dd<mpfr::mpreal>(double *x);
+template mpfr::mpreal mineexp_dd<double>(double *x);
+template mpfr::mpreal mineexp_dd<mpfr::mpreal>(double *x);
+template mpfr::mpreal minelog_dd<double>(double *x);
+template mpfr::mpreal minelog_dd<mpfr::mpreal>(double *x);

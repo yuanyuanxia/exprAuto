@@ -155,4 +155,10 @@ mpfr::mpreal minesin_dd(double *x);
 template<typename T>
 mpfr::mpreal minetan_dd(double *x);
 
+template<typename T>
+mpfr::mpreal mineexp_dd(double *x);
+
+template<typename T>
+mpfr::mpreal minelog_dd(double *x);
+
 #endif
