@@ -1259,7 +1259,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         string directory = "srcTest/" + uniqueLabel + "/";
         string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
         string fileName = directory + funcName + ".c";
-        cout << "\n\nfileName: " << fileName << "\topTypes: ";
+        // cout << "\n\nfileName: " << fileName << "\topTypes: ";
         std::stringstream ss;
         for(map<int, string>::iterator it = opTypes.begin(); it != opTypes.end(); it++)
         {
@@ -1273,28 +1273,28 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         /// call shadowValue to generate each step's values of expr.
         // varsValue is input values
         // inputNum is the number of input data
-        auto epsilonEStr = Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
-        auto it = opSequence.begin();
-        for(int i = 0; i < (int)epsilonEStr.size(); i++)
-        {
-            auto &epsilonEStrNow = epsilonEStr.at(i);
-            if(*it == i)
-            {
-                if(opTypes[*it] == "DD")
-                {
-                    cout << BOLDBRIGHTRED << epsilonEStrNow << "\n" << RESET;
-                }
-                else
-                {
-                    cout << RED << epsilonEStrNow << "\n" << RESET;
-                }
-                it++;
-            }
-            else
-            {
-                cout << epsilonEStrNow << "\n";
-            }
-        }
+        // auto epsilonEStr = Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
+        // auto it = opSequence.begin();
+        // for(int i = 0; i < (int)epsilonEStr.size(); i++)
+        // {
+        //     auto &epsilonEStrNow = epsilonEStr.at(i);
+        //     if(*it == i)
+        //     {
+        //         if(opTypes[*it] == "DD")
+        //         {
+        //             cout << BOLDBRIGHTRED << epsilonEStrNow << "\n" << RESET;
+        //         }
+        //         else
+        //         {
+        //             cout << RED << epsilonEStrNow << "\n" << RESET;
+        //         }
+        //         it++;
+        //     }
+        //     else
+        //     {
+        //         cout << epsilonEStrNow << "\n";
+        //     }
+        // }
 
         // unsigned long int hjw = 0x3fe6e4f765fd8adaul;
         // double hhh = *((double *)(&hjw));

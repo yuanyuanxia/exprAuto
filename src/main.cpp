@@ -286,15 +286,10 @@ int main()
             // set calculation order for originExpr
             auto opSequence = setOrder(originExpr);
             fmt::print("opSequence: {}\n", opSequence);
-            //// a simple try for shadow value
-            // vector<double> values(dimension, 1.4);
-            // auto varsValue = setVarsValue<double>(vars, values);
-            // fmt::print("varsValue = {}\n", varsValue);
-            // Shadow::shadowValue<double>(originExpr, varsValue);
 
             //// generate input data for shadow value
             vector<double *> values1;
-            size_t inputNum = 10000;
+            size_t inputNum = 100000;
             for(int i = 0; i < dimension; i++)
             {
                 auto &startOriginInterval = intervals.at(i * 2);
@@ -311,12 +306,17 @@ int main()
             }
             auto varsValue1 = setVarsValue<double *>(vars, values1);
             //// call the shadowValue function to generate the shadow values of the expression. The shadow values are stored into files partly.
-            // Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
+            auto epsilonEStr = Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
+            for(int i = 0; i < (int)epsilonEStr.size(); i++)
+            {
+                auto &epsilonEStrNow = epsilonEStr.at(i);
+                cout << epsilonEStrNow << "\n";
+            }
             //// TODO: free values1
 
             //// support DD
-            vector<string> outputStr;
-            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr);
+            // vector<string> outputStr;
+            // auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr);
             //// test DD's error
             vector<int> startNowIdxs(dimension, 0);
             vector<double> startOriginIntervals;
@@ -330,32 +330,28 @@ int main()
                 double step = width / (double)scales.at(i);
                 steps.push_back(step);
             }
-            testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
             // vector<exprInfo> infos;
             // for(int i = 0; i < maxNum; i++) {
-            //     cout << "-test error-" << i << "\n";
+            //     cout << "\n\n-test error-" << i << "\n";
             //     string tmp = "dd_" + std::to_string(i);
             //     auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
             //     infos.push_back(infoTmp);
             // }
-            cout << std::left << setw(4) << "No";
+            // cout << std::left << setw(4) << "No";
             // cout << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
-            for(int i = 0; i < log2(maxNum); i++) {
-                cout << "step Type ";
-            }
-            cout << "\n";
-            // cout << std::left << setw(4) << "No" << std::left << setw(15) << "average Err" << std::left << setw(15) << "max Err" << "op Type\n";
-            auto it = opSequence.begin();
-            for(int i = 0; i < maxNum; i++)
-            {
+            // for(int i = 0; i < log2(maxNum); i++) {
+                // cout << "step Type ";
+            // }
+            // cout << "\n";
+            // for(int i = 0; i < maxNum; i++)
+            // {
                 // auto &info = infos.at(i);
-                auto &opTypeStr = outputStr.at(i);
-                cout << std::left << setw(4) << i << opTypeStr << "\n";
-                it++;
+                // auto &opTypeStr = outputStr.at(i);
+                // cout << std::left << setw(4) << i << opTypeStr << "\n";
                 // cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
-            }
+            // }
 
-            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, 0);
             fprintf(stderr, GREEN "ready> " RESET);
             continue;
 

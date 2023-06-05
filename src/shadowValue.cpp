@@ -49,69 +49,6 @@ std::map<string, std::function<double(double, double)>> fDrvMapTwo = {
     {"powR", []([[maybe_unused]] double x, [[maybe_unused]] double y) { return log(x) * pow(x, y); }},
 };
 
-// demo
-double shadowValueKernel(ast_ptr &expr, double &input, vector<double> &middleValues)
-{
-    auto type = expr->type();
-    double result;
-    if(type == "Number")
-    {
-        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
-        result = (numberExpr->getNumber());
-        middleValues.push_back(result);
-        return result;
-    }
-    else if(type == "Variable")
-    {
-        middleValues.push_back(input);
-        return input;
-    }
-    else if(type == "Call")
-    {
-        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
-        auto &args = callPtr->getArgs();
-        vector<double> paramResults;
-        for(auto& arg : args)
-        {
-            auto tmp = shadowValueKernel(arg, input, middleValues);
-            paramResults.push_back(tmp);
-        }
-        auto tmpCall = callPtr->getCallback();
-        result = tmpCall(paramResults);
-        std::cout << "callee = " << callPtr->getCallee() << " result = " << result << std::endl;
-        middleValues.push_back(result);
-
-        return result;
-    }
-    else if(type == "Binary")
-    {
-        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-        ast_ptr &lhs = binPtr->getLHS();
-        ast_ptr &rhs = binPtr->getRHS();
-        auto lhsValue = shadowValueKernel(lhs, input, middleValues);
-        auto rhsValue = shadowValueKernel(rhs, input, middleValues);
-        auto tmpCall = binPtr->getCallback();
-        result = tmpCall(lhsValue, rhsValue);
-        std::cout << "op = " << binPtr->getOp() << " result = " << result << std::endl;
-        middleValues.push_back(result);
-
-        return result;
-    }
-    else
-    {
-        fprintf(stderr, "ERROR: unknowntype %s\n", type.c_str());
-        exit(EXIT_FAILURE);
-    }
-}
-
-// demo
-void shadowValue(ast_ptr &expr, double input)
-{
-    vector<double> middleValues;
-    shadowValueKernel(expr, input, middleValues);
-    fmt::print("middleValues := {}\n", middleValues);
-}
-
 std::map<char, string> binaryOp = {
     {'+', "add"},
     {'-', "sub"},
@@ -145,454 +82,6 @@ struct ParamTypeMapper<double *>
 
 template <typename T>
 using ParamType = typename ParamTypeMapper<T>::ParamType;
-
-/* /// old shadowValueKernel method: not consider conditionNumbers.
-template <typename T>
-struct valueTwo {
-    ParamType<T> funcValue;
-    ParamType<T> realValue;
-};
-
-template <typename T>
-valueTwo<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &varsValue, vector<ParamType<T>> &funcValues, vector<ParamType<T>> &funcRealValues, vector<ParamType<T>> &mathRealValues, vector<T> &errorValues, int length = 1)
-{
-    auto type = expr->type();
-    constexpr bool TisDouble = (std::is_same<double, T>::value);
-    constexpr bool TisDoublePointer = (std::is_same<double *, T>::value);
-    valueTwo<T> result;
-    if(type == "Number")
-    {
-        NumberExprAST *numberExpr = dynamic_cast<NumberExprAST *>(expr.get());
-        auto funcValue = (numberExpr->getNumber());
-        if constexpr (TisDouble)
-        {
-            result.funcValue = funcValue;
-            result.realValue = result.funcValue;
-            funcValues.push_back(result.funcValue);
-            funcRealValues.push_back(result.realValue);
-            mathRealValues.push_back(result.realValue);
-            errorValues.push_back(0);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncValues = new mpfr::mpreal[length];
-            auto tmpRealValues = new mpfr::mpreal[length];
-            auto tmperrorValues = new double[length]();
-            for(int i = 0; i < length; i++)
-            {
-                tmpfuncValues[i] = funcValue;
-                tmpRealValues[i] = funcValue;
-            }
-            result.funcValue = tmpfuncValues;
-            result.realValue = tmpRealValues;
-            funcValues.push_back(tmpfuncValues);
-            funcRealValues.push_back(tmpRealValues);
-            mathRealValues.push_back(tmpRealValues);
-            errorValues.push_back(tmperrorValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-        return result;
-    }
-    else if(type == "Variable")
-    {
-        VariableExprAST *variableExpr = dynamic_cast<VariableExprAST *>(expr.get());
-        string variable = (variableExpr->getVariable());
-        auto varValue = varsValue.find(variable)->second;
-        // if(std::is_same<std::decay<const double &>::type, T>::value)
-        if constexpr (TisDouble)
-        {
-            result.funcValue = varValue;
-            result.realValue = result.funcValue;
-            funcValues.push_back(result.funcValue);
-            funcRealValues.push_back(result.realValue);
-            mathRealValues.push_back(result.realValue);
-            errorValues.push_back(0);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncValues = new mpfr::mpreal[length];
-            auto tmpRealValues = new mpfr::mpreal[length];
-            auto tmperrorValues = new double[length]();
-            for(int i = 0; i < length; i++)
-            {
-                auto &tmpfuncValue = varValue[i];
-                tmpfuncValues[i] = tmpfuncValue;
-                tmpRealValues[i] = tmpfuncValue;
-            }
-            result.funcValue = tmpfuncValues;
-            result.realValue = tmpRealValues;
-            funcValues.push_back(tmpfuncValues);
-            funcRealValues.push_back(tmpRealValues);
-            mathRealValues.push_back(tmpRealValues);
-            errorValues.push_back(tmperrorValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        return result;
-    }
-    else if(type == "Call")
-    {
-        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
-        auto &args = callPtr->getArgs();
-        vector<ParamType<T>> paramResults;
-        vector<T> paramResultsDouble;
-        vector<ParamType<T>> paramFuncRealResults;
-        vector<ParamType<T>> parammathRealResults;
-
-        for(auto& arg : args)
-        {
-            auto tmp = shadowValueKernel<T>(arg, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, length);
-            paramResults.push_back(tmp.funcValue);
-            if constexpr (TisDouble)
-            {
-                paramFuncRealResults.push_back(tmp.funcValue);
-                paramResultsDouble.push_back((tmp.funcValue).toDouble());
-            }
-            parammathRealResults.push_back(tmp.realValue);
-        }
-
-        // func
-        auto tmpCall = callPtr->getCallback();
-        auto callee = callPtr->getCallee();
-        auto calleeType = callPtr->getOpType();
-        auto callTypeStr = opTypeMap.find(calleeType)->second;
-        string mapType;
-        for(const auto& arg : args)
-        {
-            auto opType = arg->getOpType();
-            auto opTypeStr = opTypeMap.find(opType)->second;
-            mapType += "_" + opTypeStr;
-        }
-
-        // func value
-        if constexpr (TisDouble)
-        {
-            if(mapType == "_dd")
-            {
-                double x1[2]{0};
-                x1[0] = paramResults.at(0).toDouble();
-                x1[1] = (paramResults.at(0) - x1[0]).toDouble();
-                auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
-                mpfr::mpreal tmp = tmpSingleCall(x1);
-                result.funcValue = tmp;
-            }
-            else
-            {
-                result.funcValue = tmpCall(paramResultsDouble);
-            }
-            std::cout << "callee = " << callPtr->getCallee() << " result = " << result.funcValue << std::endl;
-            funcValues.push_back(result.funcValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncValues = new mpfr::mpreal[length];
-            if(mapType == "_dd")
-            {
-                double x1[2]{0};
-                mpfr::mpreal tmp;
-                for(int i = 0; i < length; i++)
-                {
-                    x1[0] = ((paramResults.at(0))[i]).toDouble();
-                    x1[1] = ((paramResults.at(0))[i] - x1[0]).toDouble();
-                    auto tmpSingleCall = singleCall_dd_map.find(callee + "_" + callTypeStr)->second;
-                    tmpfuncValues[i] = tmpSingleCall(x1);
-                }
-            }
-            else
-            {
-                for(int i = 0; i < length; i++)
-                {
-                    vector<double> tmpParam;
-                    for(auto &param : paramResults)
-                    {
-                        tmpParam.push_back((param[i]).toDouble());
-                    }
-                    auto funcValue = tmpCall(tmpParam);
-                    tmpfuncValues[i] = funcValue;
-                }
-            }
-            
-            result.funcValue = tmpfuncValues;
-            funcValues.push_back(tmpfuncValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        // real func
-        auto tmpRealCall = callPtr->getRealCallback();
-
-        // func real value
-        if constexpr (TisDouble)
-        {
-            mpfr::mpreal funcRealValue = tmpRealCall(paramFuncRealResults);
-            std::cout << "callee = " << callPtr->getCallee() << " funcRealValue = " << funcRealValue.toString() << std::endl;
-            funcRealValues.push_back(funcRealValue);
-        
-            auto errorValue = computeError(funcRealValue, result.funcValue);
-            errorValues.push_back(errorValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncRealValues = new mpfr::mpreal[length];
-            auto tmpErrorValues = new double[length];
-            for(int i = 0; i < length; i++)
-            {
-                vector<mpfr::mpreal> tmpParam;
-                for(auto &param : paramResults)
-                {
-                    tmpParam.push_back(param[i]);
-                }
-                auto funcRealValue = tmpRealCall(tmpParam);
-                tmpfuncRealValues[i] = funcRealValue;
-                
-                tmpErrorValues[i] = computeError(funcRealValue, ((result.funcValue)[i]));
-            }
-            funcRealValues.push_back(tmpfuncRealValues);
-            errorValues.push_back(tmpErrorValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        // math real value
-        if constexpr (TisDouble)
-        {
-            result.realValue = tmpRealCall(parammathRealResults);
-            std::cout << "callee = " << callPtr->getCallee() << " mathRealResult = " << result.realValue.toString() << std::endl;
-            mathRealValues.push_back(result.realValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpmathRealValues = new mpfr::mpreal[length];
-            for(int i = 0; i < length; i++)
-            {
-                vector<mpfr::mpreal> tmpParam;
-                for(auto &param : parammathRealResults)
-                {
-                    tmpParam.push_back(param[i]);
-                }
-                auto mathRealValue = tmpRealCall(tmpParam);
-                tmpmathRealValues[i] = mathRealValue;
-            }
-            mathRealValues.push_back(tmpmathRealValues);
-            result.realValue = tmpmathRealValues;
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        return result;
-    }
-    else if(type == "Binary")
-    {
-        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
-        ast_ptr &lhs = binPtr->getLHS();
-        ast_ptr &rhs = binPtr->getRHS();
-        auto lhsValue = shadowValueKernel<T>(lhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, length);
-        auto rhsValue = shadowValueKernel<T>(rhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, length);
-
-        // func
-        auto tmpCall = binPtr->getCallback();
-        auto op = binPtr->getOp();
-        auto opType = binPtr->getOpType();
-        auto opTypeStr = opTypeMap.find(opType)->second;
-        auto opTypeLHS = lhs->getOpType();
-        auto opTypeRHS = rhs->getOpType();
-        auto opStr = binaryOp.find(op)->second;
-        auto opTypeLhsStr = opTypeMap.find(opTypeLHS)->second;
-        auto opTypeRhsStr = opTypeMap.find(opTypeRHS)->second;
-        auto mapType = opTypeLhsStr + "_" + opTypeRhsStr;
-
-        // func value
-        if constexpr (TisDouble)
-        {
-            double x1[2]{0};
-            double x2[2]{0};
-            x1[0] = lhsValue.funcValue.toDouble();
-            x2[0] = rhsValue.funcValue.toDouble();
-            if(mapType == "d_dd")
-            {
-                auto tmpDoubleCall = doubleCall_d_dd_map.find(opStr + "_" + opTypeStr)->second;
-                result.funcValue = tmpDoubleCall(x1[0], x2);
-            }
-            else if(mapType == "dd_d")
-            {
-                auto tmpDoubleCall = doubleCall_dd_d_map.find(opStr + "_" + opTypeStr)->second;
-                result.funcValue = tmpDoubleCall(x1, x2[0]);
-            }
-            else if(mapType == "dd_dd")
-            {
-                auto tmpDoubleCall = doubleCall_dd_dd_map.find(opStr + "_" + opTypeStr)->second;
-                result.funcValue = tmpDoubleCall(x1, x2);
-            }
-            else
-            {
-                result.funcValue = tmpCall(x1[0], x2[0]);
-            }
-            std::cout << "op = " << binPtr->getOp() << " result = " << result.funcValue << std::endl;
-            funcValues.push_back(result.funcValue);
-
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncValues = new mpfr::mpreal[length];
-            double x1[2]{0};
-            double x2[2]{0};
-            if(mapType == "d_dd")
-            {
-                auto tmpDoubleCall = doubleCall_d_dd_map.find(opStr + "_" + opTypeStr)->second;
-                for(int i = 0; i < length; i++)
-                {
-                    auto &tmpLhsValue = (lhsValue.funcValue)[i];
-                    auto &tmpRhsValue = (rhsValue.funcValue)[i];
-                    x2[0] = tmpRhsValue.toDouble();
-                    x2[1] = (tmpRhsValue - x2[0]).toDouble();
-                    tmpfuncValues[i] = tmpDoubleCall(tmpLhsValue.toDouble(), x2);
-                }
-            }
-            else if(mapType == "dd_d")
-            {
-                auto tmpDoubleCall = doubleCall_dd_d_map.find(opStr + "_" + opTypeStr)->second;
-                for(int i = 0; i < length; i++)
-                {
-                    auto &tmpLhsValue = (lhsValue.funcValue)[i];
-                    auto &tmpRhsValue = (rhsValue.funcValue)[i];
-                    x1[0] = tmpLhsValue.toDouble();
-                    x1[1] = (tmpLhsValue - x1[0]).toDouble();
-                    tmpfuncValues[i] = tmpDoubleCall(x1, tmpRhsValue.toDouble());
-                }
-            }
-            else if(mapType == "dd_dd")
-            {
-                auto tmpDoubleCall = doubleCall_dd_dd_map.find(opStr + "_" + opTypeStr)->second;
-                for(int i = 0; i < length; i++)
-                {
-                    auto &tmpLhsValue = (lhsValue.funcValue)[i];
-                    auto &tmpRhsValue = (rhsValue.funcValue)[i];
-                    x1[0] = tmpLhsValue.toDouble();
-                    x1[1] = (tmpLhsValue - x1[0]).toDouble();
-                    x2[0] = tmpRhsValue.toDouble();
-                    x2[1] = (tmpRhsValue - x2[0]).toDouble();
-                    tmpfuncValues[i] = tmpDoubleCall(x1, x2);
-                }
-            }
-            else // d_d
-            {
-                for(int i = 0; i < length; i++)
-                {
-                    auto &tmpLhsValue = (lhsValue.funcValue)[i];
-                    auto &tmpRhsValue = (rhsValue.funcValue)[i];
-                    tmpfuncValues[i] = tmpCall(tmpLhsValue.toDouble(), tmpRhsValue.toDouble());
-                }
-            }
-            result.funcValue = tmpfuncValues;
-            funcValues.push_back(tmpfuncValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        // real func
-        auto tmpRealCall = binPtr->getRealCallback();
-
-        // func real value
-        if constexpr (TisDouble)
-        {
-            mpfr::mpreal funcRealValue = tmpRealCall(lhsValue.funcValue, rhsValue.funcValue);
-            std::cout << "op = " << binPtr->getOp() << " funcRealValue = " << funcRealValue.toString() << std::endl;
-            funcRealValues.push_back(funcRealValue);
-
-            auto errorValue = computeError(funcRealValue, result.funcValue);
-            errorValues.push_back(errorValue);
-
-            // absolute error
-            // double absErrorValue = fabs((funcRealValue - result.funcValue).toDouble());
-            // errorValues.push_back(absErrorValue);
-            // relative error
-            // double relErrorValue = fabs(((funcRealValue - result.funcValue) / funcRealValue).toDouble());
-            // errorValues.push_back(relErrorValue);
-            // ulp error
-            // auto unitUlp = computeUlpUnit(funcRealValue.toDouble());
-            // auto ulpErrorValue = fabs((funcRealValue - result.funcValue).toDouble() / unitUlp);
-            // errorValues.push_back(ulpErrorValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpfuncRealValues = new mpfr::mpreal[length];
-            auto tmpErrorValues = new double[length];
-            for(int i = 0; i < length; i++)
-            {
-                mpfr::mpreal tmpLhsValue = (lhsValue.funcValue)[i];
-                mpfr::mpreal tmpRhsValue = (rhsValue.funcValue)[i];
-                auto funcRealValue = tmpRealCall(tmpLhsValue, tmpRhsValue);
-                tmpfuncRealValues[i] = funcRealValue;
-
-                tmpErrorValues[i] = computeError(funcRealValue, (result.funcValue)[i]);
-
-                // absolute error
-                // tmpErrorValues[i] = fabs((funcRealValue - (result.funcValue)[i]).toDouble());
-            }
-            funcRealValues.push_back(tmpfuncRealValues);
-            errorValues.push_back(tmpErrorValues);
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        // math real value
-        if constexpr (TisDouble)
-        {
-            result.realValue = tmpRealCall(lhsValue.realValue, rhsValue.realValue);
-            std::cout << "op = " << binPtr->getOp() << " mathRealValue = " << result.realValue.toString() << std::endl;
-            mathRealValues.push_back(result.realValue);
-        }
-        else if constexpr (TisDoublePointer)
-        {
-            auto tmpmathRealValues = new mpfr::mpreal[length];
-            for(int i = 0; i < length; i++)
-            {
-                mpfr::mpreal tmpLhsValue = (lhsValue.realValue)[i];
-                mpfr::mpreal tmpRhsValue = (rhsValue.realValue)[i];
-                auto mathRealValue = tmpRealCall(tmpLhsValue, tmpRhsValue);
-                tmpmathRealValues[i] = mathRealValue;
-            }
-            mathRealValues.push_back(tmpmathRealValues);
-            result.realValue = tmpmathRealValues;
-        }
-        else
-        {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
-            exit(EXIT_FAILURE);
-        }
-
-        return result;
-    }
-    else
-    {
-        fprintf(stderr, "ERROR: unknowntype %s\n", type.c_str());
-        exit(EXIT_FAILURE);
-    }
-}
-*/
 
 template <typename T>
 struct valueThree {
@@ -679,10 +168,17 @@ void computeConditionNumber(const ast_ptr &expr, vector<T> &conditionNumbers, ve
 }
 
 // The function takes in vecotor<double> v as input, and returns vecotor<double> res, where res[i] represents the rank of the v[i] by descending order."
-vector<int> getRanks(const vector<double> &v)
+vector<int> getRanks(const vector<double> &v, bool descending = true)
 {
     vector<double> sorted = v;
-    std::sort(sorted.begin(), sorted.end(), std::greater<double>());
+    if(descending)
+    {
+        std::sort(sorted.begin(), sorted.end(), std::greater<double>());
+    }
+    else
+    {
+        std::sort(sorted.begin(), sorted.end(), std::less<double>());
+    }
     auto last = std::unique(sorted.begin(), sorted.end()); // Remove duplicates
     sorted.erase(last, sorted.end());                      // Delete excess elements
     vector<int> res(v.size());
@@ -696,7 +192,7 @@ vector<int> getRanks(const vector<double> &v)
 }
 
 template <typename T>
-vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const int length = 1)
+vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const int length = 1)
 {
     constexpr bool TisDouble = (std::is_same<double, T>::value);
     constexpr bool TisDoublePointer = (std::is_same<double *, T>::value);
@@ -705,11 +201,28 @@ vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues
         vector<string> epsilonEStr;
         for(size_t i = 0; i < errorValues.size(); i++)
         {
-            epsilonE.at(i) = fabs(errorValues.at(i) * conditionNumbersOp.at(condNumOrder.at(i)));
+            epsilonE.at(i) = errorValues.at(i) * conditionNumbersOp.at(condNumOrder.at(i));
             epsilonEStr.push_back(std::to_string(epsilonE.at(i)));
         }
-        auto sum = std::accumulate(epsilonE.begin(), epsilonE.end(), 0);
+        auto sum = std::accumulate(epsilonE.begin(), epsilonE.end(), 0.0);
+        fmt::print("the average of epsilonE are: {}\n", epsilonE);
         std::cout << "The sum of the elements in the vector is: " << sum << std::endl;
+        
+        // compute benefit
+        double minBenefit = std::numeric_limits<double>::infinity();
+        int minBenefitIdx = std::numeric_limits<int>::infinity();
+        for(size_t i = 0; i < errorValues.size(); i++)
+        {
+            benefit.at(i) = fabs(sum - epsilonE.at(i));
+            if(benefit.at(i) < minBenefit)
+            {
+                minBenefit = benefit.at(i);
+                minBenefitIdx = i;
+            }
+        }
+        fmt::print("the benefit of steps are: {}\n", benefit);
+        std::cout << "minBenefitIdx: " << minBenefitIdx << ", minBenefit: " << minBenefit << std::endl;
+
         return epsilonEStr;
     }
     else if constexpr (TisDoublePointer)
@@ -717,35 +230,87 @@ vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues
         vector<double> epsilonEAverage(errorValues.size(), 0.0);
         vector<double> errorValuesAverage(errorValues.size(), 0.0);
         vector<double> conditionNumbersOpAverage(errorValues.size(), 0.0);
+        vector<double> sumOfAll(length, 0.0);
+
+        // compute epsilonE and its sum. These 3 average values are not useful
         for(size_t i = 0; i < errorValues.size(); i++)
         {
             for(int j = 0; j < length; j++)
             {
-                epsilonE.at(i)[j] = fabs(errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j]);
-                epsilonEAverage.at(i) += epsilonE.at(i)[j]; // TODO: 实际上，这个fabs函数应该在求取条件数的时候就加上。但从结果讲，在最后加的效果是等价的。errorValues根据我的印象，应该是早都加过fabs了。
-                errorValuesAverage.at(i) += errorValues.at(i)[j];
-                conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
+                epsilonE.at(i)[j] = errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j];
+                epsilonEAverage.at(i) += epsilonE.at(i)[j];
+                // errorValuesAverage.at(i) += errorValues.at(i)[j];
+                // conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
+                sumOfAll.at(j) += epsilonE.at(i)[j];
             }
             epsilonEAverage.at(i) /= length;
-            errorValuesAverage.at(i) /= length;
-            conditionNumbersOpAverage.at(i) /= length;
+            // errorValuesAverage.at(i) /= length;
+            // conditionNumbersOpAverage.at(i) /= length;
         }
-        auto ranks = getRanks(epsilonEAverage);
-        // fmt::print("the avarage of epsilonE is: {}\n", epsilonEAverage);
-        std::cout << "epsilonE rank\n";
-        vector<string> epsilonEStr;
-        for(size_t i = 0; i < epsilonEAverage.size(); i++)
+        // auto sum = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
+        auto sum = std::accumulate(sumOfAll.begin(), sumOfAll.end(), 0.0);
+        auto sumAverage = fabs(sum / length);
+
+        // compute benefit
+        vector<double> minBenefit(length, std::numeric_limits<double>::infinity());
+        vector<int> minBenefitIdx(length, std::numeric_limits<int>::infinity());
+        vector<double> benefitAverage(errorValues.size(), 0.0);
+        for(size_t i = 0; i < errorValues.size(); i++)
         {
-            // fmt::print("{} {}\n", epsilonEAverage.at(i), ranks.at(i));
-            // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} epsilonEAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
-            // fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
-            auto epsilonEStrNow = fmt::format("{}: {:<15e} {:<15e} {:<15e}", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
-            epsilonEStr.push_back(epsilonEStrNow);
+            for(int j = 0; j < length; j++)
+            {
+                benefit.at(i)[j] = fabs(sumOfAll.at(j) - epsilonE.at(i)[j]);
+                if(benefit.at(i)[j] < minBenefit.at(j))
+                {
+                    minBenefit.at(j) = benefit.at(i)[j];
+                    minBenefitIdx.at(j) = i;
+                }
+                benefitAverage.at(i) += benefit.at(i)[j];
+            }
+            benefitAverage.at(i) /= length;
         }
-        auto sum = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
-        string sumEpsilon = fmt::format("The sum of the epsilon is {:g}\n", sum);
-        epsilonEStr.push_back(sumEpsilon);
-        return epsilonEStr;
+        // for(size_t i = 0; i < errorValues.size(); i++)
+        // {
+        //     benefitAverage.at(i) = fabs((sum / length) - epsilonEAverage.at(i));
+        // }
+
+        // old print
+        // auto ranks1 = getRanks(benefitAverage, false);
+        // std::cout << "epsilonE rank\n";
+        // vector<string> epsilonEStr;
+        // for(size_t i = 0; i < epsilonEAverage.size(); i++)
+        // {
+        //     // fmt::print("{} {}\n", epsilonEAverage.at(i), ranks.at(i));
+        //     // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} epsilonEAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
+        //     // fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
+        //     // auto epsilonEStrNow = fmt::format("{}: {:<15e} {:<15e} {:<15e}", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i));
+        //     auto epsilonEStrNow = fmt::format("{}: {:<15e}", ranks1.at(i), epsilonEAverage.at(i));
+        //     epsilonEStr.push_back(epsilonEStrNow);
+        // }
+        // auto sumEpsilon = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
+        // string sumEpsilonStr = fmt::format("The sum of the epsilon is {:g}\n", sumEpsilon);
+        // epsilonEStr.push_back(sumEpsilonStr);
+        // return epsilonEStr;
+
+        // print
+        // fmt::print("the average of benefit are: {}", benefitAverage);
+        auto ranks = getRanks(benefitAverage, false);
+        fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
+        // fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
+        vector<string> benefitStr;
+        for(size_t i = 0; i < benefitAverage.size(); i++)
+        {
+            // fmt::print("{} {} {}\n", benefitAverage.at(i), ranks.at(i));
+            // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} benefitAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
+            // fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
+            // auto benefitStrNow = fmt::format("{:<3} {:<4} {:<15e} {:<15e} {:<15e} {:<15e}", i, ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i), benefitAverage.at(i));
+            auto benefitStrNow = fmt::format("{:<3} {:^4} {:<15e}", i, ranks.at(i), benefitAverage.at(i));
+            benefitStr.push_back(benefitStrNow);
+        }
+        string sumStr = fmt::format("The avearge sum of the epsilon is {:g}\n", sumAverage);
+        benefitStr.push_back(sumStr);
+
+        return benefitStr;
     }
     else
     {
@@ -755,7 +320,7 @@ vector<string> computeEpsilonE(vector<T> &epsilonE, const vector<T> &errorValues
 }
 
 template <typename T>
-valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &varsValue, vector<ParamType<T>> &funcValues, vector<ParamType<T>> &funcRealValues, vector<ParamType<T>> &mathRealValues, vector<T> &errorValues, vector<T> &conditionNumbers, vector<int> &condNumOrder, int length = 1)
+valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &varsValue, vector<ParamType<T>> &funcValues, vector<ParamType<T>> &funcRealValues, vector<ParamType<T>> &mathRealValues, vector<T> &errorValues, vector<T> &conditionNumbers, vector<int> &errorValueOrder, int length = 1)
 {
     auto type = expr->type();
     constexpr bool TisDouble = (std::is_same<double, T>::value);
@@ -863,7 +428,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
 
         for(auto& arg : args)
         {
-            auto tmp = shadowValueKernel<T>(arg, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, condNumOrder, length);
+            auto tmp = shadowValueKernel<T>(arg, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
             paramResults.push_back(tmp.funcValue);
             if constexpr (TisDouble)
             {
@@ -873,7 +438,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             parammathRealResults.push_back(tmp.realValue);
             paramUlpResults.push_back(tmp.ulpValue);
             // condition number vector's op order
-            condNumOrder.push_back(arg->getOrder());
+            errorValueOrder.push_back(arg->getOrder());
         }
 
         // func
@@ -1035,7 +600,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 tmpUlpValues[i] = computeUlpUnit(mathRealValue);
 
                 // error value according funcReal & func & mathReal values
-                tmpErrorValues[i] = computeError(funcRealValue, ((result.funcValue)[i]));
+                tmpErrorValues[i] = computeError(funcRealValue, ((result.funcValue)[i]), tmpUlpValues[i]);
             }
             funcRealValues.push_back(tmpfuncRealValues);
             mathRealValues.push_back(tmpmathRealValues);
@@ -1160,8 +725,8 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
         ast_ptr &lhs = binPtr->getLHS();
         ast_ptr &rhs = binPtr->getRHS();
-        auto lhsValue = shadowValueKernel<T>(lhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, condNumOrder, length);
-        auto rhsValue = shadowValueKernel<T>(rhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, condNumOrder, length);
+        auto lhsValue = shadowValueKernel<T>(lhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
+        auto rhsValue = shadowValueKernel<T>(rhs, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
 
         // func
         auto tmpCall = binPtr->getCallback();
@@ -1176,8 +741,8 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         auto mapType = opTypeLhsStr + "_" + opTypeRhsStr;
 
         // condition number vector's op order
-        condNumOrder.push_back(lhs->getOrder());
-        condNumOrder.push_back(rhs->getOrder());
+        errorValueOrder.push_back(lhs->getOrder());
+        errorValueOrder.push_back(rhs->getOrder());
 
         // func value
         if constexpr (TisDouble)
@@ -1437,7 +1002,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
 }
 
 template <typename T>
-void shadowValueInit(vector<T> &conditionNumbersOp, vector<T> &epsilonE, const size_t condNumOpSize, const int length)
+void shadowValueInit(vector<T> &conditionNumbersOp, vector<T> &benefit, vector<T> &epsilonE, const size_t condNumOpSize, const int length)
 {
     constexpr bool TisDouble = (std::is_same<double, T>::value);
     constexpr bool TisDoublePointer = (std::is_same<double *, T>::value);
@@ -1446,6 +1011,7 @@ void shadowValueInit(vector<T> &conditionNumbersOp, vector<T> &epsilonE, const s
         for(size_t i = 0; i < condNumOpSize; i++)
         {
             conditionNumbersOp.push_back(1);
+            benefit.push_back(0);
             epsilonE.push_back(0);
         }
     }
@@ -1459,6 +1025,11 @@ void shadowValueInit(vector<T> &conditionNumbersOp, vector<T> &epsilonE, const s
         for(int i = 0; i < length; i++)
         {
             conditionNumbersOp.back()[i] = 1;
+        }
+        for(size_t i = 0; i < condNumOpSize; i++)
+        {
+            auto tmp = new double[length];
+            benefit.push_back(tmp);
         }
         for(size_t i = 0; i < condNumOpSize; i++)
         {
@@ -1588,17 +1159,32 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     vector<T> conditionNumbers;
     std::vector<ParamType<T>> funcRealValues;
     std::vector<ParamType<T>> mathRealValues;
-    vector<int> condNumOrder;
-    shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, condNumOrder, length);
-    condNumOrder.push_back(conditionNumbers.size()); // 令condNumber最后一个元素指向conditionNumber的最后一个元素，同时保证其长度同errorValues、conditionNumberOp一致
-    // fmt::print("condNumOrder: {}\n", condNumOrder);
+    vector<int> errorValueOrder; // for conditionNumbers vector, store the corresponding errorValue order
+    shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
+    errorValueOrder.push_back(conditionNumbers.size()); // 令condNumber最后一个元素指向conditionNumber的最后一个元素，同时保证其长度同errorValues、conditionNumberOp一致
+    fmt::print("errorValueOrder: {}\n", errorValueOrder);
+    vector<int> condNumOrder; // for errorValue vector, store the corresponding conditionNumbers order
+    for(int i = 0; i < (int)errorValueOrder.size(); i++)
+    {
+        vector<int>::iterator iter = std::find(errorValueOrder.begin(), errorValueOrder.end(), i);
+        if (iter == errorValueOrder.end())
+        {
+            exit(EXIT_FAILURE);
+        }
+        else
+        {
+            auto tmp = std::distance(errorValueOrder.begin(), iter);
+            condNumOrder.push_back(tmp);
+        }
+    }
+    fmt::print("condNumOrder: {}\n", condNumOrder);
     vector<T> conditionNumbersOp;
-    vector<T> epsilonE;
-    shadowValueInit(conditionNumbersOp, epsilonE, conditionNumbers.size() + 1, length);
+    vector<T> benefit, epsilonE;
+    shadowValueInit(conditionNumbersOp, benefit, epsilonE, conditionNumbers.size() + 1, length);
     int IDfather = conditionNumbersOp.size() - 1;
     int IDnow = conditionNumbers.size() - 1;
     computeConditionNumber(expr, conditionNumbers, conditionNumbersOp, IDfather, IDnow, length);
-    auto epsilonEStr = computeEpsilonE(epsilonE, errorValues, conditionNumbersOp, condNumOrder, length);
+    auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, length);
 
     // shadowValuePrint(funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, conditionNumbersOp, epsilonE, varsValue, length, ifUnique, uniqueLabel, funcName);
     return epsilonEStr;
