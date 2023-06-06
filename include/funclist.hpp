@@ -150,6 +150,18 @@ template<typename T>
 mpfr::mpreal minediv_dd_dd(double *x, double *y);
 
 template<typename T>
+mpfr::mpreal minepow_d_d(double x, double y);
+
+template<typename T>
+mpfr::mpreal minepow_d_dd(double x, double *y);
+
+template<typename T>
+mpfr::mpreal minepow_dd_d(double *x, double y);
+
+template<typename T>
+mpfr::mpreal minepow_dd_dd(double *x, double *y);
+
+template<typename T>
 mpfr::mpreal minesin_dd(double *x);
 
 template<typename T>

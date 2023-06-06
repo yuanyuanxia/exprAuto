@@ -103,6 +103,8 @@ std::map<string, doubleCall_d_d> doubleCall_d_d_map = {
     {"mul_dd", minemul_d_d<mpfr::mpreal>},
     {"div_d", minediv_d_d<double>},
     {"div_dd", minediv_d_d<mpfr::mpreal>},
+    {"pow_dd", minepow_d_d<double>},
+    {"pow_dd", minepow_d_d<mpfr::mpreal>},
 };
 
 std::map<string, doubleCall_d_dd> doubleCall_d_dd_map = {
@@ -114,6 +116,8 @@ std::map<string, doubleCall_d_dd> doubleCall_d_dd_map = {
     {"mul_dd", minemul_d_dd<mpfr::mpreal>},
     {"div_d", minediv_d_dd<double>},
     {"div_dd", minediv_d_dd<mpfr::mpreal>},
+    {"pow_dd", minepow_d_dd<double>},
+    {"pow_dd", minepow_d_dd<mpfr::mpreal>},
 };
 
 std::map<string, doubleCall_dd_d> doubleCall_dd_d_map = {
@@ -125,6 +129,8 @@ std::map<string, doubleCall_dd_d> doubleCall_dd_d_map = {
     {"mul_dd", minemul_dd_d<mpfr::mpreal>},
     {"div_d", minediv_dd_d<double>},
     {"div_dd", minediv_dd_d<mpfr::mpreal>},
+    {"pow_dd", minepow_dd_d<double>},
+    {"pow_dd", minepow_dd_d<mpfr::mpreal>},
 };
 
 std::map<string, doubleCall_dd_dd> doubleCall_dd_dd_map = {
@@ -136,6 +142,8 @@ std::map<string, doubleCall_dd_dd> doubleCall_dd_dd_map = {
     {"mul_dd", minemul_dd_dd<mpfr::mpreal>},
     {"div_d", minediv_dd_dd<double>},
     {"div_dd", minediv_dd_dd<mpfr::mpreal>},
+    {"pow_dd", minepow_dd_dd<double>},
+    {"pow_dd", minepow_dd_dd<mpfr::mpreal>},
 };
 
 //===----------------------------------------------------------------------===//

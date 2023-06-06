@@ -392,6 +392,61 @@ mpfr::mpreal minediv_dd_dd(double *x1Ptr, double *x2Ptr)
 }
 
 template<typename T>
+mpfr::mpreal minepow_d_d(double x1, double x2)
+{
+    double x1Ptr[2];
+    x1Ptr[0] = x1;
+    double x2Ptr[2];
+    x2Ptr[0] = x2;
+    double y[2];
+    c_dd_pow_mine(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minepow_d_dd(double x1, double *x2Ptr)
+{
+    double x1Ptr[2];
+    x1Ptr[0] = x1;
+    double y[2];
+    c_dd_pow_mine(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minepow_dd_d(double *x1Ptr, double x2)
+{
+    double x2Ptr[2];
+    x2Ptr[0] = x2;
+    double y[2];
+    c_dd_pow_mine(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minepow_dd_dd(double *x1Ptr, double *x2Ptr)
+{
+    double y[2];
+    c_dd_pow_mine(x1Ptr, x2Ptr, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+template<typename T>
 mpfr::mpreal minesin_dd(double *x)
 {
     double y[2];
@@ -478,6 +533,16 @@ template mpfr::mpreal minediv_dd_d<double>(double *x, double y);
 template mpfr::mpreal minediv_dd_d<mpfr::mpreal>(double *x, double y);
 template mpfr::mpreal minediv_dd_dd<double>(double *x, double *y);
 template mpfr::mpreal minediv_dd_dd<mpfr::mpreal>(double *x, double *y);
+
+// pow
+template mpfr::mpreal minepow_d_d<double>(double x, double y);
+template mpfr::mpreal minepow_d_d<mpfr::mpreal>(double x, double y);
+template mpfr::mpreal minepow_d_dd<double>(double x, double *y);
+template mpfr::mpreal minepow_d_dd<mpfr::mpreal>(double x, double *y);
+template mpfr::mpreal minepow_dd_d<double>(double *x, double y);
+template mpfr::mpreal minepow_dd_d<mpfr::mpreal>(double *x, double y);
+template mpfr::mpreal minepow_dd_dd<double>(double *x, double *y);
+template mpfr::mpreal minepow_dd_dd<mpfr::mpreal>(double *x, double *y);
 
 // single math function
 template mpfr::mpreal minesin_dd<double>(double *x);

@@ -162,7 +162,7 @@ void computeConditionNumber(const ast_ptr &expr, vector<T> &conditionNumbers, ve
     }
     else
     {
-        fprintf(stderr, "ERROR : %s : unknowntype %s\n", __func__, type.c_str());
+        fprintf(stderr, "ERROR: %s : line %d: unknowntype %s\n", __func__, __LINE__, type.c_str());
         exit(EXIT_FAILURE);
     }
 }
@@ -314,7 +314,7 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
     }
     else
     {
-        fprintf(stderr, "ERROR: %s: the type of T %s is not supported\n", __func__, typeid(T).name());
+        fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
         exit(EXIT_FAILURE);
     }
 }
@@ -364,7 +364,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
         return result;
@@ -410,7 +410,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -457,7 +457,59 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         // func value
         if constexpr (TisDouble)
         {
-            if(mapType == "_dd")
+            if(mapType == "_d_dd")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_d_dd_map.find(callee + "_" + callTypeStr)->second;
+                x0[0] = (paramResults.at(0)).toDouble();
+                x1[0] = (paramResults.at(1)).toDouble();
+                x1[1] = (paramResults.at(1) - x1[0]).toDouble();
+                mpfr::mpreal tmp = tmpDoubleCall(x0[0], x1);
+                result.funcValue = tmp;
+            }
+            else if(mapType == "_dd_d")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_dd_d_map.find(callee + "_" + callTypeStr)->second;
+                x0[0] = (paramResults.at(0)).toDouble();
+                x0[1] = (paramResults.at(0) - x0[0]).toDouble();
+                x1[0] = (paramResults.at(1)).toDouble();
+                mpfr::mpreal tmp = tmpDoubleCall(x0, x1[0]);
+                result.funcValue = tmp;
+            }
+            else if(mapType == "_dd_dd")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_dd_dd_map.find(callee + "_" + callTypeStr)->second;
+                x0[0] = (paramResults.at(0)).toDouble();
+                x0[1] = (paramResults.at(0) - x0[0]).toDouble();
+                x1[0] = (paramResults.at(1)).toDouble();
+                x1[1] = (paramResults.at(1) - x1[0]).toDouble();
+                mpfr::mpreal tmp = tmpDoubleCall(x0, x1);
+                result.funcValue = tmp;
+            }
+            else if(mapType == "_d_d")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                if(callTypeStr == "dd")
+                {
+                    auto tmpDoubleCall = doubleCall_d_d_map.find(callee + "_" + callTypeStr)->second;
+                    x0[0] = (paramResults.at(0)).toDouble();
+                    x1[0] = (paramResults.at(1)).toDouble();
+                    mpfr::mpreal tmp = tmpDoubleCall(x0[0], x1[0]);
+                    result.funcValue = tmp;
+                }
+                else
+                {
+                    double tmp = tmpCall(paramResultsDouble);
+                    result.funcValue = tmp;
+                }
+            }
+            else if(mapType == "_dd")
             {
                 double x1[2]{0};
                 x1[0] = paramResults.at(0).toDouble();
@@ -484,7 +536,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                fprintf(stderr, "ERROR: %s : line %d: Invalid map type: %s\n", __func__, __LINE__, mapType.c_str());
                 exit(EXIT_FAILURE);
             }
             // std::cout << "callee = " << callPtr->getCallee() << " result = " << result.funcValue << std::endl;
@@ -493,7 +545,74 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         else if constexpr (TisDoublePointer)
         {
             auto tmpfuncValues = new mpfr::mpreal[length];
-            if(mapType == "_dd")
+            if(mapType == "_d_dd")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_d_dd_map.find(callee + "_" + callTypeStr)->second;
+                for(int i = 0; i < length; i++)
+                {
+                    x0[0] = ((paramResults.at(0))[i]).toDouble();
+                    x1[0] = ((paramResults.at(1))[i]).toDouble();
+                    x1[1] = ((paramResults.at(1))[i] - x1[0]).toDouble();
+                    tmpfuncValues[i] = tmpDoubleCall(x0[0], x1);
+                }
+            }
+            else if(mapType == "_dd_d")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_dd_d_map.find(callee + "_" + callTypeStr)->second;
+                for(int i = 0; i < length; i++)
+                {
+                    x0[0] = ((paramResults.at(0))[i]).toDouble();
+                    x0[1] = ((paramResults.at(0))[i] - x0[0]).toDouble();
+                    x1[0] = ((paramResults.at(1))[i]).toDouble();
+                    tmpfuncValues[i] = tmpDoubleCall(x0, x1[0]);
+                }
+            }
+            else if(mapType == "_dd_dd")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                auto tmpDoubleCall = doubleCall_dd_dd_map.find(callee + "_" + callTypeStr)->second;
+                for(int i = 0; i < length; i++)
+                {
+                    x0[0] = ((paramResults.at(0))[i]).toDouble();
+                    x0[1] = ((paramResults.at(0))[i] - x0[0]).toDouble();
+                    x1[0] = ((paramResults.at(1))[i]).toDouble();
+                    x1[1] = ((paramResults.at(1))[i] - x1[0]).toDouble();
+                    tmpfuncValues[i] = tmpDoubleCall(x0, x1);
+                }
+            }
+            else if(mapType == "_d_d")
+            {
+                double x0[2]{0};
+                double x1[2]{0};
+                if(callTypeStr == "dd")
+                {
+                    auto tmpDoubleCall = doubleCall_d_d_map.find(callee + "_" + callTypeStr)->second;
+                    for(int i = 0; i < length; i++)
+                    {
+                        x0[0] = ((paramResults.at(0))[i]).toDouble();
+                        x1[0] = ((paramResults.at(1))[i]).toDouble();
+                        tmpfuncValues[i] = tmpDoubleCall(x0[0], x1[0]);
+                    }
+                }
+                else
+                {
+                    for(int i = 0; i < length; i++)
+                    {
+                        vector<double> tmpParam;
+                        for(auto &param : paramResults)
+                        {
+                            tmpParam.push_back((param[i]).toDouble());
+                        }
+                        tmpfuncValues[i] = tmpCall(tmpParam);
+                    }
+                }
+            }
+            else if(mapType == "_dd")
             {
                 double x1[2]{0};
                 mpfr::mpreal tmp;
@@ -534,7 +653,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                fprintf(stderr, "ERROR: %s : line %d: Invalid map type: %s\n", __func__, __LINE__, mapType.c_str());
                 exit(EXIT_FAILURE);
             }
             
@@ -543,7 +662,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -610,7 +729,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -651,7 +770,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "shadowValueKernel: we can not support %ld parameters' function call\n", lenParam);
+                fprintf(stderr, "ERROR: %s : line %d: we can not support %ld parameters' function call\n", __func__, __LINE__, lenParam);
                 exit(EXIT_FAILURE);
             }
             // for(size_t i = 0; i < parammathRealResults.size(); i++)
@@ -708,13 +827,13 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "shadowValueKernel: we can not support %ld parameters' function call\n", lenParam);
+                fprintf(stderr, "ERROR: %s : line %d: we can not support %ld parameters' function call\n", __func__, __LINE__, lenParam);
                 exit(EXIT_FAILURE);
             }
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -784,7 +903,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                fprintf(stderr, "ERROR: %s : line %d: Invalid map type: %s\n", __func__, __LINE__, mapType.c_str());
                 exit(EXIT_FAILURE);
             }
             // std::cout << "op = " << binPtr->getOp() << " result = " << result.funcValue << std::endl;
@@ -860,7 +979,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             else
             {
-                fprintf(stderr, "ERROR: %s : Invalid map type: %s\n", __func__, mapType.c_str());
+                fprintf(stderr, "ERROR: %s : line %d: Invalid map type: %s\n", __func__, __LINE__, mapType.c_str());
                 exit(EXIT_FAILURE);
             }
             result.funcValue = tmpfuncValues;
@@ -868,7 +987,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -936,7 +1055,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -988,7 +1107,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
         }
         else
         {
-            fprintf(stderr, "shadowValueKernel: the type of T %s is not supported\n", typeid(T).name());
+            fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
             exit(EXIT_FAILURE);
         }
 
@@ -996,7 +1115,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
     }
     else
     {
-        fprintf(stderr, "ERROR: unknowntype %s\n", type.c_str());
+        fprintf(stderr, "ERROR: %s : line %d: unknown type %s\n", __func__, __LINE__, type.c_str());
         exit(EXIT_FAILURE);
     }
 }
@@ -1039,7 +1158,7 @@ void shadowValueInit(vector<T> &conditionNumbersOp, vector<T> &benefit, vector<T
     }
     else
     {
-        fprintf(stderr, "ERROR: %s: the type of T %s is not supported\n", __func__, typeid(T).name());
+        fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
         exit(EXIT_FAILURE);
     }
 }
@@ -1110,7 +1229,7 @@ void shadowValuePrint(const vector<ParamType<T>> &funcValues, const vector<Param
             fout.open(filename, ios::out);
             if (!fout.is_open())
             {
-                std::cout << "open " << filename << " failed";
+                fprintf(stderr, "ERROR: %s : line %d: open %s failed\n", __func__, __LINE__, filename.c_str());
                 exit(EXIT_FAILURE);
             }
             for(int j = 0; j < length; j++)
@@ -1145,7 +1264,7 @@ void shadowValuePrint(const vector<ParamType<T>> &funcValues, const vector<Param
     }
     else
     {
-        fprintf(stderr, "ERROR: %s: the type of T %s is not supported\n", __func__, typeid(T).name());
+        fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
         exit(EXIT_FAILURE);
     }
 }
@@ -1169,6 +1288,7 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
         vector<int>::iterator iter = std::find(errorValueOrder.begin(), errorValueOrder.end(), i);
         if (iter == errorValueOrder.end())
         {
+            fprintf(stderr, "ERROR: %s : line %d: %d can not be found in errorValueOrder\n", __func__, __LINE__, i);
             exit(EXIT_FAILURE);
         }
         else
