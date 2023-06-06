@@ -58,7 +58,7 @@ fi
 testFileName=test2paramFPEDParallel
 numProcs=32
 
-echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix} ${errfile}"
+# echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${prefix} ${middle} ${suffix} ${errfile}"
 directory="./srcTest"/${uniqueLabel}
 suffixClean=`echo ${suffix} | sed 's@_x\|_y\|_z@@g'`
 sourceFile=${prefix}_${suffixClean}
@@ -82,5 +82,5 @@ if [ ${errfile} -eq 1 ]; then
     cd - > /dev/null
 fi
 
-echo "end detecting ${uniqueLabel}"
+# echo "end detecting ${uniqueLabel}"
 echo

@@ -970,7 +970,7 @@ std::map<string, T> setVarsValue(const vector<string> &vars, const vector<T> &va
 {
     if (values.size() != vars.size())
     {
-        fprintf(stderr, "values.size() != vars.size(), which are %ld and %ld\n", values.size(), vars.size());
+        fprintf(stderr, "ERROR: %s : line %d: values.size() should be equal to vars.size(). But values.size() = %ld, vars.size() = %ld\n", __func__, __LINE__, values.size(), vars.size());
         exit(EXIT_FAILURE);
     }
     std::map<string, T> results;

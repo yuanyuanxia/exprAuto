@@ -285,7 +285,7 @@ int main()
 
             // set calculation order for originExpr
             auto opSequence = setOrder(originExpr);
-            fmt::print("opSequence: {}\n", opSequence);
+            fmt::print("\noperation's Sequence: {}\nthe number of sequence: {}, the number of mix-prec version: {}\n", opSequence, opSequence.size(), 1 << opSequence.size());
 
             //// generate input data for shadow value
             vector<double *> values1;
@@ -315,8 +315,8 @@ int main()
             //// TODO: free values1
 
             //// support DD
-            // vector<string> outputStr;
-            // auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr);
+            vector<string> outputStr;
+            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr);
             //// test DD's error
             vector<int> startNowIdxs(dimension, 0);
             vector<double> startOriginIntervals;
@@ -331,26 +331,26 @@ int main()
                 steps.push_back(step);
             }
             // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-            // vector<exprInfo> infos;
-            // for(int i = 0; i < maxNum; i++) {
-            //     cout << "\n\n-test error-" << i << "\n";
-            //     string tmp = "dd_" + std::to_string(i);
-            //     auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-            //     infos.push_back(infoTmp);
-            // }
+            vector<exprInfo> infos;
+            for(int i = 0; i < maxNum; i++) {
+                cout << "\n\n-test error-" << i << "\n";
+                string tmp = "dd_" + std::to_string(i);
+                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+                infos.push_back(infoTmp);
+            }
             // cout << std::left << setw(4) << "No";
-            // cout << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
-            // for(int i = 0; i < log2(maxNum); i++) {
-                // cout << "step Type ";
-            // }
-            // cout << "\n";
-            // for(int i = 0; i < maxNum; i++)
-            // {
-                // auto &info = infos.at(i);
-                // auto &opTypeStr = outputStr.at(i);
+            cout << "\n\n" << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            for(int i = 0; i < log2(maxNum); i++) {
+                cout << "step Type ";
+            }
+            cout << "\n";
+            for(int i = 0; i < maxNum; i++)
+            {
+                auto &info = infos.at(i);
+                auto &opTypeStr = outputStr.at(i);
                 // cout << std::left << setw(4) << i << opTypeStr << "\n";
-                // cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
-            // }
+                cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+            }
 
             fprintf(stderr, GREEN "ready> " RESET);
             continue;

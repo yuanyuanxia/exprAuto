@@ -884,13 +884,13 @@ void showOrdersKernel(ast_ptr &expr, int &orderNow)
     if(type == "Number")
     {
         // string tmp = prompt + std::to_string(orderNow) + ": ";
-        printExpr(expr);
+        printExpr(expr, to_string(orderNow) + "    ");
         orderNow++;
     }
     else if(type == "Variable")
     {
         // string tmp = prompt + std::to_string(orderNow) + ": ";
-        printExpr(expr);
+        printExpr(expr, to_string(orderNow) + "    ");
         orderNow++;
     }
     else if(type == "Call")
@@ -903,7 +903,7 @@ void showOrdersKernel(ast_ptr &expr, int &orderNow)
             showOrdersKernel(arg, orderNow);
         }
         // string tmp = prompt + std::to_string(orderNow) + ": ";
-        printExpr(expr);
+        printExpr(expr, to_string(orderNow) + "    ");
         orderNow++;
     }
     else if(type == "Binary")
@@ -914,7 +914,7 @@ void showOrdersKernel(ast_ptr &expr, int &orderNow)
         showOrdersKernel(lhs, orderNow);
         showOrdersKernel(rhs, orderNow);
         // string tmp = prompt + std::to_string(orderNow) + ": ";
-        printExpr(expr);
+        printExpr(expr, to_string(orderNow) + "    ");
         orderNow++;
     }
     else
@@ -969,18 +969,19 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
     {
         NumberExprAST *numPtr = dynamic_cast<NumberExprAST *>(expr.get());
         auto num = numPtr->getNumber();
+        auto numStr = fmt::format("{}", num);
         if(opType == "double")
         {
-            ofs << "\t" << "double tmp" << order << " = " << num << ";\n";
+            ofs << "\t" << "double tmp" << order << " = " << numStr << ";\n";
         }
         else if(opType == "ld")
         {
-            ofs << "\t" << "long double tmp" << order << " = " << num << ";\n";
+            ofs << "\t" << "long double tmp" << order << " = " << numStr << ";\n";
         }
         else if(opType == "DD")
         {
             ofs << "\t" << "double tmp" << order << "[2];\n";
-            ofs << "\t" << "tmp" << order << "[0] = " << num << ";\n";
+            ofs << "\t" << "tmp" << order << "[0] = " << numStr << ";\n";
             ofs << "\t" << "tmp" << order << "[1] = 0.0;\n";
         }
         else

@@ -295,7 +295,8 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         // print
         // fmt::print("the average of benefit are: {}", benefitAverage);
         auto ranks = getRanks(benefitAverage, false);
-        fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
+        fmt::print("{:^4} {:<15}\n", "rank", "benefit");
+        // fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
         // fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
         vector<string> benefitStr;
         for(size_t i = 0; i < benefitAverage.size(); i++)
@@ -304,7 +305,8 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
             // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} benefitAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
             // fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
             // auto benefitStrNow = fmt::format("{:<3} {:<4} {:<15e} {:<15e} {:<15e} {:<15e}", i, ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i), benefitAverage.at(i));
-            auto benefitStrNow = fmt::format("{:<3} {:^4} {:<15e}", i, ranks.at(i), benefitAverage.at(i));
+            auto benefitStrNow = fmt::format("{:^4} {:<15e}", ranks.at(i), benefitAverage.at(i));
+            // auto benefitStrNow = fmt::format("{:<3} {:^4} {:<15e}", i, ranks.at(i), benefitAverage.at(i));
             benefitStr.push_back(benefitStrNow);
         }
         string sumStr = fmt::format("The avearge sum of the epsilon is {:g}\n", sumAverage);
@@ -1281,7 +1283,7 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     vector<int> errorValueOrder; // for conditionNumbers vector, store the corresponding errorValue order
     shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
     errorValueOrder.push_back(conditionNumbers.size()); // 令condNumber最后一个元素指向conditionNumber的最后一个元素，同时保证其长度同errorValues、conditionNumberOp一致
-    fmt::print("errorValueOrder: {}\n", errorValueOrder);
+    // fmt::print("errorValueOrder: {}\n", errorValueOrder);
     vector<int> condNumOrder; // for errorValue vector, store the corresponding conditionNumbers order
     for(int i = 0; i < (int)errorValueOrder.size(); i++)
     {
@@ -1297,7 +1299,7 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
             condNumOrder.push_back(tmp);
         }
     }
-    fmt::print("condNumOrder: {}\n", condNumOrder);
+    // fmt::print("condNumOrder: {}\n", condNumOrder);
     vector<T> conditionNumbersOp;
     vector<T> benefit, epsilonE;
     shadowValueInit(conditionNumbersOp, benefit, epsilonE, conditionNumbers.size() + 1, length);
