@@ -19,6 +19,9 @@ using std::ios;
 
 namespace Shadow {
 
+static const unsigned long int hugeNumINT = 0x7FC0000000000000ul;
+static const double hugeNum = *(double *)(&hugeNumINT); // 1/8 * inf
+
 std::map<string, std::function<double(double)>> fDrvMapOne = {
     {"sqrt", [](double x) { return 0.5 / sqrt(x); }},
     {"cbrt", [](double x) { return 1 / (3.0 * cbrt(x*x)); }},
@@ -750,6 +753,10 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 auto input = parammathRealResults.at(0).toDouble();
                 auto derivativeFuncValue = funcDrv(input);
                 auto conditionNumber = ulpX * derivativeFuncValue / ulpY;
+                if(!finite(conditionNumber))
+                {
+                    conditionNumber = hugeNum;
+                }
                 conditionNumbers.push_back(conditionNumber);
             }
             else if (lenParam == 2)
@@ -762,12 +769,20 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 auto derivativeFuncValue = funcDrv(inputX1, inputX2);
                 auto &ulpX1 = paramUlpResults.at(0);
                 auto conditionNumber = ulpX1 * derivativeFuncValue / ulpY;
+                if(!finite(conditionNumber))
+                {
+                    conditionNumber = hugeNum;
+                }
                 conditionNumbers.push_back(conditionNumber);
 
                 funcDrv = fDrvMapTwo.find(callee + "R")->second;
                 derivativeFuncValue = funcDrv(inputX1, inputX2);
                 auto &ulpX2 = paramUlpResults.at(1);
                 conditionNumber = ulpX2 * derivativeFuncValue / ulpY;
+                if(!finite(conditionNumber))
+                {
+                    conditionNumber = hugeNum;
+                }
                 conditionNumbers.push_back(conditionNumber);
             }
             else
@@ -801,6 +816,10 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                     auto input = parammathRealResults.at(0)[i].toDouble();
                     auto derivativeFuncValue = funcDrv(input);
                     tmpConditionNumbers[i] = ulpX * derivativeFuncValue / ulpYs[i];
+                    if(!finite(tmpConditionNumbers[i]))
+                    {
+                        tmpConditionNumbers[i] = hugeNum;
+                    }
                 }
                 conditionNumbers.push_back(tmpConditionNumbers);
             }
@@ -823,6 +842,15 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                     derivativeFuncValue = funcDrvR(inputX1, inputX2);
                     auto &ulpX2 = paramUlpResults.at(1)[i];
                     tmpConditionNumbers2[i] = ulpX2 * derivativeFuncValue / ulpYs[i];
+
+                    if(!finite(tmpConditionNumbers1[i]))
+                    {
+                        tmpConditionNumbers1[i] = hugeNum;
+                    }
+                    if(!finite(tmpConditionNumbers2[i]))
+                    {
+                        tmpConditionNumbers2[i] = hugeNum;
+                    }
                 }
                 conditionNumbers.push_back(tmpConditionNumbers1);
                 conditionNumbers.push_back(tmpConditionNumbers2);
@@ -1074,12 +1102,20 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             auto derivativeFuncValue = funcDrv(inputLhs, inputRhs);
             auto &ulpXLhs = lhsValue.ulpValue;
             auto conditionNumber = ulpXLhs * derivativeFuncValue / ulpY;
+            if(!finite(conditionNumber))
+            {
+                conditionNumber = hugeNum;
+            }
             conditionNumbers.push_back(conditionNumber);
 
             funcDrv = fDrvMapTwo.find(opStr + "R")->second;
             derivativeFuncValue = funcDrv(inputLhs, inputRhs);
             auto &ulpXRhs = rhsValue.ulpValue;
             conditionNumber = ulpXRhs * derivativeFuncValue / ulpY;
+            if(!finite(conditionNumber))
+            {
+                conditionNumber = hugeNum;
+            }
             conditionNumbers.push_back(conditionNumber);
         }
         else if constexpr (TisDoublePointer)
@@ -1103,6 +1139,15 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
                 derivativeFuncValue = funcDrvR(inputLhs, inputRhs);
                 auto &ulpX2 = rhsValue.ulpValue[i];
                 tmpConditionNumbers2[i] = ulpX2 * derivativeFuncValue / ulpYs[i];
+
+                if(!finite(tmpConditionNumbers1[i]))
+                {
+                    tmpConditionNumbers1[i] = hugeNum;
+                }
+                if(!finite(tmpConditionNumbers2[i]))
+                {
+                    tmpConditionNumbers2[i] = hugeNum;
+                }
             }
             conditionNumbers.push_back(tmpConditionNumbers1);
             conditionNumbers.push_back(tmpConditionNumbers2);
