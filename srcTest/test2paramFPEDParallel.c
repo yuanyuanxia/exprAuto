@@ -3,7 +3,7 @@
 
 struct errorInfo
 {
-    double sumError;
+    long double sumError;
     double maxError;
     double maxInputX0;
     double maxInputX1;
@@ -51,7 +51,9 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     DL maxInputX0, maxInputX1;
     int i0, i1;
     // int flag;
-    double x0, x1, reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1;
+    double x0, x1, reUlp, aveReUlp, maxReUlp, lenX0, lenX1;
+    // double x0, x1, reUlp, sumError, aveReUlp, maxReUlp, lenX0, lenX1;
+    long double sumError;
 
     // mpfr
     mpfr_t mpfrOrcle, mpfrResult;
@@ -122,6 +124,7 @@ struct errorInfo test2paramFPEDParallel(DL x0Start, DL x0End, DL x1Start, DL x1E
     // printf("average ulp\tmax ulp\n");
     // printf("%lg\t%lg\n", aveReUlp, maxReUlp);
     // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxInputX2 = 0x%016lx %lg, maxReUlp = %lg\n", aveReUlp, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxInputX2.l, maxInputX2.d, maxReUlp);
+    // printf("myid = %d, maxReUlp = %g, sumError = %Lg\n", myid, maxReUlp, sumError);
     #if ERRFILE
     // fprintf(f, "\n");
 
@@ -146,7 +149,11 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Datatype MPI_errorInfo;
-    MPI_Type_contiguous(4, MPI_DOUBLE, &MPI_errorInfo);
+    // MPI_Type_contiguous(4, MPI_DOUBLE, &MPI_errorInfo);
+    const int blocklens[4] = {2, 1, 1, 1};
+    MPI_Aint blockIndices[4] = {0, 16, 24, 32};
+    MPI_Datatype blockType[4] = {MPI_LONG_DOUBLE, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE};
+    MPI_Type_create_struct(4, blocklens, blockIndices, blockType, &MPI_errorInfo);
     MPI_Type_commit(&MPI_errorInfo);
 
     // parameters init
@@ -251,7 +258,7 @@ int main(int argc, char **argv)
     if (myid == 0)
     {
         double maxError = -1;
-        double aveError = 0;
+        long double aveError = 0;
         double errTmp = -1;
         int maxErrorIdx = -1;
         for (int i = 0; i < numProcs; i++)
@@ -280,12 +287,12 @@ int main(int argc, char **argv)
             printf("Error opening file %s.\n", fileNameErr);
             exit(0);
         }
-        printf("average ulp\tmax ulp\n");
-        printf("%.16le\t%.16le\n", aveError, maxError);
-        // printf("\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
+        // printf("average ulp\tmax ulp\n");
+        // printf("%.16Le\t%.16le\n", aveError, maxError);
+        // printf("\naveReUlp = %Lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
-        fprintf(fErr, "%.16le\t%.16le\n", aveError, maxError);
-        fprintf(fErr, "\naveReUlp = %lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
+        fprintf(fErr, "%.16Le\t%.16le\n", aveError, maxError);
+        fprintf(fErr, "\naveReUlp = %Lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
 
         free(fileNameErr);
         free(uniqueLabel);
