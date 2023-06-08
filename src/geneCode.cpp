@@ -1210,10 +1210,19 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
 // Generate double-double implementations in all states and return the number of generated codes
 int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum, vector<string> &outputStr)
 {
-    // AST init
+    // init
     auto opSequence = setOrder(expr);
     auto lenOp = opSequence.size();
-    
+    typedef std::map<int, string> mapOpType;
+    vector<mapOpType> opTypesAll;
+    vector<string> dataTypes = {"DD", "double"};
+
+    // for these expressions winth huge number mix-precision versions.
+    // 1st: set the opTypes vector
+    // 2nd: loop the vector to generate code and do other things
+
+    //// 1st: set opTypesAll. There can be many methods about setting opTypes.
+
     // set opTypes: method NO.1
     // int depth = 0;
     // getDepth(expr, depth);
@@ -1221,6 +1230,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     // int middle = (depth - 3) > 1 ? (depth - 3) : 1; // !!!
     // int middle = depth - 1;
     // setType(expr, depth, middle);
+    
     // set opTypes: method NO.2
     // auto order = expr->getOrder();
     // vector<string> opTypes;
@@ -1237,41 +1247,63 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     //     }
     //     currentNum = currentNum >> 1;
     // }
-    
-    vector<string> dataTypes = {"DD", "double"};
-    int lenDataTypes = dataTypes.size();
-    int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
-    for(int num = 0; num < maxNum; num++)
-    {
-        // set opTypes: method NO.3
-        auto currentNum = num;
-        std::map<int, string> opTypes;
-        for(size_t i = 0; i < lenOp; i++)
-        {
-            auto id = opSequence[i];
-            auto tmp = currentNum % lenDataTypes;
-            opTypes[id] = dataTypes[tmp];
-            currentNum = currentNum / lenDataTypes;
-        }
-        setType(expr, opTypes);
 
+    // set opTypes: method NO.3
+    // int lenDataTypes = dataTypes.size();
+    // int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
+    // for(int num = 0; num < maxNum; num++)
+    // {
+    //     auto currentNum = num;
+    //     std::map<int, string> opTypes;
+    //     for(size_t i = 0; i < lenOp; i++)
+    //     {
+    //         auto id = opSequence[i];
+    //         auto tmp = currentNum % lenDataTypes;
+    //         opTypes[id] = dataTypes[tmp];
+    //         currentNum = currentNum / lenDataTypes;
+    //     }
+    //     opTypesAll.push_back(opTypes);
+    // }
+
+    // set opTypes: method NO.4
+    for (size_t i = 0; i < lenOp; i++)
+    {
+        mapOpType opTypes;
+        for(size_t j = 0; j < lenOp; j++)
+        {
+            auto id = opSequence[j];
+            opTypes[id] = dataTypes.at(1); // double
+        }
+        auto id = opSequence[i];
+        opTypes[id] = dataTypes.at(0); // DD
+        opTypesAll.push_back(opTypes);
+    }
+
+    //// 2nd: loop the vector to generate code and do other things
+    int currentNum = 0;
+    for(const auto &opTypes : opTypesAll)
+    {
+        setType(expr, opTypes);
 
         // init to generate code
         string directory = "srcTest/" + uniqueLabel + "/";
-        string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(num);
+        string funcName = "expr_" + uniqueLabel + "_" + tail + "_" + to_string(currentNum);
         string fileName = directory + funcName + ".c";
         // cout << "\n\nfileName: " << fileName << "\topTypes: ";
+        ofstream file_clean(fileName, ios_base::out);
+        ofstream ofs(fileName, ios::app);
+        // call codegen to generate code
+        codegen(expr, vars, funcName, ofs);      
+
         std::stringstream ss;
-        for(map<int, string>::iterator it = opTypes.begin(); it != opTypes.end(); it++)
+        for(auto it = opTypes.begin(); it != opTypes.end(); it++)
         {
             // cout << it->first << " " << it->second << ", ";
             ss << it->first << " " << it->second << " ";
         }
         outputStr.push_back(ss.str());
-        ofstream file_clean(fileName, ios_base::out);
-        ofstream ofs(fileName, ios::app);        
 
-        /// call shadowValue to generate each step's values of expr.
+        /// call shadowValue to generate each step's values of expr. (Many points)
         // varsValue is input values
         // inputNum is the number of input data
         // auto epsilonEStr = Shadow::shadowValue<double *>(expr, varsValue, inputNum, true, uniqueLabel, funcName);
@@ -1297,16 +1329,15 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         //     }
         // }
 
-        // unsigned long int hjw = 0x3fe6e4f765fd8adaul;
-        // double hhh = *((double *)(&hjw));
-        // vector<double> values(1, hhh);
+        /// call shadowValue to generate each step's values of expr. (Single point)
+        // unsigned long int pointHEX = 0x3fe6e4f765fd8adaul;
+        // double point = *((double *)(&pointHEX));
+        // vector<double> values(1, point);
         // auto varsValue = setVarsValue<double>(vars, values);
         // fmt::print("varsValue = {}\n", varsValue);
         // Shadow::shadowValue<double>(expr, varsValue);
 
-        // call codegen to generate code
-        codegen(expr, vars, funcName, ofs);
+        currentNum++;
     }
-
-    return maxNum;
+    return opTypesAll.size();
 }

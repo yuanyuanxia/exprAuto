@@ -312,7 +312,7 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
             // auto benefitStrNow = fmt::format("{:<3} {:^4} {:<15e}", i, ranks.at(i), benefitAverage.at(i));
             benefitStr.push_back(benefitStrNow);
         }
-        string sumStr = fmt::format("The avearge sum of the epsilon is {:g}\n", sumAverage);
+        string sumStr = fmt::format("The average sum of the epsilon is {:g}\n", sumAverage);
         benefitStr.push_back(sumStr);
 
         return benefitStr;

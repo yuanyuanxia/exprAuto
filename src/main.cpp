@@ -306,6 +306,13 @@ int main()
             }
             auto varsValue1 = setVarsValue<double *>(vars, values1);
             //// call the shadowValue function to generate the shadow values of the expression. The shadow values are stored into files partly.
+            // unsigned long int hjw = 0x3fe6e4f765fd8adaul;
+            // double hhh = *((double *)(&hjw));
+            // vector<double> values(2, hhh);
+            // auto varsValue = setVarsValue<double>(vars, values);
+            // fmt::print("varsValue = {}\n", varsValue);
+            // Shadow::shadowValue<double>(originExpr, varsValue);
+
             auto epsilonEStr = Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
             for(int i = 0; i < (int)epsilonEStr.size(); i++)
             {
@@ -339,7 +346,7 @@ int main()
                 infos.push_back(infoTmp);
             }
             // cout << std::left << setw(4) << "No";
-            cout << "\n\n" << std::left << setw(4) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
             for(int i = 0; i < log2(maxNum); i++) {
                 cout << "step Type ";
             }
@@ -349,7 +356,7 @@ int main()
                 auto &info = infos.at(i);
                 auto &opTypeStr = outputStr.at(i);
                 // cout << std::left << setw(4) << i << opTypeStr << "\n";
-                cout << std::left << setw(4) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+                cout << std::left << setw(6) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
             }
 
             fprintf(stderr, GREEN "ready> " RESET);
