@@ -86,6 +86,8 @@ std::map<string, commonRealCall> commonRealCall_map = {
 std::map<string, singleCall_dd> singleCall_dd_map = {
     {"sin_d", minesin_dd<double>},
     {"sin_dd", minesin_dd<mpfr::mpreal>},
+    {"cos_d", minecos_dd<double>},
+    {"cos_dd", minecos_dd<mpfr::mpreal>},
     {"tan_d", minetan_dd<double>},
     {"tan_dd", minetan_dd<mpfr::mpreal>},
     {"exp_d", mineexp_dd<double>},

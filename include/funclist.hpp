@@ -165,6 +165,9 @@ template<typename T>
 mpfr::mpreal minesin_dd(double *x);
 
 template<typename T>
+mpfr::mpreal minecos_dd(double *x);
+
+template<typename T>
 mpfr::mpreal minetan_dd(double *x);
 
 template<typename T>

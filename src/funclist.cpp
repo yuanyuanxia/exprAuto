@@ -446,11 +446,24 @@ mpfr::mpreal minepow_dd_dd(double *x1Ptr, double *x2Ptr)
     result = tmp + y[1];
     return result;
 }
+
 template<typename T>
 mpfr::mpreal minesin_dd(double *x)
 {
     double y[2];
     c_dd_sin(x, y);
+    T tmp;
+    mpfr::mpreal result;
+    tmp = y[0];
+    result = tmp + y[1];
+    return result;
+}
+
+template<typename T>
+mpfr::mpreal minecos_dd(double *x)
+{
+    double y[2];
+    c_dd_cos(x, y);
     T tmp;
     mpfr::mpreal result;
     tmp = y[0];
@@ -547,6 +560,8 @@ template mpfr::mpreal minepow_dd_dd<mpfr::mpreal>(double *x, double *y);
 // single math function
 template mpfr::mpreal minesin_dd<double>(double *x);
 template mpfr::mpreal minesin_dd<mpfr::mpreal>(double *x);
+template mpfr::mpreal minecos_dd<double>(double *x);
+template mpfr::mpreal minecos_dd<mpfr::mpreal>(double *x);
 template mpfr::mpreal minetan_dd<double>(double *x);
 template mpfr::mpreal minetan_dd<mpfr::mpreal>(double *x);
 template mpfr::mpreal mineexp_dd<double>(double *x);

@@ -1031,6 +1031,154 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
             paramOrders.push_back(paramOrder);
         }
 
+        // to find the highest type of the parameters
+        bool hasDDparam = false;
+        bool hasLDparam = false;
+        for(const auto& paramOpType : paramOpTypes)
+        {
+            if(paramOpType == "DD")
+            {
+                hasDDparam = true;
+                break;
+            }
+        }
+        if(hasDDparam == false)
+        {
+            for(const auto& paramOpType : paramOpTypes)
+            {
+                if(paramOpType == "ld")
+                {
+                    hasLDparam = true;
+                    break;
+                }
+                else if(paramOpType != "double") // the type of param's op is not in {double, ld, DD}
+                {
+                    fprintf(stderr, "ERROR: Unknown paramOpType %s\n", paramOpType.c_str());
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        
+        // set all the parameters to the highest type and set the callee according to the highest type
+        if(hasDDparam == true)
+        {
+            // paramOpType must be DD or ld or double
+            for(size_t i = 0; i < paramOpTypes.size(); i++)
+            {
+                auto &paramOpType = paramOpTypes.at(i);
+                ofs << "\t" << "double p" << paramOrders.at(i) << "[2];\n";
+                if(paramOpType == "DD")
+                {
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[0] = tmp" << paramOrders.at(i) << "[0];\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[1] = tmp" << paramOrders.at(i) << "[1];\n";
+                }
+                else if(paramOpType == "ld")
+                {
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[0] = tmp" << paramOrders.at(i) << ";\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[1] = tmp" << paramOrders.at(i) << " - p" << paramOrders.at(i) << "[0];\n";
+                }
+                else // must be double
+                {
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[0] = tmp" << paramOrders.at(i) << ";\n";
+                    ofs << "\t" << "p" << paramOrders.at(i) << "[1] = 0\n";
+                }
+            }
+
+            ofs << "\t" << "double tmpCallResult" << order << "[2];\n";
+            auto it = callMap.find(callee);
+            auto callStr = it->second;
+            ofs << "\t" << callStr << "(";
+            for(size_t i = 0; i < paramOrders.size(); i++)
+            {
+                ofs << "p" << paramOrders.at(i) << ", ";
+            }
+            ofs << "tmpCallResult" << order;
+            ofs << ");\n";
+
+            if(opType == "DD")
+            {
+                ofs << "\t" << "double tmp" << order << "[2];\n";
+                ofs << "\t" << "tmp" << order << "[0] = tmpCallResult" << order << "[0];\n";
+                ofs << "\t" << "tmp" << order << "[1] = tmpCallResult" << order << "[1];\n";
+            }
+            else if(opType == "ld")
+            {
+                ofs << "\t" << "long double tmp" << order << ";\n";
+                ofs << "\t" << "tmp" << order << " = tmpCallResult" << order << "[0];\n";
+                ofs << "\t" << "tmp" << order << "+= tmpCallResult" << order << "[1];\n";
+                
+            }
+            else
+            {
+                ofs << "\t" << "double tmp" << order << ";\n";
+                ofs << "\t" << "tmp" << order << " = tmpCallResult" << order << "[0];\n";
+                ofs << "\t" << "tmp" << order << " += tmpCallResult" << order << "[1];\n";
+            }
+        }
+        else if(hasLDparam == true)
+        {
+            // paramOpType must be ld or double
+            for(size_t i = 0; i < paramOpTypes.size(); i++)
+            {
+                ofs << "\t" << "long double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
+            }
+
+            ofs << "\t" << "long double tmpCallResult" << order << " = " << callee << "(";
+            for(size_t i = 0; i < paramOrders.size() - 1; i++)
+            {
+                ofs << "p" << paramOrders.at(i) << ", ";
+            }
+            ofs << "p" << paramOrders.back();
+            ofs << ");\n";
+
+            if(opType == "DD")
+            {
+                ofs << "\t" << "double tmp" << order << "[2];\n";
+                ofs << "\t" << "tmp" << order << "[0] = tmpCallResult" << order << ";\n";
+                ofs << "\t" << "tmp" << order << "[1] = tmpCallResult" << order << " - tmp" << order << ";\n";
+            }
+            else if(opType == "ld")
+            {
+                ofs << "\t" << "long double tmp" << order << " = tmpCallResult" << order << ";\n";
+            }
+            else
+            {
+                ofs << "\t" << "double tmp" << order << " = tmpCallResult" << order << ";\n";
+            }
+        }
+        else
+        {
+            // paramOpType must be double
+            for(size_t i = 0; i < paramOpTypes.size(); i++)
+            {
+                ofs << "\t" << "double p" << paramOrders.at(i) << " = tmp" << paramOrders.at(i) << ";\n";
+            }
+
+            ofs << "\t" << "double tmpCallResult" << order << " = " << callee << "(";
+            for(size_t i = 0; i < paramOrders.size() - 1; i++)
+            {
+                ofs << "p" << paramOrders.at(i) << ", ";
+            }
+            ofs << "p" << paramOrders.back();
+            ofs << ");\n";
+
+            if(opType == "DD")
+            {
+                ofs << "\t" << "double tmp" << order << "[2];\n";
+                ofs << "\t" << "tmp" << order << "[0] = tmpCallResult" << order << ";\n";
+                ofs << "\t" << "tmp" << order << "[1] = 0;\n";
+            }
+            else if(opType == "ld")
+            {
+                ofs << "\t" << "long double tmp" << order << " = tmpCallResult" << order << ";\n";
+            }
+            else
+            {
+                ofs << "\t" << "double tmp" << order << " = tmpCallResult" << order << ";\n";
+            }
+        }
+
+        /*
         if(opType == "double")
         {
             for(size_t i = 0; i < paramOpTypes.size(); i++)
@@ -1139,6 +1287,7 @@ int codegenKernel(ofstream &ofs, const ast_ptr &expr)
             fprintf(stderr, "ERROR: Unknown opType %s\n", opType.c_str());
             exit(EXIT_FAILURE);
         }
+        */
 
         return order;
     }
@@ -1249,35 +1398,35 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     // }
 
     // set opTypes: method NO.3
-    // int lenDataTypes = dataTypes.size();
-    // int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
-    // for(int num = 0; num < maxNum; num++)
-    // {
-    //     auto currentNum = num;
-    //     std::map<int, string> opTypes;
-    //     for(size_t i = 0; i < lenOp; i++)
-    //     {
-    //         auto id = opSequence[i];
-    //         auto tmp = currentNum % lenDataTypes;
-    //         opTypes[id] = dataTypes[tmp];
-    //         currentNum = currentNum / lenDataTypes;
-    //     }
-    //     opTypesAll.push_back(opTypes);
-    // }
-
-    // set opTypes: method NO.4
-    for (size_t i = 0; i < lenOp; i++)
+    int lenDataTypes = dataTypes.size();
+    int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
+    for(int num = 0; num < maxNum; num++)
     {
-        mapOpType opTypes;
-        for(size_t j = 0; j < lenOp; j++)
+        auto currentNum = num;
+        std::map<int, string> opTypes;
+        for(size_t i = 0; i < lenOp; i++)
         {
-            auto id = opSequence[j];
-            opTypes[id] = dataTypes.at(1); // double
+            auto id = opSequence[i];
+            auto tmp = currentNum % lenDataTypes;
+            opTypes[id] = dataTypes[tmp];
+            currentNum = currentNum / lenDataTypes;
         }
-        auto id = opSequence[i];
-        opTypes[id] = dataTypes.at(0); // DD
         opTypesAll.push_back(opTypes);
     }
+
+    // set opTypes: method NO.4
+    // for (size_t i = 0; i < lenOp; i++)
+    // {
+    //     mapOpType opTypes;
+    //     for(size_t j = 0; j < lenOp; j++)
+    //     {
+    //         auto id = opSequence[j];
+    //         opTypes[id] = dataTypes.at(1); // double
+    //     }
+    //     auto id = opSequence[i];
+    //     opTypes[id] = dataTypes.at(0); // DD
+    //     opTypesAll.push_back(opTypes);
+    // }
 
     //// 2nd: loop the vector to generate code and do other things
     int currentNum = 0;
@@ -1313,7 +1462,7 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
         //     auto &epsilonEStrNow = epsilonEStr.at(i);
         //     if(*it == i)
         //     {
-        //         if(opTypes[*it] == "DD")
+        //         if(opTypes.at(i) == "DD")
         //         {
         //             cout << BOLDBRIGHTRED << epsilonEStrNow << "\n" << RESET;
         //         }

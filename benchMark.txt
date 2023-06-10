@@ -31,9 +31,9 @@ test05_nonlin1_test2 1.0/(1+x)
 verhulst (4*x)/(1+x/1.11)
 ComplexSinCos 1.0/2.0*sin(r)*(exp(-i) - exp(i))
 ComplexSquareRoot 1.0/2.0*sqrt(2.0*(sqrt(x1*x1+x2*x2)+x1))
-doppler1 ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
-doppler2 ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
-doppler3 ((-(1657.0/5.0+3.0/5.0*T))*v)/(((1657.0/5.0+3.0/5.0*T)+u)*((1657.0/5.0+3.0/5.0*T)+u))
+doppler1 (-(331.4 + (0.6 * T)) * v) / (((331.4 + (0.6 * T)) + u) * ((331.4 + (0.6 * T)) + u))
+doppler2 (-(331.4 + (0.6 * T)) * v) / (((331.4 + (0.6 * T)) + u) * ((331.4 + (0.6 * T)) + u))
+doppler3 (-(331.4 + (0.6 * T)) * v) / (((331.4 + (0.6 * T)) + u) * ((331.4 + (0.6 * T)) + u))
 hypot32 sqrt(x1*x1+x2*x2)
 i4 sqrtf(x+y*y)
 i6 sinf(x*y)
@@ -42,11 +42,11 @@ NMSEproblem332 tan(x+eps) - tan(x)
 NMSEproblem335 cos(x+eps) - cos(x)
 NMSEproblem346 pow((x+1),1/n) - pow(x,1/n)
 NMSEsection35 exp(a*x) - 1
-polarToCarthesianX radius*cos(3.14159265359/180*theta)
-polarToCarthesianY radius*sin(3.14159265359/180*theta)
+polarToCarthesianX radius*cos(0.01745329251994444444444444444444*theta)
+polarToCarthesianY radius*sin(0.01745329251994444444444444444444*theta)
 sec4example ((x1*x2) - 1)/((x1*x2)*(x1*x2) - 1)
 test03_nonlin2 (x+y)/(x - y)
-theta atan(x2/x1)*180/3.14159265359
+theta atan(x2/x1)*57.29577951307855
 turbine1 (2.0/(r*r)+3.0) - ((3.0 - 2.0*v)*(1.0/8.0)*((w*w)*r*r))/(1.0 - v) - 9.0/2.0
 nonlin1 z/(z+1)
 carbonGas 35000000+(401.0/v)*(1000/v)*(v - 0.0427) - 0.0000000000000000041419509

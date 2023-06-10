@@ -70,7 +70,7 @@ fi
 testFileName=test3paramFPEDParallel
 numProcs=32
 
-echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x2Start} ${x2End} ${x0Size} ${x1Size} ${x2Size} ${prefix} ${middle} ${suffix} ${errfile}"
+# echo "Detecting error: ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x2Start} ${x2End} ${x0Size} ${x1Size} ${x2Size} ${prefix} ${middle} ${suffix} ${errfile}"
 directory="./srcTest"/${uniqueLabel}
 sourceFile=${prefix}_${suffix}
 fileNameKernel=${prefix}__${middle}_${suffix}
@@ -92,5 +92,5 @@ if [ ${errfile} -eq 1 ]; then
     cd - > /dev/null
 fi
 
-echo "end detecting ${uniqueLabel}"
+# echo "end detecting ${uniqueLabel}"
 echo

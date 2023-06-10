@@ -242,13 +242,13 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
             {
                 epsilonE.at(i)[j] = errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j];
                 epsilonEAverage.at(i) += epsilonE.at(i)[j];
-                // errorValuesAverage.at(i) += errorValues.at(i)[j];
-                // conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
+                errorValuesAverage.at(i) += errorValues.at(i)[j];
+                conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
                 sumOfAll.at(j) += epsilonE.at(i)[j];
             }
             epsilonEAverage.at(i) /= length;
-            // errorValuesAverage.at(i) /= length;
-            // conditionNumbersOpAverage.at(i) /= length;
+            errorValuesAverage.at(i) /= length;
+            conditionNumbersOpAverage.at(i) /= length;
         }
         // auto sum = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
         auto sum = std::accumulate(sumOfAll.begin(), sumOfAll.end(), 0.0);
@@ -298,17 +298,17 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         // print
         // fmt::print("the average of benefit are: {}", benefitAverage);
         auto ranks = getRanks(benefitAverage, false);
-        fmt::print("{:^4} {:<15}\n", "rank", "benefit");
+        // fmt::print("{:^4} {:<15}\n", "rank", "benefit");
         // fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
-        // fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
+        fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
         vector<string> benefitStr;
         for(size_t i = 0; i < benefitAverage.size(); i++)
         {
             // fmt::print("{} {} {}\n", benefitAverage.at(i), ranks.at(i));
             // fmt::print("rank {}: errorValuesAverage = {} conditionNumbersOpAverage = {} benefitAverage = {}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
             // fmt::print("{}: {:<15e} {:<15e} {:<15e}\n", ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), benefitAverage.at(i));
-            // auto benefitStrNow = fmt::format("{:<3} {:<4} {:<15e} {:<15e} {:<15e} {:<15e}", i, ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i), benefitAverage.at(i));
-            auto benefitStrNow = fmt::format("{:^4} {:<15e}", ranks.at(i), benefitAverage.at(i));
+            auto benefitStrNow = fmt::format("{:<3} {:<4} {:<15e} {:<15e} {:<15e} {:<15e}", i, ranks.at(i), errorValuesAverage.at(i), conditionNumbersOpAverage.at(i), epsilonEAverage.at(i), benefitAverage.at(i));
+            // auto benefitStrNow = fmt::format("{:^4} {:<15e}", ranks.at(i), benefitAverage.at(i));
             // auto benefitStrNow = fmt::format("{:<3} {:^4} {:<15e}", i, ranks.at(i), benefitAverage.at(i));
             benefitStr.push_back(benefitStrNow);
         }

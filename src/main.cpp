@@ -281,11 +281,12 @@ int main()
             auto exprDaisy = geneDaisyCode(uniqueLabel);
             auto funcNameMpfr = geneMpfrCode(inputStr, uniqueLabel, vars);
             printExpr(originExpr, "the origin expr: ");
+            std::cout << "NO.    step\n";
             showOrder(originExpr);
 
             // set calculation order for originExpr
             auto opSequence = setOrder(originExpr);
-            fmt::print("\noperation's Sequence: {}\nthe number of sequence: {}, the number of mix-prec version: {}\n", opSequence, opSequence.size(), 1 << opSequence.size());
+            fmt::print("\noperation's Sequence: {}\nthe number of sequence: {}, the max number of mix-prec version: {}\n", opSequence, opSequence.size(), 1 << opSequence.size());
 
             //// generate input data for shadow value
             vector<double *> values1;
@@ -347,7 +348,7 @@ int main()
             }
             // cout << std::left << setw(4) << "No";
             cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
-            for(int i = 0; i < log2(maxNum); i++) {
+            for(size_t i = 0; i < opSequence.size(); i++) {
                 cout << "step Type ";
             }
             cout << "\n";
