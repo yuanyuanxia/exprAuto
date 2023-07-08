@@ -1433,14 +1433,13 @@ void codegen(ast_ptr &expr, vector<string> &vars, const string funcName, ofstrea
 
 // Note: Each operator node has two states, double or double-double. if there are n node in that expression, there are 2^n states. 
 // Generate double-double implementations in all states and return the number of generated codes
-int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum, vector<string> &outputStr)
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> varsValue, size_t inputNum, vector<string> &outputStr, vector<string> dataTypes)
 {
     // init
     auto opSequence = setOrder(expr);
     auto lenOp = opSequence.size();
     typedef std::map<int, string> mapOpType;
     vector<mapOpType> opTypesAll;
-    vector<string> dataTypes = {"DD", "double"};
 
     // for these expressions winth huge number mix-precision versions.
     // 1st: set the opTypes vector

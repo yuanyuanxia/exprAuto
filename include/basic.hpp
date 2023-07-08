@@ -314,4 +314,6 @@ void write_to_file_wrapper(string uniqueLabel, string exprOriginBest, int dimens
 template <typename T>
 std::map<string, T> setVarsValue(const vector<string> &vars, const vector<T> &values);
 
+void setDataTypes(vector<string> &dataTypes);
+
 #endif

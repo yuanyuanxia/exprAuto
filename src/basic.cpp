@@ -10,6 +10,7 @@
 #include "mpreal.h"
 
 using std::cerr;
+using std::cin;
 using std::cout;
 using std::endl;
 using std::string;
@@ -987,3 +988,43 @@ std::map<string, T> setVarsValue(const vector<string> &vars, const vector<T> &va
 
 template std::map<string, double> setVarsValue<double>(const vector<string> &vars, const vector<double> &values);
 template std::map<string, double *> setVarsValue<double *>(const vector<string> &vars, const vector<double *> &values);
+
+void setDataTypes(vector<string> &dataTypes)
+{
+    cout << "please input the mixed-precision types. if input Enter, then set DD & double by default.\n";
+    string tmpDataTypes;
+    cin >> tmpDataTypes; // TODO: improve the input method
+    cin.clear();  // clear the error signal
+    cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n'); // clear the current line in input buffer
+    if (tmpDataTypes != "")
+    {
+        dataTypes.clear();
+        if(tmpDataTypes == "0")
+        {
+            dataTypes.push_back("ld");
+            dataTypes.push_back("double");
+        }
+        else if(tmpDataTypes == "1")
+        {
+            dataTypes.push_back("DD");
+            dataTypes.push_back("double");
+        }
+        else if(tmpDataTypes == "2")
+        {
+            dataTypes.push_back("DD");
+            dataTypes.push_back("ld");
+        }
+        else if(tmpDataTypes == "3")
+        {
+            dataTypes.push_back("DD");
+            dataTypes.push_back("ld");
+            dataTypes.push_back("double");
+        }
+        else
+        {
+            cout << "ERROR: Unknown input. please enter 0~4 to to indicate a mixed-precision configuration";
+            exit(EXIT_FAILURE);
+        }
+    }
+    fmt::print("mix precision dataTypes: {}", dataTypes);
+}

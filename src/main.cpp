@@ -324,7 +324,9 @@ int main()
 
             //// support DD
             vector<string> outputStr;
-            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr);
+            vector<string> dataTypes = {"DD", "double"};
+            setDataTypes(dataTypes);
+            auto maxNum = codegenWrapper(originExpr, vars, uniqueLabel, "dd", varsValue1, inputNum, outputStr, dataTypes);
             //// test DD's error
             vector<int> startNowIdxs(dimension, 0);
             vector<double> startOriginIntervals;
@@ -340,14 +342,19 @@ int main()
             }
             // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
             vector<exprInfo> infos;
+            vector<double> perfValues;
             for(int i = 0; i < maxNum; i++) {
                 cout << "\n\n-test error-" << i << "\n";
                 string tmp = "dd_" + std::to_string(i);
                 auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+                auto tmpPerformance = testPerformance(uniqueLabel, tmp, intervals);
+                cout << tmp << " performance: " << tmpPerformance << "\n\n";
                 infos.push_back(infoTmp);
+                perfValues.push_back(tmpPerformance);
             }
             // cout << std::left << setw(4) << "No";
-            cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            // cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "performamce" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
             for(size_t i = 0; i < opSequence.size(); i++) {
                 cout << "step Type ";
             }
@@ -357,7 +364,7 @@ int main()
                 auto &info = infos.at(i);
                 auto &opTypeStr = outputStr.at(i);
                 // cout << std::left << setw(4) << i << opTypeStr << "\n";
-                cout << std::left << setw(6) << i << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+                cout << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
             }
 
             fprintf(stderr, GREEN "ready> " RESET);

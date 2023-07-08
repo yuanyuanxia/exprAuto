@@ -45,6 +45,6 @@ vector<int> setOrder(ast_ptr &expr);
 
 int showOrder(ast_ptr &expr);
 
-int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> values, size_t inputNum, vector<string> &outputStr);
+int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel, string tail, std::map<string, double *> values, size_t inputNum, vector<string> &outputStr, vector<string> dataTypes = {"DD", "double"});
 
 #endif
