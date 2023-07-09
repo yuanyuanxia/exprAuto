@@ -10,6 +10,7 @@
 #include "shadowValue.hpp"
 #include "funclist.hpp"
 #include "errorDetect.hpp"
+#include "geneCode.hpp"
 
 
 using std::string;
@@ -195,7 +196,7 @@ vector<int> getRanks(const vector<double> &v, bool descending = true)
 }
 
 template <typename T>
-vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const int length = 1)
+vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const vector<int> &opSequence, const int length = 1)
 {
     constexpr bool TisDouble = (std::is_same<double, T>::value);
     constexpr bool TisDoublePointer = (std::is_same<double *, T>::value);
@@ -254,7 +255,8 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         auto sum = std::accumulate(sumOfAll.begin(), sumOfAll.end(), 0.0);
         auto sumAverage = fabs(sum / length);
 
-        // compute benefit
+        // compute benefit for 1-step
+        // notes: benefit is the predicted error value after mixed-precision tuning.
         vector<double> minBenefit(length, std::numeric_limits<double>::infinity());
         vector<int> minBenefitIdx(length, std::numeric_limits<int>::infinity());
         vector<double> benefitAverage(errorValues.size(), 0.0);
@@ -315,6 +317,35 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         string sumStr = fmt::format("The average sum of the epsilon is {:g}\n", sumAverage);
         benefitStr.push_back(sumStr);
 
+        // compute n-step mixed-precision
+        fmt::print("opSequence (remove the last step) for n-step: {}\n", opSequence);
+        for(size_t numStep = 1; numStep < opSequence.size(); numStep++)
+        {
+            auto combResults = combinationNew(numStep, opSequence);
+            fmt::print("for {}-step, combResult = {}\n", numStep, combResults);
+            vector<double> benefitAverage;
+            vector<double> tmp(length, 1);
+            for(const auto &combResult : combResults)
+            {
+                double benefitTmp = 0.0;
+                for(int j = 0; j < length; j++)
+                {
+                    tmp.at(j) = sumOfAll.at(j);
+                    for(size_t i = 0; i < combResult.size(); i++)
+                    {
+                        auto stepIdx = combResult.at(i);
+                        tmp.at(j) = tmp.at(j) - epsilonE.at(stepIdx)[j];
+                    }
+                    tmp.at(j) = fabs(tmp.at(j));
+                    benefitTmp += tmp.at(j);
+                }
+                benefitTmp /= length;
+                benefitAverage.push_back(benefitTmp);
+            }
+            auto ranks = getRanks(benefitAverage, false);
+            fmt::print("for {}-step, benefitAverage = {}\n", numStep, benefitAverage);
+            fmt::print("for {}-step, ranks = {}\n", numStep, ranks);
+        }
         return benefitStr;
     }
     else
@@ -1351,7 +1382,10 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     int IDfather = conditionNumbersOp.size() - 1;
     int IDnow = conditionNumbers.size() - 1;
     computeConditionNumber(expr, conditionNumbers, conditionNumbersOp, IDfather, IDnow, length);
-    auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, length);
+    vector<int> opSequence;
+    getOrders(expr, opSequence);
+    opSequence.pop_back();
+    auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
 
     // shadowValuePrint(funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, conditionNumbersOp, epsilonE, varsValue, length, ifUnique, uniqueLabel, funcName);
     return epsilonEStr;

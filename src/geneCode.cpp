@@ -824,6 +824,46 @@ void setType(ast_ptr &expr, map<int, string> opTypes)
     }
 }
 
+void getOrders(const ast_ptr &expr, vector<int> &opOrder)
+{
+    auto type = expr->type();
+    if(type == "Number")
+    {
+        ;
+    }
+    else if(type == "Variable")
+    {
+        ;
+    }
+    else if(type == "Call")
+    {
+        CallExprAST *callPtr = dynamic_cast<CallExprAST *>(expr.get());
+        auto &args = callPtr->getArgs();
+        vector<int> paramOrders;
+        for(auto& arg : args)
+        {
+            getOrders(arg, opOrder);
+        }
+        auto orderNow = expr->getOrder();
+        opOrder.push_back(orderNow);
+    }
+    else if(type == "Binary")
+    {
+        BinaryExprAST *binPtr = dynamic_cast<BinaryExprAST *>(expr.get());
+        ast_ptr &lhs = binPtr->getLHS();
+        ast_ptr &rhs = binPtr->getRHS();
+        getOrders(lhs, opOrder);
+        getOrders(rhs, opOrder);
+        auto orderNow = expr->getOrder();
+        opOrder.push_back(orderNow);
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: %s : line %d: unknown type %s\n", __func__, __LINE__, type.c_str());
+        exit(EXIT_FAILURE);
+    }
+}
+
 void setOrdersKernel(ast_ptr &expr, int &orderNow, vector<int> &opOrder)
 {
     auto type = expr->type();

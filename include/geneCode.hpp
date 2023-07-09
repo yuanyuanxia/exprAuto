@@ -41,6 +41,8 @@ string geneFinalCode(string exprStr, string uniqueLabel, vector<exprInfo> exprIn
 
 void getDepth(ast_ptr &expr, int &depth);
 
+void getOrders(const ast_ptr &expr, vector<int> &opOrder);
+
 vector<int> setOrder(ast_ptr &expr);
 
 int showOrder(ast_ptr &expr);

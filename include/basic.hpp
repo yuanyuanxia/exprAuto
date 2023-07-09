@@ -304,6 +304,8 @@ std::vector<size_t> geneRandom(size_t start, size_t end);
 
 vector<vector<int>> combination(const int num, const vector<int>& indexs);
 
+vector<vector<int>> combinationNew(const int num, const vector<int>& indexs);
+
 size_t combination(size_t k, size_t n);
 
 void write_to_file(const string &uniqueLabel, const string &exprOriginBest, const vector<int> &numIntervalsSoloBefore, const vector<int> &numIntervalsSoloAfter, const std::vector<double> thresholds, const std::vector<double> &data, const std::string &filename);

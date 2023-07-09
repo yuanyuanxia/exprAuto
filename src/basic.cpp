@@ -854,6 +854,36 @@ vector<vector<int>> combination(const int num, const vector<int> &indexs)
     return set;
 }
 
+// add at 20230709, update from the origin combination
+vector<vector<int>> combinationNew(const int num, const vector<int> &indexs)
+{
+    vector<vector<int>> set;
+    if(num > (int)indexs.size())
+        return set;
+
+    vector<int> elements;
+    elements.resize(indexs.size());
+    for(int i = 0; i < num; i++)
+    {
+        elements.at(i) = 1;
+    }
+
+    do
+    {
+        vector<int> currentCombination;
+        for(size_t i = 0; i < elements.size(); ++i)
+        {
+            if(elements[i])
+            {
+                currentCombination.push_back(indexs[i]);
+            }
+        }
+        set.push_back(currentCombination);
+    } while(prev_permutation(elements.begin(), elements.end()));
+
+    return set;
+}
+
 inline unsigned int factorial(unsigned int value)
 {
     unsigned int local_value = value;
