@@ -315,11 +315,27 @@ int main()
             // Shadow::shadowValue<double>(originExpr, varsValue);
 
             auto epsilonEStr = Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
+            string tmpStr;
+            tmpStr = fmt::format("expr: {}\n", exprOrigin);
+            epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
+            tmpStr = fmt::format("uniqueLabel: {}\n", uniqueLabel);
+            epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
+            std::ofstream outputFile;
+            outputFile.open("mixPrec.log", std::ios::out | std::ios::app);
+            if (outputFile.is_open() == false)
+            {
+                exit(EXIT_FAILURE);
+            }
             for(int i = 0; i < (int)epsilonEStr.size(); i++)
             {
                 auto &epsilonEStrNow = epsilonEStr.at(i);
-                cout << epsilonEStrNow << "\n";
+                cout << epsilonEStrNow;
+                outputFile << epsilonEStrNow;
             }
+            outputFile << "\n";
+            outputFile.close();
+            fprintf(stderr, GREEN "ready> " RESET);
+            continue;
             //// TODO: free values1
 
             //// support DD

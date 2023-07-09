@@ -302,7 +302,7 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         auto ranks = getRanks(benefitAverage, false);
         // fmt::print("{:^4} {:<15}\n", "rank", "benefit");
         // fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
-        fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
+        // fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
         vector<string> benefitStr;
         for(size_t i = 0; i < benefitAverage.size(); i++)
         {
@@ -318,11 +318,16 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         benefitStr.push_back(sumStr);
 
         // compute n-step mixed-precision
-        fmt::print("opSequence (remove the last step) for n-step: {}\n", opSequence);
+        benefitStr.clear();
+        // fmt::print("opSequence (remove the last step) for n-step: {}\n", opSequence);
+        string tmpStr = fmt::format("opSequence (remove the last step) for n-step: {}\n", opSequence);
+        benefitStr.push_back(tmpStr);
         for(size_t numStep = 1; numStep < opSequence.size(); numStep++)
         {
             auto combResults = combinationNew(numStep, opSequence);
-            fmt::print("for {}-step, combResult = {}\n", numStep, combResults);
+            // fmt::print("for {}-step, combResult = {}\n", numStep, combResults);
+            tmpStr = fmt::format("for {}-step, combResult = {}\n", numStep, combResults);
+            benefitStr.push_back(tmpStr);
             vector<double> benefitAverage;
             vector<double> tmp(length, 1);
             for(const auto &combResult : combResults)
@@ -343,8 +348,12 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
                 benefitAverage.push_back(benefitTmp);
             }
             auto ranks = getRanks(benefitAverage, false);
-            fmt::print("for {}-step, benefitAverage = {}\n", numStep, benefitAverage);
-            fmt::print("for {}-step, ranks = {}\n", numStep, ranks);
+            // fmt::print("\tbenefitAverage = {}\n", benefitAverage);
+            // fmt::print("\tranks = {}\n", ranks);
+            tmpStr = fmt::format("\tbenefitAverage = {}\n", benefitAverage);;
+            benefitStr.push_back(tmpStr);
+            string tmpStr = fmt::format("\tranks = {}\n", ranks);
+            benefitStr.push_back(tmpStr);
         }
         return benefitStr;
     }
