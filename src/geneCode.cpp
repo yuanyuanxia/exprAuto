@@ -1513,21 +1513,21 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     // }
 
     // set opTypes: method NO.3
-    int lenDataTypes = dataTypes.size();
-    int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
-    for(int num = 0; num < maxNum; num++)
-    {
-        auto currentNum = num;
-        std::map<int, string> opTypes;
-        for(size_t i = 0; i < lenOp; i++)
-        {
-            auto id = opSequence[i];
-            auto tmp = currentNum % lenDataTypes;
-            opTypes[id] = dataTypes[tmp];
-            currentNum = currentNum / lenDataTypes;
-        }
-        opTypesAll.push_back(opTypes);
-    }
+    // int lenDataTypes = dataTypes.size();
+    // int maxNum = pow(lenDataTypes, lenOp); // for dataTypes = {"ld", "double"}, maxNum = 1 << lenOp;
+    // for(int num = 0; num < maxNum; num++)
+    // {
+    //     auto currentNum = num;
+    //     std::map<int, string> opTypes;
+    //     for(size_t i = 0; i < lenOp; i++)
+    //     {
+    //         auto id = opSequence[i];
+    //         auto tmp = currentNum % lenDataTypes;
+    //         opTypes[id] = dataTypes[tmp];
+    //         currentNum = currentNum / lenDataTypes;
+    //     }
+    //     opTypesAll.push_back(opTypes);
+    // }
 
     // set opTypes: method NO.4
     // for (size_t i = 0; i < lenOp; i++)
@@ -1542,6 +1542,35 @@ int codegenWrapper(ast_ptr &expr, vector<string> &vars, const string uniqueLabel
     //     opTypes[id] = dataTypes.at(0); // DD
     //     opTypesAll.push_back(opTypes);
     // }
+
+    // set opTypes: method NO.5
+    opSequence.pop_back();
+    for(size_t numStep = 1; numStep < opSequence.size(); numStep++)
+    {
+        // judge if too many combination number
+        auto combNum = combination(numStep, opSequence.size());
+        if(combNum > 200)
+        {
+            cout << "ATTENTION: combination number " << combNum << " is too big to run!!!\n";
+            continue;
+        }
+        auto combResults = combinationNew(numStep, opSequence);
+        for(const auto &combResult : combResults)
+        {
+            mapOpType opTypes;
+            for(size_t j = 0; j < lenOp; j++)
+            {
+                auto id = opSequence[j];
+                opTypes[id] = dataTypes.at(1); // double
+            }
+            for(size_t j = 0; j < combResult.size(); j++)
+            {
+                auto id = combResult.at(j);
+                opTypes[id] = dataTypes.at(0); // DD
+            }
+            opTypesAll.push_back(opTypes);
+        }
+    }
 
     //// 2nd: loop the vector to generate code and do other things
     int currentNum = 0;
