@@ -320,13 +320,21 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         // compute n-step mixed-precision
         benefitStr.clear();
         // fmt::print("opSequence (remove the last step) for n-step: {}\n", opSequence);
-        string tmpStr = fmt::format("opSequence (remove the last step) for n-step: {}\n", opSequence);
+        string tmpStr = fmt::format("## mixed-precision predict\nopSequence (remove the last step) for n-step: {}\n", opSequence);
         benefitStr.push_back(tmpStr);
         for(size_t numStep = 1; numStep < opSequence.size(); numStep++)
+        // for(size_t numStep = 1; numStep < 2; numStep++)
         {
+            // judge if too many combination number
+            auto combNum = combination(numStep, opSequence.size());
+            if(combNum > 200)
+            {
+                cout << "ATTENTION: combination number " << combNum << " is too big to run!!!\n";
+                continue;
+            }
             auto combResults = combinationNew(numStep, opSequence);
             // fmt::print("for {}-step, combResult = {}\n", numStep, combResults);
-            tmpStr = fmt::format("for {}-step, combResult = {}\n", numStep, combResults);
+            tmpStr = fmt::format("### for {}-step\n\tcombResult = {}\n", numStep, combResults);
             benefitStr.push_back(tmpStr);
             vector<double> benefitAverage;
             vector<double> tmp(length, 1);
@@ -352,8 +360,175 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
             // fmt::print("\tranks = {}\n", ranks);
             tmpStr = fmt::format("\tbenefitAverage = {}\n", benefitAverage);;
             benefitStr.push_back(tmpStr);
-            string tmpStr = fmt::format("\tranks = {}\n", ranks);
+            tmpStr = fmt::format("\tranks = {}\n", ranks);
             benefitStr.push_back(tmpStr);
+            
+            benefitStr.push_back("step log\n");
+            cout << "step log\n";
+            for(size_t i = 0; i < benefitAverage.size(); i++)
+            {
+                // tmpStr = fmt::format("{}", combResults.at(i));
+                auto &combResult = combResults.at(i);
+                tmpStr = std::to_string(combResult.at(0));
+                for(size_t j = 1; j < combResult.size(); j++)
+                {
+                    tmpStr = tmpStr + "," + std::to_string(combResult.at(j));
+                }
+                tmpStr = tmpStr + " " + std::to_string(ranks.at(i)) + "\n";
+                cout << tmpStr;
+                benefitStr.push_back(tmpStr);
+            }
+        }
+        return benefitStr;
+    }
+    else
+    {
+        fprintf(stderr, "ERROR: %s : line %d: the type of T %s is not supported\n", __func__, __LINE__, typeid(T).name());
+        exit(EXIT_FAILURE);
+    }
+}
+
+template <typename T>
+vector<string> computeEpsilonENew(vector<T> &benefit, vector<T> &epsilonE, const vector<T> &errorValues, const vector<T> &conditionNumbersOp, const vector<int> &condNumOrder, const vector<int> &opSequence, const int length = 1)
+{
+    constexpr bool TisDouble = (std::is_same<double, T>::value);
+    constexpr bool TisDoublePointer = (std::is_same<double *, T>::value);
+    if constexpr (TisDouble)
+    {
+        vector<string> epsilonEStr;
+        for(size_t i = 0; i < errorValues.size(); i++)
+        {
+            epsilonE.at(i) = errorValues.at(i) * conditionNumbersOp.at(condNumOrder.at(i));
+            epsilonEStr.push_back(std::to_string(epsilonE.at(i)));
+        }
+        auto sum = std::accumulate(epsilonE.begin(), epsilonE.end(), 0.0);
+        fmt::print("the average of epsilonE are: {}\n", epsilonE);
+        std::cout << "The sum of the elements in the vector is: " << sum << std::endl;
+        
+        // compute benefit
+        double minBenefit = std::numeric_limits<double>::infinity();
+        int minBenefitIdx = std::numeric_limits<int>::infinity();
+        for(size_t i = 0; i < errorValues.size(); i++)
+        {
+            benefit.at(i) = fabs(sum - epsilonE.at(i));
+            if(benefit.at(i) < minBenefit)
+            {
+                minBenefit = benefit.at(i);
+                minBenefitIdx = i;
+            }
+        }
+        fmt::print("the benefit of steps are: {}\n", benefit);
+        std::cout << "minBenefitIdx: " << minBenefitIdx << ", minBenefit: " << minBenefit << std::endl;
+
+        return epsilonEStr;
+    }
+    else if constexpr (TisDoublePointer)
+    {
+        vector<double> epsilonEAverage(errorValues.size(), 0.0);
+        vector<double> errorValuesAverage(errorValues.size(), 0.0);
+        vector<double> conditionNumbersOpAverage(errorValues.size(), 0.0);
+        vector<double> sumOfAll(length, 0.0);
+
+        // compute epsilonE and its sum. These 3 average values are not useful
+        for(size_t i = 0; i < errorValues.size(); i++)
+        {
+            for(int j = 0; j < length; j++)
+            {
+                epsilonE.at(i)[j] = errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j];
+                epsilonEAverage.at(i) += epsilonE.at(i)[j];
+                errorValuesAverage.at(i) += errorValues.at(i)[j];
+                conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
+                sumOfAll.at(j) += epsilonE.at(i)[j];
+            }
+            epsilonEAverage.at(i) /= length;
+            errorValuesAverage.at(i) /= length;
+            conditionNumbersOpAverage.at(i) /= length;
+        }
+        // auto sum = std::accumulate(epsilonEAverage.begin(), epsilonEAverage.end(), 0.0);
+        auto sum = std::accumulate(sumOfAll.begin(), sumOfAll.end(), 0.0);
+        auto sumAverage = fabs(sum / length);
+
+        // compute benefit for 1-step
+        // notes: benefit is the predicted error value after mixed-precision tuning.
+        vector<double> minBenefit(length, std::numeric_limits<double>::infinity());
+        vector<int> minBenefitIdx(length, std::numeric_limits<int>::infinity());
+        vector<double> benefitAverage(errorValues.size(), 0.0);
+        for(size_t i = 0; i < errorValues.size(); i++)
+        {
+            for(int j = 0; j < length; j++)
+            {
+                benefit.at(i)[j] = fabs(sumOfAll.at(j) - epsilonE.at(i)[j]);
+                if(benefit.at(i)[j] < minBenefit.at(j))
+                {
+                    minBenefit.at(j) = benefit.at(i)[j];
+                    minBenefitIdx.at(j) = i;
+                }
+                benefitAverage.at(i) += benefit.at(i)[j];
+            }
+            benefitAverage.at(i) /= length;
+        }
+
+        // print
+        vector<string> benefitStr;
+        // compute n-step mixed-precision
+        // string tmpStr = fmt::format("## mixed-precision predict\nopSequence (remove the last step) for n-step: {}\n", opSequence);
+        // benefitStr.push_back(tmpStr);
+        string tmpStr;
+        for(size_t numStep = 1; numStep < opSequence.size(); numStep++)
+        {
+            // judge if too many combination number
+            auto combNum = combination(numStep, opSequence.size());
+            if(combNum > 200)
+            {
+                cout << "ATTENTION: combination number " << combNum << " is too big to run!!!\n";
+                continue;
+            }
+            auto combResults = combinationNew(numStep, opSequence);
+            fmt::print("for {}-step, combResult = {}\n", numStep, combResults);
+            // tmpStr = fmt::format("### for {}-step\n\tcombResult = {}\n", numStep, combResults);
+            // benefitStr.push_back(tmpStr);
+            vector<double> benefitAverage;
+            vector<double> tmp(length, 1);
+            for(const auto &combResult : combResults)
+            {
+                double benefitTmp = 0.0;
+                for(int j = 0; j < length; j++)
+                {
+                    tmp.at(j) = sumOfAll.at(j);
+                    for(size_t i = 0; i < combResult.size(); i++)
+                    {
+                        auto stepIdx = combResult.at(i);
+                        tmp.at(j) = tmp.at(j) - epsilonE.at(stepIdx)[j];
+                    }
+                    tmp.at(j) = fabs(tmp.at(j));
+                    benefitTmp += tmp.at(j);
+                }
+                benefitTmp /= length;
+                benefitAverage.push_back(benefitTmp);
+            }
+            auto ranks = getRanks(benefitAverage, false);
+            fmt::print("\tbenefitAverage = {}\n", benefitAverage);
+            fmt::print("\tranks = {}\n", ranks);
+            // tmpStr = fmt::format("\tbenefitAverage = {}\n", benefitAverage);;
+            // benefitStr.push_back(tmpStr);
+            // tmpStr = fmt::format("\tranks = {}\n", ranks);
+            // benefitStr.push_back(tmpStr);
+            
+            // benefitStr.push_back("step log\n");
+            cout << "step log\n";
+            for(size_t i = 0; i < benefitAverage.size(); i++)
+            {
+                // tmpStr = fmt::format("{}", combResults.at(i));
+                auto &combResult = combResults.at(i);
+                tmpStr = std::to_string(combResult.at(0));
+                for(size_t j = 1; j < combResult.size(); j++)
+                {
+                    tmpStr = tmpStr + "," + std::to_string(combResult.at(j));
+                }
+                tmpStr = tmpStr + " " + std::to_string(ranks.at(i));
+                cout << tmpStr << "\n";
+                benefitStr.push_back(tmpStr);
+            }
         }
         return benefitStr;
     }
@@ -1394,7 +1569,8 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     vector<int> opSequence;
     getOrders(expr, opSequence);
     opSequence.pop_back();
-    auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
+    // auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
+    auto epsilonEStr = computeEpsilonENew(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
 
     // shadowValuePrint(funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, conditionNumbersOp, epsilonE, varsValue, length, ifUnique, uniqueLabel, funcName);
     return epsilonEStr;
