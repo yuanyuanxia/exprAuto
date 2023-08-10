@@ -291,6 +291,28 @@ int main()
             //// generate input data for shadow value
             vector<double *> values1;
             size_t inputNum = 100000;
+            size_t inputAllNum = 100000;
+            if (dimension == 1)
+            {
+                inputNum = 100000;
+            }
+            else if (dimension == 2)
+            {
+                inputNum = 316; // 316*316=99,856
+            }
+            else if (dimension == 3)
+            {
+                inputNum = 100;
+            }
+            else if (dimension == 4)
+            {
+                inputNum = 18; // 18*18*18*18=104,976
+            }
+            else
+            {
+                inputNum = 10;
+            }
+            inputAllNum = pow(inputNum, dimension);
             for(int i = 0; i < dimension; i++)
             {
                 auto &startOriginInterval = intervals.at(i * 2);
@@ -298,10 +320,10 @@ int main()
                 double width = endOriginInterval - startOriginInterval;
                 double step = width / inputNum;
 
-                double *tmp = new double[inputNum];
-                for(size_t j = 0; j < inputNum; j++)
+                double *tmp = new double[inputAllNum];
+                for(size_t j = 0; j < inputAllNum; j++)
                 {
-                    tmp[j] = startOriginInterval + j * step;
+                    tmp[j] = startOriginInterval + (j % inputNum) * step;
                 }
                 values1.push_back(tmp);
             }
@@ -318,10 +340,10 @@ int main()
             string tmpStr;
             tmpStr = fmt::format("expr: {}\n", exprOrigin);
             epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
-            tmpStr = fmt::format("uniqueLabel: {}\n", uniqueLabel);
+            tmpStr = fmt::format("# uniqueLabel: {}\n", uniqueLabel);
             epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
             std::ofstream outputFile;
-            outputFile.open("mixPrec.log", std::ios::out | std::ios::app);
+            outputFile.open("mixPrecNew.log", std::ios::out | std::ios::app);
             if (outputFile.is_open() == false)
             {
                 exit(EXIT_FAILURE);
@@ -329,13 +351,13 @@ int main()
             for(int i = 0; i < (int)epsilonEStr.size(); i++)
             {
                 auto &epsilonEStrNow = epsilonEStr.at(i);
-                cout << epsilonEStrNow;
+                cout << epsilonEStrNow << "\n";
                 outputFile << epsilonEStrNow;
             }
             outputFile << "\n";
-            outputFile.close();
-            fprintf(stderr, GREEN "ready> " RESET);
-            continue;
+            // outputFile.close();
+            // fprintf(stderr, GREEN "ready> " RESET);
+            // continue;
             //// TODO: free values1
 
             //// support DD
@@ -360,30 +382,48 @@ int main()
             vector<exprInfo> infos;
             vector<double> perfValues;
             for(int i = 0; i < maxNum; i++) {
-                // cout << "\n\n-test error-" << i << "\n";
+                cout << "\n\n-test error-" << i << "\n";
                 string tmp = "dd_" + std::to_string(i);
-                // auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
                 auto tmpPerformance = testPerformance(uniqueLabel, tmp, intervals);
                 cout << tmp << " performance: " << tmpPerformance << "\n\n";
-                // infos.push_back(infoTmp);
+                infos.push_back(infoTmp);
                 perfValues.push_back(tmpPerformance);
             }
             // cout << std::left << setw(4) << "No";
             // cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
-            cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "performamce" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            cout << "\n## Actual data\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "performamce" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
+            outputFile << "\n## Actual data\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "performamce" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
             for(size_t i = 0; i < opSequence.size(); i++) {
                 cout << "step Type ";
+                outputFile << "step Type ";
             }
             cout << "\n";
+            outputFile << "\n";
             for(int i = 0; i < maxNum; i++)
             {
-                // auto &info = infos.at(i);
+                auto &info = infos.at(i);
                 auto &opTypeStr = outputStr.at(i);
                 // cout << std::left << setw(4) << i << opTypeStr << "\n";
-                cout << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << "\n";
-                // cout << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+                // cout << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << "\n";
+                cout << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
+                outputFile << std::left << setw(6) << i << std::left << setw(15) << perfValues.at(i) << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << opTypeStr << "\n";
             }
+            outputFile << "\n\n";
 
+            outputFile << "## Final data\n\n";
+            cout << "\n\n## Final data\n\n";
+            cout << std::left << setw(6) << "No" << std::left << setw(15) << "step log" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err" << "performamce\n";
+            outputFile << std::left << setw(6) << "No" << std::left << setw(15) << "step log" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err" << "performamce\n";
+            for(int i = 0; i < maxNum; i++)
+            {
+                auto &info = infos.at(i);
+                auto &opTypeStr = outputStr.at(i);
+                cout << std::left << setw(6) << i << std::left << setw(15) << epsilonEStr.at(i + 2) << " " << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << std::left << setw(15) << perfValues.at(i) << "\n";
+                outputFile << std::left << setw(6) << i << std::left << setw(15) << epsilonEStr.at(i + 2) << " " << std::left << setw(15) << info.aveError << std::left << setw(15) << info.maxError << std::left << setw(15) << perfValues.at(i) << "\n";
+            }
+            outputFile << "\n\n";
+            outputFile.close();
             fprintf(stderr, GREEN "ready> " RESET);
             continue;
 
