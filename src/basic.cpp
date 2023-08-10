@@ -884,9 +884,9 @@ vector<vector<int>> combinationNew(const int num, const vector<int> &indexs)
     return set;
 }
 
-inline unsigned int factorial(unsigned int value)
+inline double factorial(unsigned int value)
 {
-    unsigned int local_value = value;
+    double local_value = value;
     while(value-- > 1)
     {
         local_value *= value;
