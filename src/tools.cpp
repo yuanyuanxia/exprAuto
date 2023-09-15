@@ -421,7 +421,7 @@ exprInfo testError(string uniqueLabel, string suffix, const vector<double> &inte
         string commandStr = ss.str();
 
         // cout << "fileNameKernel: " << fileNameKernel << "\n";
-        // cout << "command: " << commandStr << "\n";
+        cout << "command: " << commandStr << "\n";
         // cout << "testName: " << testName << "\n";
         char command[512] = {0};
         strcat(command, commandStr.c_str());

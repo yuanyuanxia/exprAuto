@@ -338,10 +338,10 @@ int main()
 
             auto epsilonEStr = Shadow::shadowValue<double *>(originExpr, varsValue1, inputNum);
             string tmpStr;
-            tmpStr = fmt::format("expr: {}\n", exprOrigin);
-            epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
-            tmpStr = fmt::format("# uniqueLabel: {}\n", uniqueLabel);
-            epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
+            // tmpStr = fmt::format("expr: {}\n", exprOrigin);
+            // epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
+            // tmpStr = fmt::format("# uniqueLabel: {}\n", uniqueLabel);
+            // epsilonEStr.insert(epsilonEStr.begin(), tmpStr);
             std::ofstream outputFile;
             outputFile.open("mixPrecNew.log", std::ios::out | std::ios::app);
             if (outputFile.is_open() == false)
@@ -355,7 +355,7 @@ int main()
                 outputFile << epsilonEStrNow;
             }
             outputFile << "\n";
-            // outputFile.close();
+            outputFile.close();
             // fprintf(stderr, GREEN "ready> " RESET);
             // continue;
             //// TODO: free values1
@@ -378,18 +378,20 @@ int main()
                 double step = width / (double)scales.at(i);
                 steps.push_back(step);
             }
-            // testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            testError(uniqueLabel, "origin", intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
             vector<exprInfo> infos;
             vector<double> perfValues;
-            for(int i = 0; i < maxNum; i++) {
-                cout << "\n\n-test error-" << i << "\n";
-                string tmp = "dd_" + std::to_string(i);
-                auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
-                auto tmpPerformance = testPerformance(uniqueLabel, tmp, intervals);
-                cout << tmp << " performance: " << tmpPerformance << "\n\n";
-                infos.push_back(infoTmp);
-                perfValues.push_back(tmpPerformance);
-            }
+            // for(int i = 0; i < maxNum; i++) {
+            //     cout << "\n\n-test error-" << i << "\n";
+            //     string tmp = "dd_" + std::to_string(i);
+            //     auto infoTmp = testError(uniqueLabel, tmp, intervals, scales, startNowIdxs, startOriginIntervals, steps, false);
+            //     auto tmpPerformance = testPerformance(uniqueLabel, tmp, intervals);
+            //     cout << tmp << " performance: " << tmpPerformance << "\n\n";
+            //     infos.push_back(infoTmp);
+            //     perfValues.push_back(tmpPerformance);
+            // }
+            fprintf(stderr, GREEN "ready> " RESET);
+            continue;
             // cout << std::left << setw(4) << "No";
             // cout << "\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";
             cout << "\n## Actual data\n\n" << std::left << setw(6) << "No" << std::left << setw(15) << "performamce" << std::left << setw(15) << "average_Err" << std::left << setw(15) << "max_Err";

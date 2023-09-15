@@ -244,7 +244,7 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
                 epsilonE.at(i)[j] = errorValues.at(i)[j] * conditionNumbersOp.at(condNumOrder.at(i))[j];
                 epsilonEAverage.at(i) += epsilonE.at(i)[j];
                 errorValuesAverage.at(i) += errorValues.at(i)[j];
-                conditionNumbersOpAverage.at(i) += conditionNumbersOp.at(i)[j];
+                conditionNumbersOpAverage.at(i) += fabs(conditionNumbersOp.at(i)[j]);
                 sumOfAll.at(j) += epsilonE.at(i)[j];
             }
             epsilonEAverage.at(i) /= length;
@@ -302,7 +302,7 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         auto ranks = getRanks(benefitAverage, false);
         // fmt::print("{:^4} {:<15}\n", "rank", "benefit");
         // fmt::print("{:<3} {:^4} {:<15}\n", "NO.", "rank", "benefit");
-        // fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
+        fmt::print("{:<3} {:<4} {:<15} {:<15} {:<15} {:<15}\n", "No.", "rank", "errValAver", "condNumOpAver", "epsilonEAver", "benefit");
         vector<string> benefitStr;
         for(size_t i = 0; i < benefitAverage.size(); i++)
         {
@@ -316,9 +316,9 @@ vector<string> computeEpsilonE(vector<T> &benefit, vector<T> &epsilonE, const ve
         }
         string sumStr = fmt::format("The average sum of the epsilon is {:g}\n", sumAverage);
         benefitStr.push_back(sumStr);
-
+        return benefitStr;
         // compute n-step mixed-precision
-        benefitStr.clear();
+        // benefitStr.clear();
         // fmt::print("opSequence (remove the last step) for n-step: {}\n", opSequence);
         string tmpStr = fmt::format("## mixed-precision predict\nopSequence (remove the last step) for n-step: {}\n", opSequence);
         benefitStr.push_back(tmpStr);
@@ -1294,7 +1294,7 @@ valueThree<T> shadowValueKernel(const ast_ptr &expr, const std::map<string, T> &
             }
             funcRealValues.push_back(tmpfuncRealValues);
             mathRealValues.push_back(tmpmathRealValues);
-            errorValues.push_back(tmpErrorValues);
+            errorValues.push_back(tmpErrorValues); // error between funcRealValue and funcValue
             result.realValue = tmpmathRealValues;
             result.ulpValue = tmpUlpValues;
         }
@@ -1541,7 +1541,7 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     std::vector<ParamType<T>> funcRealValues;
     std::vector<ParamType<T>> mathRealValues;
     vector<int> errorValueOrder; // for conditionNumbers vector, store the corresponding errorValue order
-    shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length);
+    shadowValueKernel<T>(expr, varsValue, funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, errorValueOrder, length); // compute condition numbers of each operation in expr for varsValue. This condition number is only for the corresponding opeation.
     errorValueOrder.push_back(conditionNumbers.size()); // 令condNumber最后一个元素指向conditionNumber的最后一个元素，同时保证其长度同errorValues、conditionNumberOp一致
     // fmt::print("errorValueOrder: {}\n", errorValueOrder);
     vector<int> condNumOrder; // for errorValue vector, store the corresponding conditionNumbers order
@@ -1565,12 +1565,12 @@ vector<string> shadowValue(const ast_ptr &expr, const std::map<string, T> &varsV
     shadowValueInit(conditionNumbersOp, benefit, epsilonE, conditionNumbers.size() + 1, length);
     int IDfather = conditionNumbersOp.size() - 1;
     int IDnow = conditionNumbers.size() - 1;
-    computeConditionNumber(expr, conditionNumbers, conditionNumbersOp, IDfather, IDnow, length);
+    computeConditionNumber(expr, conditionNumbers, conditionNumbersOp, IDfather, IDnow, length); // compute the segma condition number for operations.
     vector<int> opSequence;
     getOrders(expr, opSequence);
     opSequence.pop_back();
-    // auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
-    auto epsilonEStr = computeEpsilonENew(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
+    auto epsilonEStr = computeEpsilonE(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
+    // auto epsilonEStr = computeEpsilonENew(benefit, epsilonE, errorValues, conditionNumbersOp, condNumOrder, opSequence, length);
 
     // shadowValuePrint(funcValues, funcRealValues, mathRealValues, errorValues, conditionNumbers, conditionNumbersOp, epsilonE, varsValue, length, ifUnique, uniqueLabel, funcName);
     return epsilonEStr;
