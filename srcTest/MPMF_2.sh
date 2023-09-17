@@ -2,13 +2,12 @@
 # set -x
 # 多精度版本函数的路径是TGen的路径，特定于北京服务器的固定路径。
 # NMSEproblem345的双参特供版，能修改其中的tan, sin函数的精度版本，用来测试使用不同函数的表达式的性能和精度
-#init for mix-precision
+
+# init for multi-precision func
 source funcMap.sh
-func1=tan
-func2=sin
-path_TGen=/home/xyy/helloBro/TGen
-path_func1=${path_TGen}/${func1}_gen
-path_func2=${path_TGen}/${func2}_gen
+source init.sh
+
+# init for current path
 path_current=`pwd`
 temp_file=${path_current}/temp.log # 临时文件，在循环中被刷新
 log_file=${path_current}/hjw.log # 其中依次记录的是: 函数名, bit, degree, 平均误差, 最大误差, 性能节拍
@@ -16,33 +15,6 @@ log_file=${path_current}/hjw.log # 其中依次记录的是: 函数名, bit, deg
 if [ -f "${log_file}" ]; then
     rm "${log_file}"
 fi
-
-# init for error detection and performance detection
-uniqueLabel=NMSEproblem345
-x0Start=0.01
-x0End=100
-x0Size=500000
-x0startNowIdx=0
-x0startOriginInterval=0.01
-stepX0=0.00019998
-prefix=expr_${uniqueLabel}
-middle=${x0Start}
-suffix=origin
-errfile=0
-
-# init for the expression code file
-expr_file=${uniqueLabel}/${prefix}_${suffix}.c
-expr_bkp_file=${uniqueLabel}/${prefix}_${suffix}_bkp.c
-if [ -f "${expr_bkp_file}" ]; then
-    cp ${expr_bkp_file} ${expr_file}
-else
-    echo "ERROR"
-    exit
-fi
-sed -i "1a\#include \"${func1}_gen.c\"" ${expr_file}
-sed -i "2a\#include \"${func2}_gen.c\"" ${expr_file}
-sed -i "s@${func1}(@${func1}_gen(@g" ${expr_file}
-sed -i "s@${func2}(@${func2}_gen(@g" ${expr_file}
 
 # loop to generate different version
 
