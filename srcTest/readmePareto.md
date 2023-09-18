@@ -21,7 +21,7 @@
 
 ## 新思路
 
-步骤：
+双函数的步骤：
 
 0. 预处理：把误差低于float32的都删除
 1. 先用 pareto_singleFunc.py 生成各函数的帕累托优化结果 (NMSEproblem345 sin tan)
@@ -30,7 +30,10 @@
 4. 再用 pareto_twoFunc.py 对该集合执行帕累托优化，缩小数量
 5. 最后用 sortData.py 对混合精度方案按照误差升序排序
 
-对应的执行脚本：
+双函数执行脚本：
+
+shell script name: pareto_all.sh
+
 ```shell
 python3 pareto_singleFunc.py sin
 python3 pareto_singleFunc.py tan
@@ -38,4 +41,23 @@ python3 combine_2.py
 ./getRealErrCost.sh
 python3 pareto_twoFunc.py
 python3 sortData.py
+```
+
+单函数的步骤：
+
+0. 预处理：把误差低于float32的都删除
+1. 先用 pareto_singleFunc.py 生成函数的帕累托优化结果 (exp1x exp)
+2. 再用 getRealErrCost_1.sh 对所有的混合精度方案进行测试，生成表达式的实际值构成的误差-开销二元组集合
+3. 再用 pareto_singleFunc.py 对该集合执行帕累托优化，缩小数量
+4. 最后用 sortData.py 对混合精度方案按照误差升序排序
+
+单函数执行脚本：
+
+shell script name: pareto_all_1.sh
+
+```shell
+python3 pareto_singleFunc.py exp_gen_0.01-0.5
+./getRealErrCost_1.sh exp1x exp
+python3 pareto_singleFunc.py exp1x exp
+python3 sortData.py exp1x exp
 ```
