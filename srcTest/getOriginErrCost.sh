@@ -14,9 +14,11 @@ cd - >/dev/null
 ./testPerformanceOneManual.sh logexp origin -8 8
 
 cd ..
-./detectErrorOneFPEDParallel.sh NMSEproblem343 -1 1 500000 0 -1 4e-06 expr_NMSEproblem343 -1_1_500000 origin 0
+# ./detectErrorOneFPEDParallel.sh NMSEproblem343 -1 1 500000 0 -1 4e-06 expr_NMSEproblem343 -1_1_500000 origin 0
+./detectErrorOneFPEDParallel.sh NMSEproblem343 -0.5 0.5 500000 0 -0.5 2e-06 expr_NMSEproblem343 -0.5_0.5_500000 origin 0
 cd - >/dev/null
-./testPerformanceOneManual.sh NMSEproblem343 origin -1 1
+# ./testPerformanceOneManual.sh NMSEproblem343 origin -1 1
+./testPerformanceOneManual.sh NMSEproblem343 origin -0.5 0.5
 
 cd ..
 ./detectErrorOneFPEDParallel.sh exp1x 0.01 0.5 500000 0 0.01 9.8e-07 expr_exp1x 0.01_0.5_500000 origin 0
@@ -37,3 +39,40 @@ cd ..
 ./detectErrorOneFPEDParallel.sh NMSEproblem341 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem341 0.01_100_500000 origin 0
 cd - >/dev/null
 ./testPerformanceOneManual.sh NMSEproblem341 origin 0.01 100
+
+cd ..
+# ./detectErrorOneFPEDParallel.sh NMSEexample310 -1 1 500000 0 -1 4e-06 expr_NMSEexample310 -1_1_500000 origin 0
+./detectErrorOneFPEDParallel.sh NMSEexample310 -0.5 0.5 500000 0 -0.5 2e-06 expr_NMSEexample310 -0.5_0.5_500000 origin 0
+cd - >/dev/null
+# ./testPerformanceOneManual.sh NMSEexample310 -1 1
+./testPerformanceOneManual.sh NMSEexample310 -0.5 0.5
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEexample35 0.01 100 500000 0 0.01 0.00019998 expr_NMSEexample35 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEexample35 0.01 100
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEexample38 0.01 100 500000 0 0.01 0.00019998 expr_NMSEexample38 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEexample38 0.01 100
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEproblem336 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem336 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEproblem336 0.01 100
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEproblem337 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem337 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEproblem337 0.01 100
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEproblem344 0.01 100 500000 0 0.01 0.00019998 expr_NMSEproblem344 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEproblem344 0.01 100
+
+cd ..
+./detectErrorOneFPEDParallel.sh NMSEsection311 0.01 100 500000 0 0.01 0.00019998 expr_NMSEsection311 0.01_100_500000 origin 0
+cd - >/dev/null
+./testPerformanceOneManual.sh NMSEsection311 0.01 100

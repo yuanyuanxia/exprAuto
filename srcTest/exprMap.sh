@@ -5,33 +5,54 @@ declare -A x0Starts=(
     ["NMSEproblem345"]=0.01
     ["NMSEexample34"]=0.01
     ["logexp"]=-8
-    ["NMSEproblem343"]=-1
+    ["NMSEproblem343"]=-0.5 # -1
     ["exp1x"]=0.01
     ["NMSEexample37"]=0.01
     ["NMSEexample39"]=0.01
     ["NMSEproblem341"]=0.01
+    ["NMSEexample310"]=-0.5 # -1
+    ["NMSEexample35"]=0.01
+    ["NMSEexample38"]=0.01
+    ["NMSEproblem336"]=0.01
+    ["NMSEproblem337"]=0.01
+    ["NMSEproblem344"]=0.01
+    ["NMSEsection311"]=0.01
 )
 
 declare -A x0Ends=(
     ["NMSEproblem345"]=100
     ["NMSEexample34"]=3
     ["logexp"]=8
-    ["NMSEproblem343"]=1
+    ["NMSEproblem343"]=0.5 # 1
     ["exp1x"]=0.5
     ["NMSEexample37"]=100
     ["NMSEexample39"]=1
     ["NMSEproblem341"]=100
+    ["NMSEexample310"]=0.5 # 1
+    ["NMSEexample35"]=100
+    ["NMSEexample38"]=100
+    ["NMSEproblem336"]=100
+    ["NMSEproblem337"]=100
+    ["NMSEproblem344"]=100
+    ["NMSEsection311"]=100
 )
 
 declare -A stepX0s=(
     ["NMSEproblem345"]=0.00019998
     ["NMSEexample34"]=5.98e-06
     ["logexp"]=3.2e-05
-    ["NMSEproblem343"]=4e-06
+    ["NMSEproblem343"]=2e-06 # 4e-06
     ["exp1x"]=9.8e-07
     ["NMSEexample37"]=0.00019998
     ["NMSEexample39"]=1.98e-06
     ["NMSEproblem341"]=0.00019998
+    ["NMSEexample310"]=2e-06 # 4e-06
+    ["NMSEexample35"]=0.00019998
+    ["NMSEexample38"]=0.00019998
+    ["NMSEproblem336"]=0.00019998
+    ["NMSEproblem337"]=0.00019998
+    ["NMSEproblem344"]=0.00019998
+    ["NMSEsection311"]=0.00019998
 )
 
 declare -A func1s=(
@@ -43,6 +64,13 @@ declare -A func1s=(
     ["NMSEexample37"]=exp
     ["NMSEexample39"]=tan
     ["NMSEproblem341"]=cos
+    ["NMSEexample310"]=log
+    ["NMSEexample35"]=atan
+    ["NMSEexample38"]=log
+    ["NMSEproblem336"]=log
+    ["NMSEproblem337"]=exp
+    ["NMSEproblem344"]=exp
+    ["NMSEsection311"]=exp
 )
 
 declare -A func2s=(
