@@ -63,7 +63,7 @@ taskset -c 0 ./pareto_all_1.sh NMSEproblem336 0.01 101
 
 # NMSEproblem337 := ((exp(x) + (-1.0 * 2.0)) + exp((-1.0 * x)))
 # x: [0.01, 100]
-# log: [-100, -0.01] & [0.01, 100]
+# exp: [-100, -0.01] & [0.01, 100]
 taskset -c 0 ./pareto_all_1.sh NMSEproblem337 -100 100
 
 # NMSEproblem344 := (exp(x) / (exp(x) - 1.0))
