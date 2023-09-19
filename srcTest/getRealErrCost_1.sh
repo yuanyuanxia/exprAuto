@@ -56,7 +56,7 @@ expr_bkp_file=${uniqueLabel}/${prefix}_${suffix}_bkp.c
 if [ -f "${expr_bkp_file}" ]; then
     cp ${expr_bkp_file} ${expr_file}
 else
-    echo "ERROR"
+    echo "ERROR: fail to open ${expr_bkp_file}"
     exit
 fi
 sed -i "1a\#include \"${func1}_gen.c\"" ${expr_file}
