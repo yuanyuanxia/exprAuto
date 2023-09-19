@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 def geneData(file1):
     data = pd.read_csv(file1, sep='\t')
@@ -40,11 +41,22 @@ def writeToFile(data, file_path, func1, func2):
 
 # 默认读取1个文件：func1.csv，存储的是函数的误差-开销信息
 if __name__ == '__main__':
-    expr = "NMSEproblem345"
-    inputFile = expr + "_errPerf.csv"
-    outputFile = expr + "_errPerfPareto.csv"
+    uniqueLabel = "NMSEproblem345"
     func1 = "sin"
     func2 = "tan"
+    # 读取命令行参数, 并检查是否传递了参数
+    arguments = sys.argv
+    if len(arguments) > 4:
+        print("please input only 2 or 3 paremeters or none paremeter!")
+        sys.exit(1)
+    elif len(arguments) == 4: # 表达式中只有一个函数。用于实测性能误差后的对表达式的帕累托优化
+        uniqueLabel = arguments[1] # arguments[2] 为 NMSEexample34, 即优化表达式
+
+        func1 = arguments[2] # arguments[1] 为 sin， 即优化函数
+        func2 = arguments[3] # arguments[2] 为 cos， 即优化函数
+
+    inputFile = uniqueLabel + "_errPerf.csv"
+    outputFile = uniqueLabel + "_errPerfPareto.csv"
 
     input_points = geneData(inputFile)
     pareto_result = pareto_optimal(input_points)

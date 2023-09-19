@@ -59,9 +59,19 @@ if __name__ == '__main__':
     arguments = sys.argv
 
     # 检查是否传递了参数
-    if len(arguments) > 3:
-        print("please input only 2 paremeters or none paremeter!")
+    if len(arguments) > 4:
+        print("please input only 2 or 3 paremeters or none paremeter!")
         sys.exit(1)
+    elif len(arguments) == 4: # 表达式中只有一个函数。用于实测性能误差后的对表达式的帕累托优化
+        uniqueLabel = arguments[1] # arguments[2] 为 NMSEexample34, 即优化表达式
+
+        inputFile = uniqueLabel + "_errPerfPareto.csv"
+        outputFile = uniqueLabel + "_errPerfParetoSorted.csv"
+        sort_column = int(2) # 说明表达式中有1个函数，故第3列才是平均误差
+        func1 = arguments[2] # arguments[1] 为 sin， 即优化函数
+        func2 = arguments[3] # arguments[2] 为 cos， 即优化函数
+
+        sort_csv_by_column(inputFile, outputFile, sort_column, func1, func2)
     elif len(arguments) == 3: # 表达式中只有一个函数。用于实测性能误差后的对表达式的帕累托优化
         uniqueLabel = arguments[1] # arguments[2] 为 exp1x, 即优化表达式
 

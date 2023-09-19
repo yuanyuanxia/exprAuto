@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 import itertools
 import math
 
@@ -86,5 +87,19 @@ if __name__ == '__main__':
     func2OutputFile = func2 + "Output.csv"
     uniqueLabel = "NMSEproblem345"
     outputFile = uniqueLabel + "Output.csv"
+    # 读取命令行参数
+    arguments = sys.argv
+    # 检查是否传递了参数
+    if len(arguments) > 4:
+        print("please input only 2 paremeters or none paremeter!")
+        sys.exit(1)
+    elif len(arguments) == 4:
+        uniqueLabel = arguments[1]
+        func1 = arguments[2] # arguments[2] 为 sin， 即优化函数
+        func2 = arguments[3] # arguments[3] 为 cos， 即优化函数
+        func1OutputFile = func1 + "Output.csv"
+        func2OutputFile = func2 + "Output.csv"
+        outputFile = uniqueLabel + "Output.csv"
+
     input_points = geneData(func1OutputFile, func2OutputFile)
     writeToFile(input_points, outputFile)
