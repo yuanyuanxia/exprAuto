@@ -50,7 +50,7 @@ sourceFile=${prefix}_${suffix}
 fileNameKernel=${prefix}__${middle}_${suffix}
 
 # echo "${CC} ${testFileName}.c ${sourceFile}.c ${prefix}_mpfr.c computeULP.c -IincludeTEST -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -lmpfr -lm -O3 -o ${testFileName}.exe"
-${CC} ./srcTest/${testFileName}.c ${directory}/${sourceFile}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -D${ERRORMODEL} -Llibs -lTGen -lmpfr -lm -lqd -o ${testFileName}.exe
+${CC} ./srcTest/${testFileName}.c ${directory}/${sourceFile}.c ${directory}/${prefix}_mpfr.c ./srcTest/computeULP.c -IincludeTEST -IincludeDD -DEXPRESSION=${prefix}_ -DSUFFIX=${suffix} -DERRFILE=${errfile} -D${ERRORMODEL} -Llibs -lTGen -lmpfr -lm -lqd -mfma -o ${testFileName}.exe
 # echo "mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${fileNameKernel}"
 mpirun -n ${numProcs} ./${testFileName}.exe ${x0Start} ${x0End} ${x0Size} ${x0startNowIdx} ${x0startOriginInterval} ${stepX0} ${fileNameKernel} ${uniqueLabel}
 # mv outputs/${fileNameKernel}_error.txt ./outputs/${uniqueLabel}/${fileNameKernel}_error.txt

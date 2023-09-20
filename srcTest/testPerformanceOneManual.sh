@@ -31,7 +31,7 @@ funcName=expr_${uniqueLabel}_${suffix}
 # make testPerformanceOne.o -s CFLAGS="-DFUNCNAME=${funcName} -DRUNTIME=${runtime}"
 gcc testPerformanceOne.c -DFUNCNAME=${funcName} -DRUNTIME=${runtime} -I../includeTEST -c -O3
 make binary.o -s # gcc binary.c -I../includeTEST -c -O3
-gcc ${uniqueLabel}/${funcName}.c -I../includeDD -c -O3
+gcc ${uniqueLabel}/${funcName}.c -I../includeDD -c -O3 -mfma
 gcc testPerformanceOne.o binary.o ${funcName}.o ../libs/libTGen.so -lmpfr -lm -lqd -o testPerformanceOne_${uniqueLabel}.exe -O3
 ./testPerformanceOne_${uniqueLabel}.exe ${resultFileName} ${start} ${end}
 # rm -rf testPerformanceOne_${uniqueLabel}.exe
