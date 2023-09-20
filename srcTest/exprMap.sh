@@ -5,6 +5,7 @@ declare -A x0Starts=(
     ["NMSEproblem345"]=0.01
     ["NMSEexample34"]=0.01
     ["logexp"]=-8
+    ["exp1x_log"]=0.01
     ["NMSEproblem343"]=-0.5 # -1
     ["exp1x"]=0.01
     ["NMSEexample37"]=0.01
@@ -17,12 +18,15 @@ declare -A x0Starts=(
     ["NMSEproblem337"]=0.01
     ["NMSEproblem344"]=0.01
     ["NMSEsection311"]=0.01
+    ["theta"]=1
+    ["ComplexSinCos"]=0
 )
 
 declare -A x0Ends=(
     ["NMSEproblem345"]=100
     ["NMSEexample34"]=3
     ["logexp"]=8
+    ["exp1x_log"]=0.5
     ["NMSEproblem343"]=0.5 # 1
     ["exp1x"]=0.5
     ["NMSEexample37"]=100
@@ -35,12 +39,15 @@ declare -A x0Ends=(
     ["NMSEproblem337"]=100
     ["NMSEproblem344"]=100
     ["NMSEsection311"]=100
+    ["theta"]=100
+    ["ComplexSinCos"]=1
 )
 
 declare -A stepX0s=(
     ["NMSEproblem345"]=0.00019998
     ["NMSEexample34"]=5.98e-06
     ["logexp"]=3.2e-05
+    ["exp1x_log"]=9.8e-07
     ["NMSEproblem343"]=2e-06 # 4e-06
     ["exp1x"]=9.8e-07
     ["NMSEexample37"]=0.00019998
@@ -53,12 +60,30 @@ declare -A stepX0s=(
     ["NMSEproblem337"]=0.00019998
     ["NMSEproblem344"]=0.00019998
     ["NMSEsection311"]=0.00019998
+    ["theta"]=0.0966796875
+    ["ComplexSinCos"]=0.0009765625
+)
+
+declare -A x1Starts=(
+    ["theta"]=1
+    ["ComplexSinCos"]=0
+)
+
+declare -A x1Ends=(
+    ["theta"]=100
+    ["ComplexSinCos"]=1
+)
+
+declare -A stepX1s=(
+    ["theta"]=0.0966796875
+    ["ComplexSinCos"]=0.0009765625
 )
 
 declare -A func1s=(
     ["NMSEproblem345"]=sin
     ["NMSEexample34"]=cos
     ["logexp"]=exp
+    ["exp1x_log"]=exp
     ["NMSEproblem343"]=log
     ["exp1x"]=exp
     ["NMSEexample37"]=exp
@@ -71,10 +96,14 @@ declare -A func1s=(
     ["NMSEproblem337"]=exp
     ["NMSEproblem344"]=exp
     ["NMSEsection311"]=exp
+    ["theta"]=atan
+    ["ComplexSinCos"]=exp
 )
 
 declare -A func2s=(
     ["NMSEproblem345"]=tan
     ["NMSEexample34"]=sin
     ["logexp"]=log
+    ["exp1x_log"]=log
+    ["ComplexSinCos"]=sin
 )

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
         sumResult = sumResult + result[i];
     }
     sum = sum / RUNTIME;
-    printf("sumResult is %f\n", sumResult);
+    // printf("sumResult is %f\n", sumResult);
     // printf("the performance result to be clean: %lu\n", sum);
     if(fclose(stream_time) == EOF)
     {

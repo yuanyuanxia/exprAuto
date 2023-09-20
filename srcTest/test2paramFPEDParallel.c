@@ -287,8 +287,8 @@ int main(int argc, char **argv)
             printf("Error opening file %s.\n", fileNameErr);
             exit(0);
         }
-        // printf("average ulp\tmax ulp\n");
-        // printf("%.16Le\t%.16le\n", aveError, maxError);
+        printf("average ulp\tmax ulp\n");
+        printf("%.16Le\t%.16le\n", aveError, maxError);
         // printf("\naveReUlp = %Lg\nmaxInputX0 = 0x%016lx %lg, maxInputX1 = 0x%016lx %lg, maxReUlp = %lg\n", aveError, maxInputX0.l, maxInputX0.d, maxInputX1.l, maxInputX1.d, maxError);
         fprintf(fErr, "average ulp\tmax ulp\n");
         fprintf(fErr, "%.16Le\t%.16le\n", aveError, maxError);

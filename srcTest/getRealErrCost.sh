@@ -1,6 +1,7 @@
 #!/bin/bash
 # set -x
 
+# ！！！仅有两个函数
 # 多精度版本函数的路径是TGen的路径，特定于北京服务器的固定路径。
 # NMSEproblem345的双参特供版，能修改其中的tan, sin函数的精度版本，用来测试使用不同函数的表达式的性能和精度
 # getRealErrCost脚本的测试对象是帕累托优化得到的所有混合精度方案，用来验证帕累托优化效果
@@ -15,15 +16,20 @@
 # init for mix-precision
 source funcMap.sh
 source exprMap.sh
-# source init.sh
 
 # init for error detection and performance detection
+inputNum="One"
 if [ $# == 3 ]; then
     uniqueLabel=${1}
     x0Start=${x0Starts[${uniqueLabel}]}
     x0End=${x0Ends[${uniqueLabel}]}
     stepX0=${stepX0s[${uniqueLabel}]}
-
+    x1Start=${x1Starts[${uniqueLabel}]}
+    if [ -n "${x1Start}" ]; then
+        inputNum="Two"
+        x1End=${x1Ends[${uniqueLabel}]}
+        stepX1=${stepX1s[${uniqueLabel}]}
+    fi
     func1=${2}
     func2=${3}
 elif [ $# == 1 ]; then
@@ -31,7 +37,12 @@ elif [ $# == 1 ]; then
     x0Start=${x0Starts[${uniqueLabel}]}
     x0End=${x0Ends[${uniqueLabel}]}
     stepX0=${stepX0s[${uniqueLabel}]}
-
+    x1Start=${x1Starts[${uniqueLabel}]}
+    if [ -n "${x1Start}" ]; then
+        inputNum="Two"
+        x1End=${x1Ends[${uniqueLabel}]}
+        stepX1=${stepX1s[${uniqueLabel}]}
+    fi
     func1=sin
     func2=tan
 else
@@ -47,6 +58,18 @@ fi
 x0Size=500000
 x0startNowIdx=0
 x0startOriginInterval=${x0Start}
+
+if [ ${inputNum} == "Two" ]; then
+    x0Size=1024
+    x1Size=1024
+    x1startNowIdx=0
+    x1startOriginInterval=${x1Start}
+    echo "x1Start is ${x1Start}, not empty"
+    echo "x1End is ${x1End}, not empty"
+    echo "stepX1 is ${stepX1}, not empty"
+    echo "x1startOriginInterval is ${x1startOriginInterval}, not empty"
+fi
+
 prefix=expr_${uniqueLabel}
 middle=${x0Start}
 suffix=origin
@@ -109,9 +132,17 @@ do
     echo "${func1}: bit = ${bit1} degree = ${degree1}; ${func2}: bit2 = ${bit2} degree = ${degree2}"
     echo -e "${bit1}\t${degree1}\t${bit2}\t${degree2}" > ${temp_file}
     cd ..
-    ./detectErrorOneFPEDParallel.sh ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${x0startNowIdx} ${x0startOriginInterval} ${stepX0} ${prefix} ${middle} ${suffix} ${errfile} | tee -a ${temp_file}
+    if [ ${inputNum} = "One" ]; then
+        ./detectErrorOneFPEDParallel.sh ${uniqueLabel} ${x0Start} ${x0End} ${x0Size} ${x0startNowIdx} ${x0startOriginInterval} ${stepX0} ${prefix} ${middle} ${suffix} ${errfile} | tee -a ${temp_file}
+    elif [ ${inputNum} = "Two" ]; then
+        ./detectErrorTwoFPEDParallel.sh ${uniqueLabel} ${x0Start} ${x0End} ${x1Start} ${x1End} ${x0Size} ${x1Size} ${x0startNowIdx}  ${x1startNowIdx} ${x0startOriginInterval} ${x1startOriginInterval} ${stepX0} ${stepX1} ${prefix} ${middle} ${suffix} ${errfile} | tee -a ${temp_file}
+    fi
     cd - >/dev/null
-    taskset -c 0 ./testPerformanceOneManual.sh ${uniqueLabel} ${suffix} ${x0Start} ${x0End} | tee -a ${temp_file}
+    if [ ${inputNum} = "One" ]; then
+        taskset -c 0 ./testPerformanceOneManual.sh ${uniqueLabel} ${suffix} ${x0Start} ${x0End} | tee -a ${temp_file}
+    elif [ ${inputNum} = "Two" ]; then
+        taskset -c 0 ./testPerformanceTwoManual.sh ${uniqueLabel} ${suffix} ${x0Start} ${x0End} ${x1Start} ${x1End} | tee -a ${temp_file}
+    fi
     awk 'NR == 1 { printf "%s\t", $0 }; NR == 3 { printf "%s\t", $1 }; NR == 5 { print $0 }' ${temp_file} >> ${log_file}
     echo
 done

@@ -14,6 +14,11 @@ cd - >/dev/null
 taskset -c 0 ./testPerformanceOneManual.sh logexp origin -8 8
 
 cd ..
+./detectErrorOneFPEDParallel.sh exp1x_log 0.01 0.5 500000 0 0.01 9.8e-07 expr_exp1x_log 0.01_0.5_500000 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceOneManual.sh exp1x_log origin 0.01 0.5
+
+cd ..
 # ./detectErrorOneFPEDParallel.sh NMSEproblem343 -1 1 500000 0 -1 4e-06 expr_NMSEproblem343 -1_1_500000 origin 0
 ./detectErrorOneFPEDParallel.sh NMSEproblem343 -0.5 0.5 500000 0 -0.5 2e-06 expr_NMSEproblem343 -0.5_0.5_500000 origin 0
 cd - >/dev/null
@@ -76,3 +81,13 @@ cd ..
 ./detectErrorOneFPEDParallel.sh NMSEsection311 0.01 100 500000 0 0.01 0.00019998 expr_NMSEsection311 0.01_100_500000 origin 0
 cd - >/dev/null
 taskset -c 0 ./testPerformanceOneManual.sh NMSEsection311 origin 0.01 100
+
+cd ..
+./detectErrorTwoFPEDParallel.sh theta 1 100 1 100 1024 1024 0 0 1 1 0.0966796875 0.0966796875 expr_theta 1_100_1_100_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh theta origin 1 100 1 100
+
+cd ..
+./detectErrorTwoFPEDParallel.sh ComplexSinCos 0 1 0 1 1024 1024 0 0 0 0 0.0009765625 0.0009765625 expr_ComplexSinCos 0_1_0_1_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh ComplexSinCos origin 0 1 0 1

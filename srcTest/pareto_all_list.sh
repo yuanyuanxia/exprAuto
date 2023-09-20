@@ -23,6 +23,14 @@ taskset -c 0 ./pareto_all.sh logexp -8 8 1 2982
 # taskset -c 0 python3 per_allversion.py exp -8 8
 # taskset -c 0 python3 per_allversion.py log 1 2982
 
+# exp1x_log := ((exp(x) - 1.0) / log(exp(x)))
+# exp: [0.01, 0.5]
+# log: [e^0.01, e^0.5] \approx [1, 1.65]
+taskset -c 0 ./pareto_all.sh exp1x_log 0.01 0.5 1 1.65
+## TGen
+# taskset -c 0 python3 per_allversion.py exp 0.01 0.5
+# taskset -c 0 python3 per_allversion.py log 1 1.65
+
 # !!!!!!
 # NMSEproblem343 := (log (/ (- 1 eps) (+ 1 eps)))
 # eps: [-1, 1]
@@ -109,3 +117,21 @@ taskset -c 0 ./pareto_all_1.sh NMSEproblem344
 taskset -c 0 ./pareto_all_1.sh NMSEsection311 0.01 200
 ## TGen
 # taskset -c 0 python3 per_allversion.py exp 0 200
+
+# theta := (atan((x2 / x1)) * 57.29577951307855)
+# x: [1, 100]
+# y: [1, 100]
+# atan: [0.01, 100]
+taskset -c 0 ./pareto_all_1.sh theta 0.01 100
+## TGen
+# taskset -c 0 python3 per_allversion.py atan 0.01 100
+
+# ComplexSinCos := (((1.0 / 2.0) * sin(r)) * (exp((-1.0 * i)) - exp(i)))
+# x: [0, 1]
+# y: [0, 1]
+# sin: [0, 1]
+# exp: [-1, 1]
+taskset -c 0 ./pareto_all_1.sh ComplexSinCos -1 1 0 1
+## TGen
+# taskset -c 0 python3 per_allversion.py exp -1 1
+# taskset -c 0 python3 per_allversion.py sin 0 1
