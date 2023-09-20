@@ -45,3 +45,6 @@ expr_*.c
 run.log
 includeTEST/mine.h
 *.csv
+*.log
+srcTest/*/*_gen.c
+srcTest/*/myhead.h
