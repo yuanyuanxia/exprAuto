@@ -91,3 +91,38 @@ cd ..
 ./detectErrorTwoFPEDParallel.sh ComplexSinCos 0 1 0 1 1024 1024 0 0 0 0 0.0009765625 0.0009765625 expr_ComplexSinCos 0_1_0_1_1024_1024 origin 0
 cd - >/dev/null
 taskset -c 0 ./testPerformanceTwoManual.sh ComplexSinCos origin 0 1 0 1
+
+cd ..
+./detectErrorTwoFPEDParallel.sh NMSEexample33 0.01 1 0 100 1024 1024 0 0 0.01 0 0.000966796875 0.09765625 expr_NMSEexample33 0.01_1_0_100_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh NMSEexample33 origin 0.01 1 0 100
+
+cd ..
+./detectErrorTwoFPEDParallel.sh NMSEproblem332 0.01 1 0 100 1024 1024 0 0 0.01 0 0.000966796875 0.09765625 expr_NMSEproblem332 0.01_1_0_100_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh NMSEproblem332 origin 0.01 1 0 100
+
+cd ..
+./detectErrorTwoFPEDParallel.sh NMSEproblem335 0.01 1 0 100 1024 1024 0 0 0.01 0 0.000966796875 0.09765625 expr_NMSEproblem335 0.01_1_0_100_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh NMSEproblem335 origin 0.01 1 0 100
+
+cd ..
+./detectErrorTwoFPEDParallel.sh NMSEsection35 0 1 0 1 1024 1024 0 0 0 0 0.0009765625 0.0009765625 expr_NMSEsection35 0_1_0_1_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh NMSEsection35 origin 0 1 0 1
+
+cd ..
+./detectErrorTwoFPEDParallel.sh polarToCarthesianX 1 10 0 360 1024 1024 0 0 1 0 0.0087890625 0.3515625 expr_polarToCarthesianX 1_10_0_360_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh polarToCarthesianX origin 1 10 0 360
+
+cd ..
+./detectErrorTwoFPEDParallel.sh polarToCarthesianY 1 10 0 360 1024 1024 0 0 1 0 0.0087890625 0.3515625 expr_polarToCarthesianY 1_10_0_360_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh polarToCarthesianY origin 1 10 0 360
+
+cd ..
+./detectErrorTwoFPEDParallel.sh i6 0.1 10 -5 5 1024 1024 0 0 0.1 -5 0.00966796875 0.009765625 expr_i6 0.1_10_-5_5_1024_1024 origin 0
+cd - >/dev/null
+taskset -c 0 ./testPerformanceTwoManual.sh i6 origin 0.1 10 -5 5

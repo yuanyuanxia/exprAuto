@@ -131,7 +131,63 @@ taskset -c 0 ./pareto_all_1.sh theta 0.01 100
 # y: [0, 1]
 # sin: [0, 1]
 # exp: [-1, 1]
-taskset -c 0 ./pareto_all_1.sh ComplexSinCos -1 1 0 1
+taskset -c 0 ./pareto_all.sh ComplexSinCos -1 1 0 1
 ## TGen
 # taskset -c 0 python3 per_allversion.py exp -1 1
 # taskset -c 0 python3 per_allversion.py sin 0 1
+
+# NMSEexample33 := (sin((x + eps)) - sin(x))
+# eps: [0.01, 1]
+# x: [0, 100]
+# sin: [0, 101]
+taskset -c 0 ./pareto_all_1.sh NMSEexample33 0 101
+## TGen
+# taskset -c 0 python3 per_allversion.py sin 0 101
+
+# NMSEproblem332 := (tan((x + eps)) - tan(x))
+# eps: [0.01, 1]
+# x: [0, 100]
+# tan: [0, 101]
+taskset -c 0 ./pareto_all_1.sh NMSEproblem332 0 101
+## TGen
+# taskset -c 0 python3 per_allversion.py tan 0 101
+
+# NMSEproblem335 := (cos((x + eps)) - cos(x))
+# eps: [0.01, 1]
+# x: [0, 100]
+# cos: [0, 101]
+taskset -c 0 ./pareto_all_1.sh NMSEproblem335 0 101
+## TGen
+# taskset -c 0 python3 per_allversion.py cos 0 101
+
+# NMSEsection35 := (exp((a * x)) - 1.0)
+# a: [0, 1]
+# x: [0, 1]
+# exp: [0, 1]
+taskset -c 0 ./pareto_all_1.sh NMSEsection35
+## TGen
+# taskset -c 0 python3 per_allversion.py exp 0 1
+
+# polarToCarthesianX := (radius * cos((0.017453292519944444 * theta)))
+# radius: [1, 10]
+# theta: [0, 360]
+# cos: [0, 2pi] \approx [0, 6.2832]
+taskset -c 0 ./pareto_all_1.sh polarToCarthesianX 0 6.2832
+## TGen
+# taskset -c 0 python3 per_allversion.py cos 0 6.2832
+
+# polarToCarthesianY := (radius * sin((0.017453292519944444 * theta)))
+# radius: [1, 10]
+# theta: [0, 360]
+# sin: [0, 2pi] \approx [0, 6.2832]
+taskset -c 0 ./pareto_all_1.sh polarToCarthesianY
+## TGen
+# taskset -c 0 python3 per_allversion.py sin 0 6.2832
+
+# i6 := sin((x * y))
+# x: [0.1, 10]
+# y: [-5, 5]
+# sin: [-50, 50]
+taskset -c 0 ./pareto_all_1.sh i6 -50 50
+## TGen
+# taskset -c 0 python3 per_allversion.py sin -50 50

@@ -20,6 +20,13 @@ declare -A x0Starts=(
     ["NMSEsection311"]=0.01
     ["theta"]=1
     ["ComplexSinCos"]=0
+    ["NMSEexample33"]=0.01
+    ["NMSEproblem332"]=0.01
+    ["NMSEproblem335"]=0.01
+    ["NMSEsection35"]=0
+    ["polarToCarthesianX"]=1
+    ["polarToCarthesianY"]=1
+    ["i6"]=0.1
 )
 
 declare -A x0Ends=(
@@ -41,6 +48,13 @@ declare -A x0Ends=(
     ["NMSEsection311"]=100
     ["theta"]=100
     ["ComplexSinCos"]=1
+    ["NMSEexample33"]=1
+    ["NMSEproblem332"]=1
+    ["NMSEproblem335"]=1
+    ["NMSEsection35"]=1
+    ["polarToCarthesianX"]=10
+    ["polarToCarthesianY"]=10
+    ["i6"]=10
 )
 
 declare -A stepX0s=(
@@ -62,21 +76,49 @@ declare -A stepX0s=(
     ["NMSEsection311"]=0.00019998
     ["theta"]=0.0966796875
     ["ComplexSinCos"]=0.0009765625
+    ["NMSEexample33"]=0.000966796875
+    ["NMSEproblem332"]=0.000966796875
+    ["NMSEproblem335"]=0.000966796875
+    ["NMSEsection35"]=0.0009765625
+    ["polarToCarthesianX"]=0.0087890625
+    ["polarToCarthesianY"]=0.0087890625
+    ["i6"]=0.00966796875
 )
 
 declare -A x1Starts=(
     ["theta"]=1
     ["ComplexSinCos"]=0
+    ["NMSEexample33"]=0
+    ["NMSEproblem332"]=0
+    ["NMSEproblem335"]=0
+    ["NMSEsection35"]=0
+    ["polarToCarthesianX"]=0
+    ["polarToCarthesianY"]=0
+    ["i6"]=-5
 )
 
 declare -A x1Ends=(
     ["theta"]=100
     ["ComplexSinCos"]=1
+    ["NMSEexample33"]=100
+    ["NMSEproblem332"]=100
+    ["NMSEproblem335"]=100
+    ["NMSEsection35"]=1
+    ["polarToCarthesianX"]=360
+    ["polarToCarthesianY"]=360
+    ["i6"]=5
 )
 
 declare -A stepX1s=(
     ["theta"]=0.0966796875
     ["ComplexSinCos"]=0.0009765625
+    ["NMSEexample33"]=0.0009765625
+    ["NMSEproblem332"]=0.0009765625
+    ["NMSEproblem335"]=0.0009765625
+    ["NMSEsection35"]=0.0009765625
+    ["polarToCarthesianX"]=0.3515625
+    ["polarToCarthesianY"]=0.3515625
+    ["i6"]=0.009765625
 )
 
 declare -A func1s=(
@@ -98,6 +140,13 @@ declare -A func1s=(
     ["NMSEsection311"]=exp
     ["theta"]=atan
     ["ComplexSinCos"]=exp
+    ["NMSEexample33"]=sin
+    ["NMSEproblem332"]=tan
+    ["NMSEproblem335"]=cos
+    ["NMSEsection35"]=exp
+    ["polarToCarthesianX"]=cos
+    ["polarToCarthesianY"]=sin
+    ["i6"]=sin
 )
 
 declare -A func2s=(
