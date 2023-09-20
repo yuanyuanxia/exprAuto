@@ -39,7 +39,7 @@ def geneData(file1, file2):
             # errorSum = error1[i] + error2[j] # !!! 这里是关键，关键在于要不要从error变成epsilon。
             errorSum = error1[i] * condNumSin + error2[j] * condNumTan # !!! 这里是关键，关键在于要不要从error变成epsilon。
             perfSum = perf1[i] + perf2[j]
-            pair = (regime1[i], degree1[i], degree1[j], degree2[j], errorSum, perfSum)
+            pair = (regime1[i], degree1[i], regime2[j], degree2[j], errorSum, perfSum)
             result.append(pair)
     return result
 
