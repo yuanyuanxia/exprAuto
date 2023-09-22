@@ -180,7 +180,7 @@ taskset -c 0 ./pareto_all_1.sh polarToCarthesianX 0 6.2832
 # radius: [1, 10]
 # theta: [0, 360]
 # sin: [0, 2pi] \approx [0, 6.2832]
-taskset -c 0 ./pareto_all_1.sh polarToCarthesianY
+taskset -c 0 ./pareto_all_1.sh polarToCarthesianY 0 6.2832
 ## TGen
 # taskset -c 0 python3 per_allversion.py sin 0 6.2832
 
