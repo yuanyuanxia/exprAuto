@@ -95,7 +95,9 @@ benchMark.txt: 存放exprAuto已测试过的benchmark
 
 benchMarkInterval.txt: 存放exprAuto已测试过的benchmark的测试区间
 
-detectError**.sh: 误差检测的相关shell脚本
+detectError[Num][FPED][Single][Parallel][NumOpt]**.sh: 误差检测的相关shell脚本. Num可取值One, Two, Three, Four, Five, 表示不同参数数量. 后缀带有Single的，是串行版本. 后缀带有Parallel的，是并行版本. 后缀带有NumOpt的，是用于测试NumOpt的版本. 
+
+sampleError[Num].sh: 误差数据采样脚本。Num可取值Two, Three, Four, Five, 表示不同参数数量. (Num = One的情况，等价于detectError*.sh脚本中Num = One的情况)
 
 ### 编译运行
 #### 依赖环境
@@ -107,7 +109,7 @@ QD库：https://www.davidhbailey.com/dhbsoftware/
 NumOpt： http://seg.nju.edu.cn/eytang/numopt/numopt.tar.gz
 
 ```bash
-git clone https://gitee.com/mathlib/expr-auto.git
+https://github.com/yuanyuanxia/exprAuto.git
 cd path/to/exprAuto
 make
 ./bin/exprAuto.exe
